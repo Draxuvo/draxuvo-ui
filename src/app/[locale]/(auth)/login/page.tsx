@@ -316,6 +316,17 @@ export default function LoginPage() {
               {t("forgotPassword")}
             </button>
           </p>
+
+          <p className="text-center mt-3 text-sm text-slate-500">
+            {t("noAccount")}{" "}
+            <button
+              type="button"
+              className="text-slate-700 font-medium underline-offset-2 hover:underline"
+              onClick={() => router.push(`/${locale}/registro`)}
+            >
+              {t("register")}
+            </button>
+          </p>
         </div>
       </div>
     </div>
