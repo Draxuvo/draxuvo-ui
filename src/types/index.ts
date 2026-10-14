@@ -35,6 +35,8 @@ export interface AdminUser {
   created_at: string;
 }
 
+export type EmployeeStatus = "active" | "inactive";
+
 export interface Employee {
   id: number;
   name: string;
@@ -43,18 +45,24 @@ export interface Employee {
   salary?: number | string;
   email?: string;
   phone?: string;
-  status: "active" | "inactive";
+  status: EmployeeStatus;
   created_at: string;
 }
+
+export type AttendanceType = "normal" | "late" | "absent";
 
 export interface Attendance {
   id: number;
   employee_id: number;
+  company_id: number;
+  attendance_type: AttendanceType;
   checkin_at: string;
-  checkout_at?: string;
-  lat?: number;
-  lng?: number;
-  attendance_type: "normal" | "late" | "absent";
+  checkout_at: string | null;
+  lat: string | null;
+  lng: string | null;
+  created_at: string;
+  updated_at: string;
+  employee: { id: number; name: string; position: string | null };
 }
 
 export interface Product {
@@ -185,6 +193,9 @@ export interface AuthResponse {
   user: User;
 }
 
+export type WorkOrderStatus = "pending" | "in_progress" | "in_review" | "completed" | "cancelled";
+export type WorkOrderPriority = "low" | "medium" | "high" | "urgent";
+
 export interface WorkOrderItem {
   id: number;
   description: string;
@@ -203,8 +214,8 @@ export interface WorkOrder {
   id: number;
   title: string;
   description?: string;
-  priority: "low" | "medium" | "high" | "urgent";
-  status: "pending" | "in_progress" | "in_review" | "completed" | "cancelled";
+  priority: WorkOrderPriority;
+  status: WorkOrderStatus;
   due_date?: string;
   completed_at?: string;
   notes?: string;
@@ -225,12 +236,12 @@ export interface DashboardStats {
   };
   users: {
     total: number;
-    by_role: Record<string, number>;
+    by_role: Record<User["role"], number>;
   };
   work_orders: {
     total: number;
-    by_status: Record<string, number>;
-    by_priority: Record<string, number>;
+    by_status: Record<WorkOrderStatus, number>;
+    by_priority: Record<WorkOrderPriority, number>;
   };
   tickets: {
     total: number;
@@ -250,6 +261,7 @@ export interface DashboardStats {
     today: { total: number; normal: number; late: number; absent: number };
     this_month: number;
   };
+  active_modules: ModuleKey[];
 }
 
 export interface ReportSummary {
@@ -316,6 +328,8 @@ export interface PayrollReport {
   employees: PayrollEmployee[];
 }
 
+export type TicketStatus = "pending" | "paid";
+
 export interface TicketItem {
   id: number;
   description: string;
@@ -335,10 +349,64 @@ export interface Ticket {
     description?: string;
     employee?: { id: number; name: string };
   };
-  status: "pending" | "paid";
+  status: TicketStatus;
   total: number;
   items?: TicketItem[];
   notes?: string;
   created_at: string;
   paid_at?: string;
 }
+
+// ── Filtros de lista (contracts/ui-routes.md). Los nombres son los de la API (R5). ──
+
+/** Paginación que cada lista pasa a la API. `page_size` no va en la URL. */
+export interface ListParams {
+  page?: number;
+  page_size?: number;
+}
+
+export interface EmployeeFilters {
+  status?: EmployeeStatus;
+  search?: string;
+}
+
+export interface ProductFilters {
+  low_stock?: boolean;
+  out_of_stock?: boolean;
+  /** `true` = disponibles; `false` = no disponibles (fila del resumen de inventario). */
+  available?: boolean;
+  search?: string;
+}
+
+export interface WorkOrderFilters {
+  status?: WorkOrderStatus;
+  priority?: WorkOrderPriority;
+  employee_id?: number;
+  search?: string;
+}
+
+export interface TicketFilters {
+  status?: TicketStatus;
+  search?: string;
+}
+
+export interface AttendanceFilters {
+  /** `YYYY-MM-DD`, día completo en America/Mexico_City. */
+  from?: string;
+  /** `YYYY-MM-DD`, inclusivo. */
+  to?: string;
+  employee_id?: number;
+  type?: AttendanceType;
+}
+
+export const EMPLOYEE_STATUSES: readonly EmployeeStatus[] = ["active", "inactive"];
+export const WORK_ORDER_STATUSES: readonly WorkOrderStatus[] = [
+  "pending",
+  "in_progress",
+  "in_review",
+  "completed",
+  "cancelled",
+];
+export const WORK_ORDER_PRIORITIES: readonly WorkOrderPriority[] = ["low", "medium", "high", "urgent"];
+export const TICKET_STATUSES: readonly TicketStatus[] = ["pending", "paid"];
+export const ATTENDANCE_TYPES: readonly AttendanceType[] = ["normal", "late", "absent"];

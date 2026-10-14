@@ -43,7 +43,7 @@ export default function EmpleadosPage() {
 
   const { data, isLoading, isFetching, refetch, error } = useQuery({
     queryKey: ["employees", page, PAGE_SIZE, debouncedSearch],
-    queryFn: () => employeesService.list(page, debouncedSearch, PAGE_SIZE),
+    queryFn: () => employeesService.list({ page, page_size: PAGE_SIZE, search: debouncedSearch }),
   });
 
   const employees: Employee[] = data?.results ?? [];

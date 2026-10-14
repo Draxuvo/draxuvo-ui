@@ -19,7 +19,8 @@ export default function MisOrdenesPage() {
   const [createOpen, setCreateOpen] = useState(false);
 
   // El backend ya filtra por el empleado autenticado
-  const { data: orders = [], isLoading } = useWorkOrders();
+  const { data, isLoading } = useWorkOrders();
+  const orders = data?.results ?? [];
 
   const active = orders.filter((o) => o.status !== "completed" && o.status !== "cancelled");
   const completed = orders.filter((o) => o.status === "completed");

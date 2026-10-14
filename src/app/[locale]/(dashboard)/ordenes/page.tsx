@@ -18,7 +18,7 @@ import { ProgressBar } from "@/components/work-orders/progress-bar";
 import { WorkOrderDialog } from "@/components/work-orders/work-order-dialog";
 import { WorkOrderDetail } from "@/components/work-orders/work-order-detail";
 import { ClipboardList, Search, Plus, RefreshCw, Trash2 } from "lucide-react";
-import type { WorkOrder } from "@/types";
+import type { WorkOrder, WorkOrderFilters, WorkOrderStatus } from "@/types";
 import { ModuleLocked, useModuleLocked } from "@/components/subscription/module-locked";
 import { format } from "date-fns";
 import { es, enUS } from "date-fns/locale";
@@ -58,11 +58,12 @@ export default function OrdenesPage() {
     return () => clearTimeout(id);
   }, [search]);
 
-  const filters: Record<string, string> = {};
-  if (statusFilter !== "all") filters.status = statusFilter;
+  const filters: WorkOrderFilters = {};
+  if (statusFilter !== "all") filters.status = statusFilter as WorkOrderStatus;
   if (debouncedSearch) filters.search = debouncedSearch;
 
-  const { data: orders = [], isLoading, isFetching, refetch, error } = useWorkOrders(filters);
+  const { data, isLoading, isFetching, refetch, error } = useWorkOrders(filters);
+  const orders = data?.results ?? [];
 
   const locked = useModuleLocked("work_orders", error);
   if (locked) return <ModuleLocked module="work_orders" />;

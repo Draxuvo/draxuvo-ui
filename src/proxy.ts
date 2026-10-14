@@ -7,7 +7,7 @@ const intlMiddleware = createMiddleware(routing);
 
 const PUBLIC_ROUTES = ["/login", "/set-password", "/recuperar-contrasena", "/registro"];
 const EMPLOYEE_ROUTES = ["/mis-ordenes", "/mi-perfil", "/mis-tickets"];
-const ADMIN_ROUTES = ["/dashboard", "/inicio", "/empleados", "/inventario", "/ordenes", "/tickets"];
+const ADMIN_ROUTES = ["/dashboard", "/inicio", "/empleados", "/inventario", "/ordenes", "/tickets", "/asistencia"];
 
 export default function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;

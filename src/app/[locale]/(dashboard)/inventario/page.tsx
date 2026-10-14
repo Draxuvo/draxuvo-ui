@@ -38,7 +38,7 @@ export default function InventarioPage() {
 
   const { data, isLoading, isFetching, refetch, error } = useQuery({
     queryKey: ["products", page, PAGE_SIZE, debouncedSearch],
-    queryFn: () => inventoryService.list(page, debouncedSearch, PAGE_SIZE),
+    queryFn: () => inventoryService.list({ page, page_size: PAGE_SIZE, search: debouncedSearch }),
   });
 
   const products: Product[] = data?.results ?? [];

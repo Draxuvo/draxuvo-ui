@@ -13,7 +13,33 @@
     "noResults": "Sin resultados",
     "error": "Error",
     "success": "Éxito",
-    "actions": "Acciones"
+    "actions": "Acciones",
+    "retry": "Reintentar",
+    "loadError": "No se pudo cargar la información.",
+    "viewAll": "Ver todos",
+    "filters": {
+      "title": "Filtros",
+      "appliedFromDashboard": "Filtro aplicado desde el dashboard",
+      "applied": "Filtro aplicado: {filters}",
+      "clear": "Limpiar filtros",
+      "remove": "Quitar filtro {name}",
+      "all": "Todos",
+      "allFeminine": "Todas",
+      "status": "Estado",
+      "priority": "Prioridad",
+      "employee": "Empleado",
+      "type": "Tipo",
+      "dateRange": "Rango de fechas",
+      "from": "Desde",
+      "to": "Hasta",
+      "today": "Hoy",
+      "noResults": "Ningún registro coincide con estos filtros.",
+      "noResultsHint": "Prueba con otros filtros o límpialos para ver la lista completa.",
+      "results": "{count, plural, =0 {Sin resultados} one {# resultado} other {# resultados}}",
+      "pageOf": "Página {page} de {total}",
+      "previousPage": "Página anterior",
+      "nextPage": "Página siguiente"
+    }
   },
   "auth": {
     "title": "Draxuvo",
@@ -54,7 +80,14 @@
     "logout": "Cerrar sesión",
     "companies": "Empresas",
     "users": "Usuarios",
-    "subscriptions": "Suscripciones"
+    "subscriptions": "Suscripciones",
+    "attendance": "Asistencia",
+    "mainNav": "Navegación principal",
+    "menu": "Menú",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "collapseMenu": "Contraer menú",
+    "expandMenu": "Expandir menú"
   },
   "home": {
     "welcome": "Bienvenido, {name}",
@@ -62,7 +95,20 @@
     "activeEmployees": "Empleados activos",
     "totalProducts": "Productos en inventario",
     "lowStock": "Productos con stock bajo",
-    "activePlan": "Plan activo"
+    "activePlan": "Plan activo",
+    "greetingMorning": "Buenos días, {name}",
+    "greetingAfternoon": "Buenas tardes, {name}",
+    "greetingEvening": "Buenas noches, {name}",
+    "todaySummary": "Así va tu negocio hoy.",
+    "shortcuts": "Accesos rápidos",
+    "viewDashboard": "Ver dashboard",
+    "planStatus": "Estado: {status}",
+    "aria": {
+      "activeEmployees": "{count, plural, one {Ver # empleado activo} other {Ver # empleados activos}}",
+      "products": "{count, plural, one {Ver # producto} other {Ver # productos}}",
+      "lowStock": "{count, plural, one {Ver # producto con stock bajo} other {Ver # productos con stock bajo}}",
+      "plan": "Ver tu suscripción: plan {plan}, {status}"
+    }
   },
   "analyticsBoard": {
     "title": "Dashboard",
@@ -117,6 +163,66 @@
       "medium": "Media",
       "high": "Alta",
       "urgent": "Urgente"
+    },
+    "kpis": "Indicadores",
+    "charts": "Gráficas",
+    "viewAll": "Ver todos",
+    "viewList": "Ver lista",
+    "collected": "Cobrado",
+    "employeesActive": "Empleados activos",
+    "employeesInactive": "Empleados inactivos",
+    "products": "Productos",
+    "available": "Disponibles",
+    "pendingOrders": "Órdenes pendientes",
+    "ticketsPendingLabel": "Tickets pendientes",
+    "ticketsPaidLabel": "Tickets pagados",
+    "reports": "Reportes",
+    "reportsSub": "Ingresos, gastos y nómina por periodo",
+    "chartInventory": "Resumen de inventario",
+    "legendHint": "Toca una barra o un concepto para abrir la lista filtrada.",
+    "legendLabel": "Leyenda: {chart}",
+    "subset": {
+      "active": "{count} activos",
+      "inactive": "{count} inactivos",
+      "lowStock": "{count} con stock bajo",
+      "outOfStock": "{count} agotados",
+      "available": "{count} disponibles",
+      "pending": "{count} pendientes",
+      "paid": "{count} pagados",
+      "pendingRevenue": "{amount} por cobrar",
+      "thisMonth": "{count} registros este mes"
+    },
+    "empty": {
+      "noModules": "Tu plan no tiene módulos con indicadores.",
+      "noModulesHint": "Revisa tu suscripción para activar empleados, inventario, órdenes o tickets.",
+      "viewPlans": "Ver planes",
+      "chart": "Aún no hay registros para esta gráfica.",
+      "attendanceToday": "Nadie ha registrado asistencia hoy.",
+      "workOrders": "Aún no hay órdenes de trabajo.",
+      "tickets": "Aún no hay tickets.",
+      "inventory": "Aún no hay productos en inventario.",
+      "loadError": "No se pudo cargar el dashboard."
+    },
+    "aria": {
+      "employees": "{count, plural, one {Ver # empleado} other {Ver # empleados}}",
+      "employeesActive": "{count, plural, one {Ver # empleado activo} other {Ver # empleados activos}}",
+      "employeesInactive": "{count, plural, one {Ver # empleado inactivo} other {Ver # empleados inactivos}}",
+      "products": "{count, plural, one {Ver # producto} other {Ver # productos}}",
+      "lowStock": "{count, plural, one {Ver # producto con stock bajo} other {Ver # productos con stock bajo}}",
+      "outOfStock": "{count, plural, one {Ver # producto agotado} other {Ver # productos agotados}}",
+      "available": "{count, plural, one {Ver # producto disponible} other {Ver # productos disponibles}}",
+      "unavailable": "{count, plural, one {Ver # producto no disponible} other {Ver # productos no disponibles}}",
+      "workOrders": "{count, plural, one {Ver # orden de trabajo} other {Ver # órdenes de trabajo}}",
+      "workOrdersPending": "{count, plural, one {Ver # orden pendiente} other {Ver # órdenes pendientes}}",
+      "workOrdersStatus": "{count, plural, one {Ver # orden con estado {status}} other {Ver # órdenes con estado {status}}}",
+      "workOrdersPriority": "{count, plural, one {Ver # orden con prioridad {priority}} other {Ver # órdenes con prioridad {priority}}}",
+      "tickets": "{count, plural, one {Ver # ticket} other {Ver # tickets}}",
+      "ticketsPending": "{count, plural, one {Ver # ticket pendiente} other {Ver # tickets pendientes}}",
+      "ticketsPaid": "{count, plural, one {Ver # ticket pagado} other {Ver # tickets pagados}}",
+      "revenue": "Ver tickets pagados: {amount} cobrados",
+      "attendanceToday": "{count, plural, one {Ver # registro de asistencia de hoy} other {Ver # registros de asistencia de hoy}}",
+      "attendanceType": "{count, plural, one {Ver # registro de hoy: {type}} other {Ver # registros de hoy: {type}}}",
+      "reports": "Abrir reportes"
     }
   },
   "employees": {
@@ -166,7 +272,13 @@
     "saving": "Guardando...",
     "activateSuccess": "Empleado activado",
     "deactivateSuccess": "Empleado desactivado",
-    "toggleError": "Error al cambiar el estado del empleado"
+    "toggleError": "Error al cambiar el estado del empleado",
+    "filters": {
+      "status": "Estado",
+      "all": "Todos",
+      "active": "Activos",
+      "inactive": "Inactivos"
+    }
   },
   "api": {
     "invalidRequest": "Solicitud inválida",
@@ -243,7 +355,16 @@
     "importSuccess": "{count} productos importados",
     "importError": "Error al importar el archivo",
     "importInvalidFile": "Solo se aceptan archivos .xlsx, .xls o .csv",
-    "templateError": "Error al descargar la plantilla"
+    "templateError": "Error al descargar la plantilla",
+    "outOfStockBadge": "Agotado",
+    "filters": {
+      "stock": "Existencias",
+      "all": "Todos",
+      "lowStock": "Stock bajo",
+      "outOfStock": "Agotados",
+      "available": "Disponibles",
+      "unavailable": "No disponibles"
+    }
   },
   "companies": {
     "title": "Empresas",
@@ -412,7 +533,9 @@
     "send": "Enviar",
     "whatsappSent": "Ticket enviado por WhatsApp",
     "whatsappSkip": "Ahora no",
-    "resendWhatsapp": "Reenviar por WhatsApp"
+    "resendWhatsapp": "Reenviar por WhatsApp",
+    "allStatuses": "Todos los estados",
+    "filterStatus": "Filtrar por estado"
   },
   "subscription": {
     "nav": "Suscripción",
@@ -701,7 +824,13 @@
     "deleteConfirm": "¿Estás seguro que deseas eliminar \"{title}\"? Esta acción no se puede deshacer.",
     "deleteSuccess": "Orden eliminada",
     "delete": "Eliminar",
-    "deleting": "Eliminando..."
+    "deleting": "Eliminando...",
+    "allStatuses": "Todos los estados",
+    "allPriorities": "Todas las prioridades",
+    "allEmployees": "Todos los empleados",
+    "filterStatus": "Filtrar por estado",
+    "filterPriority": "Filtrar por prioridad",
+    "filterEmployee": "Filtrar por empleado"
   },
   "registration": {
     "title": "Crea tu cuenta",
@@ -779,5 +908,41 @@
     "reports": "Reportes",
     "whatsapp": "WhatsApp",
     "multi_company": "Varias empresas o sucursales"
+  },
+  "attendance": {
+    "title": "Asistencia",
+    "subtitle": "{count, plural, =0 {Sin registros} one {# registro} other {# registros}}",
+    "subtitleToday": "Registros de hoy",
+    "subtitleRange": "Del {from} al {to}",
+    "employee": "Empleado",
+    "position": "Puesto",
+    "checkin": "Entrada",
+    "checkout": "Salida",
+    "type": "Tipo",
+    "date": "Fecha",
+    "dateRange": "Rango de fechas",
+    "from": "Desde",
+    "to": "Hasta",
+    "today": "Hoy",
+    "allEmployees": "Todos los empleados",
+    "allTypes": "Todos los tipos",
+    "filterEmployee": "Filtrar por empleado",
+    "filterType": "Filtrar por tipo",
+    "types": {
+      "normal": "A tiempo",
+      "late": "Tarde",
+      "absent": "Ausente"
+    },
+    "noCheckout": "Sin salida",
+    "noPosition": "Sin puesto",
+    "empty": "No hay registros de asistencia en estas fechas.",
+    "emptyToday": "Nadie ha registrado asistencia hoy.",
+    "emptyHint": "Los registros aparecen cuando el personal marca su entrada.",
+    "readOnlyHint": "Las entradas y salidas se registran desde Personal.",
+    "goToEmployees": "Ir a Personal",
+    "loadError": "No se pudo cargar la asistencia.",
+    "notInPlanTitle": "La asistencia no está en tu plan",
+    "notInPlanBody": "Cambia de plan para ver las entradas, salidas y retardos de tu personal.",
+    "notInPlanCta": "Ver planes"
   }
 }
