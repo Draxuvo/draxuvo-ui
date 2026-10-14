@@ -14,13 +14,6 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PlanPicker, formatCents } from "@/components/subscription/plan-picker";
 import { useAuthStore } from "@/store/auth";
@@ -112,114 +105,122 @@ export function SubscriptionDetail() {
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base">{t("currentPlan")}</CardTitle>
-            {subscription && <StatusBadge subscription={subscription} />}
+    <div className="space-y-8">
+      <section className="rounded-[6px] border border-border bg-card p-4 text-card-foreground shadow-etiqueta sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground">
+              {t("currentPlan")}
+            </h2>
+            {subscription && (
+              <p className="mt-1 font-display text-[2.25rem] font-extrabold uppercase leading-none">
+                {tp(subscription.plan)}
+              </p>
+            )}
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {isLoading ? (
-            <div className="space-y-3">
-              <div className="h-5 w-32 animate-pulse rounded-md bg-zinc-100" />
-              <div className="h-16 animate-pulse rounded-md bg-zinc-100" />
-            </div>
-          ) : subscription ? (
-            <>
-              <dl className="grid gap-2 text-sm sm:grid-cols-2">
-                <div className="flex gap-2">
-                  <dt className="font-medium text-zinc-500">{t("planLabel")}:</dt>
-                  <dd className="font-semibold text-zinc-900">{tp(subscription.plan)}</dd>
-                </div>
+          {subscription && <StatusBadge subscription={subscription} />}
+        </div>
+
+        {isLoading ? (
+          <div className="mt-4 space-y-3" aria-busy>
+            <div className="h-8 w-32 rounded-[6px] bg-muted motion-safe:animate-pulse" />
+            <div className="h-16 rounded-[6px] bg-muted motion-safe:animate-pulse" />
+          </div>
+        ) : subscription ? (
+          <div className="mt-4 space-y-4">
+            {(subscription.billing_cycle ||
+              (subscription.total_cents > 0 && status !== "trialing")) && (
+              <dl className="flex flex-wrap gap-x-8 gap-y-3">
                 {subscription.billing_cycle && (
-                  <div className="flex gap-2">
-                    <dt className="font-medium text-zinc-500">{t("billingCycle")}:</dt>
-                    <dd className="text-zinc-900">{tp(subscription.billing_cycle)}</dd>
+                  <div>
+                    <dt className="text-sm text-muted-foreground">{t("billingCycle")}</dt>
+                    <dd className="text-base font-semibold">{tp(subscription.billing_cycle)}</dd>
                   </div>
                 )}
                 {subscription.total_cents > 0 && status !== "trialing" && (
-                  <div className="flex gap-2">
-                    <dt className="font-medium text-zinc-500">{t("totalWithIva")}:</dt>
-                    <dd className="text-zinc-900">{formatCents(subscription.total_cents)}</dd>
+                  <div>
+                    <dt className="text-sm text-muted-foreground">{t("totalWithIva")}</dt>
+                    <dd className="font-display text-2xl font-semibold leading-tight tabular-nums">
+                      {formatCents(subscription.total_cents)}
+                    </dd>
                   </div>
                 )}
               </dl>
-
-              <StatusPanel subscription={subscription} formatDate={formatDate} />
-            </>
-          ) : null}
-        </CardContent>
-      </Card>
-
-      {subscription && (canPay || canManage) && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">
-              {canPay ? t("choosePlan") : t("manage")}
-            </CardTitle>
-            {canManage && <CardDescription>{t("manageDesc")}</CardDescription>}
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {canPay && (
-              <>
-                <PlanPicker
-                  selected={plan}
-                  onSelect={handleSelectPlan}
-                  cycle={cycle}
-                  onCycleChange={setPickedCycle}
-                  currentPlan={subscription.plan}
-                  disabled={busy}
-                />
-                <Button onClick={handleCheckout} disabled={busy} className="w-full gap-2 sm:w-auto">
-                  <CreditCard size={16} />
-                  {redirecting === "checkout"
-                    ? t("activating")
-                    : tp("payPlan", { plan: tp(plan) })}
-                </Button>
-              </>
             )}
 
-            {canManage && (
-              <Button
-                variant="outline"
-                onClick={handlePortal}
-                disabled={busy}
-                className="w-full gap-2 sm:w-auto"
-              >
-                <ExternalLink size={16} />
-                {redirecting === "portal" ? t("openingPortal") : t("manage")}
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+            <StatusPanel subscription={subscription} formatDate={formatDate} />
+          </div>
+        ) : null}
+      </section>
+
+      {subscription && canPay && (
+        <section className="space-y-4">
+          <h2 className="font-display text-2xl font-extrabold uppercase leading-none">
+            {t("choosePlan")}
+          </h2>
+          <PlanPicker
+            selected={plan}
+            onSelect={handleSelectPlan}
+            cycle={cycle}
+            onCycleChange={setPickedCycle}
+            currentPlan={subscription.plan}
+            disabled={busy}
+          />
+          <Button
+            onClick={handleCheckout}
+            disabled={busy}
+            className="h-11 w-full gap-2 rounded-[6px] px-5 text-base font-semibold focus-visible:ring-foreground/40 sm:w-auto"
+          >
+            <CreditCard size={20} strokeWidth={1.75} aria-hidden />
+            {redirecting === "checkout" ? t("activating") : tp("payPlan", { plan: tp(plan) })}
+          </Button>
+        </section>
+      )}
+
+      {subscription && canManage && (
+        <section className="rounded-[6px] border border-border bg-card p-4 text-card-foreground shadow-etiqueta sm:p-6">
+          <h2 className="font-display text-2xl font-extrabold uppercase leading-none">
+            {t("manage")}
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">{t("manageDesc")}</p>
+          <Button
+            variant="outline"
+            onClick={handlePortal}
+            disabled={busy}
+            className="mt-4 h-11 w-full gap-2 rounded-[6px] border-foreground bg-card px-5 text-base font-semibold hover:bg-background sm:w-auto"
+          >
+            <ExternalLink size={20} strokeWidth={1.75} aria-hidden />
+            {redirecting === "portal" ? t("openingPortal") : t("manage")}
+          </Button>
+        </section>
       )}
     </div>
   );
 }
+
+const BADGE = "h-6 rounded-full border-transparent px-2.5 text-xs font-semibold";
 
 function StatusBadge({ subscription }: { subscription: Subscription }) {
   const t = useTranslations("subscription");
   switch (subscription.status) {
     case "active":
       return subscription.cancel_at_period_end ? (
-        <Badge className="border-amber-200 bg-amber-100 text-amber-800">
-          {t("statusCancelScheduled")}
-        </Badge>
+        <Badge className={cn(BADGE, "bg-ceja text-foreground")}>{t("statusCancelScheduled")}</Badge>
       ) : (
-        <Badge className="border-green-200 bg-green-100 text-green-800">{t("active")}</Badge>
+        <Badge className={cn(BADGE, "bg-sello text-etiqueta")}>{t("active")}</Badge>
       );
     case "trialing":
-      return (
-        <Badge className="border-amber-200 bg-amber-100 text-amber-800">{t("trialing")}</Badge>
-      );
+      return <Badge className={cn(BADGE, "bg-ceja text-foreground")}>{t("trialing")}</Badge>;
     case "past_due":
-      return <Badge variant="destructive">{t("pastDue")}</Badge>;
+      return <Badge className={cn(BADGE, "bg-alerta text-etiqueta")}>{t("pastDue")}</Badge>;
     case "expired":
-      return <Badge variant="destructive">{t("expired")}</Badge>;
+      return <Badge className={cn(BADGE, "bg-alerta text-etiqueta")}>{t("expired")}</Badge>;
     case "cancelled":
-      return <Badge variant="secondary">{t("cancelled")}</Badge>;
+      return (
+        <Badge className={cn(BADGE, "border-border bg-background text-foreground")}>
+          {t("cancelled")}
+        </Badge>
+      );
   }
 }
 
@@ -242,13 +243,13 @@ function StatusPanel({
           : null);
       const trialEnd = formatDate(subscription.trial_ends_at);
       return (
-        <Panel tone="amber" icon={Clock} title={t("trialStatus")}>
+        <Panel tone="ceja" icon={Clock} title={t("trialStatus")}>
           {daysLeft !== null && (
-            <p className="text-sm font-semibold text-amber-900">
+            <p className="font-display text-2xl font-semibold leading-tight tabular-nums">
               {t("trialDaysLeft", { days: daysLeft })}
             </p>
           )}
-          {trialEnd && <p className="text-xs text-amber-700">{t("trialUntil", { date: trialEnd })}</p>}
+          {trialEnd && <p className="text-sm text-gris-texto">{t("trialUntil", { date: trialEnd })}</p>}
         </Panel>
       );
     }
@@ -256,47 +257,48 @@ function StatusPanel({
       if (subscription.cancel_at_period_end) {
         return (
           <Panel
-            tone="amber"
+            tone="ceja"
             icon={CalendarDays}
             title={periodEnd ? t("cancelScheduled", { date: periodEnd }) : t("statusCancelScheduled")}
           >
-            <p className="text-xs text-amber-700">{t("cancelScheduledDesc")}</p>
+            <p className="text-sm text-gris-texto">{t("cancelScheduledDesc")}</p>
           </Panel>
         );
       }
       return (
-        <Panel tone="green" icon={ShieldCheck} title={t("active")}>
+        <Panel tone="sello" icon={ShieldCheck} title={t("active")}>
           {periodEnd && (
-            <p className="text-xs text-green-700">{t("nextRenewal", { date: periodEnd })}</p>
+            <p className="text-sm text-muted-foreground">{t("nextRenewal", { date: periodEnd })}</p>
           )}
         </Panel>
       );
     case "past_due":
       return (
-        <Panel tone="red" icon={AlertTriangle} title={t("pastDue")}>
-          <p className="text-xs text-red-700">{t("pastDueBanner")}</p>
+        <Panel tone="alerta" icon={AlertTriangle} title={t("pastDue")}>
+          <p className="text-sm text-muted-foreground">{t("pastDueBanner")}</p>
         </Panel>
       );
     case "expired":
       return (
-        <Panel tone="red" icon={AlertTriangle} title={t("trialExpired")}>
-          <p className="text-xs text-red-700">{t("trialExpiredDesc")}</p>
+        <Panel tone="alerta" icon={AlertTriangle} title={t("trialExpired")}>
+          <p className="text-sm text-muted-foreground">{t("trialExpiredDesc")}</p>
         </Panel>
       );
     case "cancelled":
       return (
-        <Panel tone="zinc" icon={Clock} title={t("cancelled")}>
-          <p className="text-xs text-zinc-600">{t("trialExpiredDesc")}</p>
+        <Panel tone="neutral" icon={Clock} title={t("cancelled")}>
+          <p className="text-sm text-muted-foreground">{t("trialExpiredDesc")}</p>
         </Panel>
       );
   }
 }
 
+// Texto siempre en tinta o gris-texto; el color del estado va en el fondo y el icono.
 const TONES = {
-  amber: { box: "bg-amber-50", icon: "text-amber-600", title: "text-amber-800" },
-  green: { box: "bg-green-50", icon: "text-green-600", title: "text-green-800" },
-  red: { box: "bg-red-50", icon: "text-red-600", title: "text-red-800" },
-  zinc: { box: "bg-zinc-100", icon: "text-zinc-500", title: "text-zinc-700" },
+  ceja: { box: "border-ceja bg-ceja/25", icon: "text-foreground" },
+  sello: { box: "border-sello/30 bg-sello/[0.06]", icon: "text-sello" },
+  alerta: { box: "border-alerta/30 bg-alerta/[0.06]", icon: "text-alerta" },
+  neutral: { box: "border-border bg-background", icon: "text-muted-foreground" },
 };
 
 function Panel({
@@ -312,10 +314,10 @@ function Panel({
 }) {
   const c = TONES[tone];
   return (
-    <div className={cn("flex items-start gap-3 rounded-lg p-4", c.box)}>
-      <Icon size={16} className={cn("mt-0.5 shrink-0", c.icon)} />
+    <div className={cn("flex items-start gap-3 rounded-[6px] border p-4", c.box)}>
+      <Icon size={20} strokeWidth={1.75} className={cn("shrink-0", c.icon)} aria-hidden />
       <div className="space-y-1">
-        <p className={cn("text-sm font-medium", c.title)}>{title}</p>
+        <p className="text-sm font-semibold text-foreground">{title}</p>
         {children}
       </div>
     </div>

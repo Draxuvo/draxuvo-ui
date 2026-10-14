@@ -1,10 +1,12 @@
 // src/app/[locale]/(dashboard)/ordenes/page.tsx
 "use client";
-import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { useQuery } from "@tanstack/react-query";
 import { useWorkOrders, useDeleteWorkOrder } from "@/hooks/use-work-orders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Pagination } from "@/components/ui/pagination";
 import {
   Dialog,
   DialogContent,
@@ -18,159 +20,297 @@ import { ProgressBar } from "@/components/work-orders/progress-bar";
 import { WorkOrderDialog } from "@/components/work-orders/work-order-dialog";
 import { WorkOrderDetail } from "@/components/work-orders/work-order-detail";
 import { ClipboardList, Search, Plus, RefreshCw, Trash2 } from "lucide-react";
-import type { WorkOrder, WorkOrderFilters, WorkOrderStatus } from "@/types";
+import {
+  WORK_ORDER_PRIORITIES,
+  WORK_ORDER_STATUSES,
+  type WorkOrder,
+  type WorkOrderPriority,
+  type WorkOrderStatus,
+} from "@/types";
 import { ModuleLocked, useModuleLocked } from "@/components/subscription/module-locked";
+import { useUrlFilters } from "@/hooks/use-url-filters";
+import { employeesService } from "@/services/employees";
+import { getDashboardStats } from "@/services/analytics";
+import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es, enUS } from "date-fns/locale";
-import { useLocale } from "next-intl";
 import { useAuthStore } from "@/store/auth";
 import { toast } from "sonner";
 
-const STATUS_FILTERS = [
-  "all",
-  "pending",
-  "in_progress",
-  "in_review",
-  "completed",
-  "cancelled",
-];
+const PAGE_SIZE = 20;
+const DEFAULTS = { status: "", priority: "", employee_id: "", search: "" };
+const ALLOWED = { status: WORK_ORDER_STATUSES, priority: WORK_ORDER_PRIORITIES };
+const ID_PATTERN = /^\d+$/;
 
 const ADMIN_ROLES = ["admin", "owner", "super_admin"] as const;
 
+const CHIP =
+  "inline-flex h-8 items-center rounded-full border px-3 text-sm transition-colors duration-[120ms] ease-etiqueta outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+const CHIP_ON = "border-foreground bg-foreground text-background";
+const CHIP_OFF = "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground";
+const SELECT =
+  "h-9 w-full rounded-[6px] border border-input bg-card px-2.5 text-sm text-foreground outline-none transition-colors duration-[120ms] hover:border-foreground/40 focus-visible:ring-2 focus-visible:ring-foreground sm:w-auto";
+
 export default function OrdenesPage() {
+  return (
+    <Suspense>
+      <OrdenesContent />
+    </Suspense>
+  );
+}
+
+function OrdenesContent() {
   const t = useTranslations("workOrders");
+  const tc = useTranslations("common");
+  const tf = useTranslations("common.filters");
   const locale = useLocale();
   const dateLocale = locale === "es" ? es : enUS;
   const user = useAuthStore((s) => s.user);
+  const selectedCompanyId = useAuthStore((s) => s.selectedCompanyId);
   const isAdmin = ADMIN_ROLES.includes(user?.role as typeof ADMIN_ROLES[number]);
 
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [statusFilter, setStatus] = useState("all");
+  const { filters, page, setFilter, setPage, reset, isFiltered } = useUrlFilters(DEFAULTS, {
+    allowed: ALLOWED,
+  });
+  // employee_id: solo ids numéricos; otro valor se ignora.
+  const employeeId = ID_PATTERN.test(filters.employee_id) ? filters.employee_id : "";
+
+  // Búsqueda: borrador local con debounce de 400 ms hacia la URL.
+  const [draft, setDraft] = useState(filters.search);
+  const [synced, setSynced] = useState(filters.search);
+  if (synced !== filters.search) {
+    setSynced(filters.search);
+    if (draft.trim() !== filters.search) setDraft(filters.search);
+  }
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+  }, []);
+  function handleSearch(value: string) {
+    setDraft(value);
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => setFilter("search", value), 400);
+  }
+
   const [createOpen, setCreateOpen] = useState(false);
   const [selected, setSelected] = useState<WorkOrder | null>(null);
   const [toDelete, setToDelete] = useState<WorkOrder | null>(null);
 
   const deleteOrder = useDeleteWorkOrder();
 
-  useEffect(() => {
-    const id = setTimeout(() => setDebouncedSearch(search), 400);
-    return () => clearTimeout(id);
-  }, [search]);
-
-  const filters: WorkOrderFilters = {};
-  if (statusFilter !== "all") filters.status = statusFilter as WorkOrderStatus;
-  if (debouncedSearch) filters.search = debouncedSearch;
-
-  const { data, isLoading, isFetching, refetch, error } = useWorkOrders(filters);
+  const { data, isLoading, isFetching, refetch, error } = useWorkOrders(
+    {
+      status: (filters.status || undefined) as WorkOrderStatus | undefined,
+      priority: (filters.priority || undefined) as WorkOrderPriority | undefined,
+      employee_id: employeeId ? Number(employeeId) : undefined,
+      search: filters.search || undefined,
+    },
+    { page, page_size: PAGE_SIZE },
+  );
   const orders = data?.results ?? [];
+
+  // Opciones de empleado: solo si el módulo de personal está activo (evita un 403).
+  const { data: stats } = useQuery({
+    queryKey: ["dashboard", selectedCompanyId],
+    queryFn: getDashboardStats,
+    staleTime: 60 * 1000,
+  });
+  const hasEmployees = !!stats?.active_modules.includes("employees");
+  const { data: employeeOptions } = useQuery({
+    queryKey: ["employees", "options"],
+    queryFn: () => employeesService.list({ page: 1, page_size: 100 }),
+    enabled: hasEmployees,
+    staleTime: 5 * 60 * 1000,
+  });
 
   const locked = useModuleLocked("work_orders", error);
   if (locked) return <ModuleLocked module="work_orders" />;
 
+  const employeeName =
+    employeeOptions?.results.find((e) => String(e.id) === employeeId)?.name ?? `#${employeeId}`;
+  const applied = [
+    filters.status && `${t("status")}: ${t(`statuses.${filters.status as WorkOrderStatus}`)}`,
+    filters.priority && `${t("priority")}: ${t(`priorities.${filters.priority as WorkOrderPriority}`)}`,
+    employeeId && `${t("employee")}: ${employeeName}`,
+    filters.search && `"${filters.search}"`,
+  ].filter(Boolean);
+  const statusChips: { value: string; label: string }[] = [
+    { value: "", label: t("all") },
+    ...WORK_ORDER_STATUSES.map((s) => ({ value: s, label: t(`statuses.${s}`) })),
+  ];
+
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
+    <div className="space-y-4">
+      <div className="mb-2 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-xl font-medium text-zinc-900">{t("title")}</h1>
-          <p className="text-sm text-zinc-500 mt-0.5">
-            {t("subtitle", { count: orders.length })}
+          <h1 className="font-display text-3xl font-semibold leading-tight text-foreground">{t("title")}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {isFiltered
+              ? tf("results", { count: data?.info?.total ?? 0 })
+              : t("subtitle", { count: data?.info?.total ?? 0 })}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => refetch()} disabled={isFetching}>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            aria-label={tc("refresh")}
+          >
             <RefreshCw size={15} className={isFetching ? "animate-spin" : ""} />
           </Button>
-          <Button size="sm" onClick={() => setCreateOpen(true)}>
-            <Plus size={15} className="mr-2" />
+          <Button onClick={() => setCreateOpen(true)} className="gap-2">
+            <Plus size={15} />
             {t("new")}
           </Button>
         </div>
       </div>
 
-      {/* Filtros de estado */}
-      <div className="flex gap-2 mb-4 flex-wrap">
-        {STATUS_FILTERS.map((s) => (
+      {/* Filtro de estado */}
+      <div role="group" aria-label={t("filterStatus")} className="flex flex-wrap gap-2">
+        {statusChips.map((s) => (
           <button
-            key={s}
-            onClick={() => setStatus(s)}
-            className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-              statusFilter === s
-                ? "bg-zinc-900 text-white border-zinc-900"
-                : "bg-white text-zinc-500 border-zinc-200 hover:border-zinc-300"
-            }`}
+            key={s.value || "all"}
+            type="button"
+            aria-pressed={filters.status === s.value}
+            onClick={() => setFilter("status", s.value || null)}
+            className={cn(CHIP, filters.status === s.value ? CHIP_ON : CHIP_OFF)}
           >
-            {s === "all" ? t("all") : t(`statuses.${s}`)}
+            {s.label}
           </button>
         ))}
       </div>
 
-      <div className="relative mb-4">
-        <Search
-          size={15}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"
-        />
-        <Input
-          placeholder={t("searchPlaceholder")}
-          className="pl-9"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      {/* Búsqueda, prioridad y empleado */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative w-full sm:max-w-sm">
+          <Search size={15} aria-hidden className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="search"
+            aria-label={tc("search")}
+            placeholder={t("searchPlaceholder")}
+            className="bg-card pl-9"
+            value={draft}
+            onChange={(e) => handleSearch(e.target.value)}
+          />
+        </div>
+        <select
+          aria-label={t("filterPriority")}
+          className={SELECT}
+          value={filters.priority}
+          onChange={(e) => setFilter("priority", e.target.value || null)}
+        >
+          <option value="">{t("allPriorities")}</option>
+          {WORK_ORDER_PRIORITIES.map((p) => (
+            <option key={p} value={p}>
+              {t(`priorities.${p}`)}
+            </option>
+          ))}
+        </select>
+        {(hasEmployees || employeeId) && (
+          <select
+            aria-label={t("filterEmployee")}
+            className={SELECT}
+            value={employeeId}
+            onChange={(e) => setFilter("employee_id", e.target.value || null)}
+          >
+            <option value="">{t("allEmployees")}</option>
+            {employeeId && !employeeOptions?.results.some((e) => String(e.id) === employeeId) && (
+              <option value={employeeId}>{employeeName}</option>
+            )}
+            {employeeOptions?.results.map((e) => (
+              <option key={e.id} value={String(e.id)}>
+                {e.name}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
+
+      {isFiltered && (
+        <div
+          role="status"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-[6px] bg-card px-3 py-2 text-sm shadow-etiqueta"
+        >
+          <span className="rounded-full bg-ceja px-2 py-0.5 font-medium text-foreground">
+            {tf("applied", { filters: applied.join(" · ") })}
+          </span>
+          <button
+            type="button"
+            onClick={reset}
+            className="rounded-[6px] px-1 font-medium text-foreground underline decoration-border underline-offset-4 outline-none transition-colors duration-[120ms] hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-foreground"
+          >
+            {tf("clear")}
+          </button>
+        </div>
+      )}
 
       {/* Lista de órdenes */}
       <div className="space-y-2">
         {isLoading ? (
-          <div className="py-12 text-center text-sm text-zinc-400">
-            {t("noOrders")}
-          </div>
+          Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} aria-hidden className="h-24 animate-pulse rounded-[6px] bg-card shadow-etiqueta" />
+          ))
         ) : orders.length === 0 ? (
-          <div className="py-12 text-center text-sm text-zinc-400">
-            <ClipboardList size={32} className="mx-auto mb-3 text-zinc-300" />
-            {t("noOrders")}
+          <div className="py-12 text-center text-sm text-muted-foreground">
+            <ClipboardList size={32} strokeWidth={1.75} aria-hidden className="mx-auto mb-3" />
+            {isFiltered ? (
+              <>
+                <p className="font-medium text-foreground">{tf("noResults")}</p>
+                <p className="mt-1">{tf("noResultsHint")}</p>
+              </>
+            ) : (
+              t("noOrders")
+            )}
           </div>
         ) : (
           orders.map((order) => (
             <div
               key={order.id}
+              role="button"
+              tabIndex={0}
               onClick={() => setSelected(order)}
-              className="bg-white border border-zinc-200 rounded-xl p-4 cursor-pointer hover:border-zinc-300 transition-colors"
+              onKeyDown={(e) => {
+                if (e.target !== e.currentTarget) return;
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setSelected(order);
+                }
+              }}
+              className="cursor-pointer rounded-[6px] border border-transparent bg-card p-4 shadow-etiqueta outline-none transition-colors duration-[120ms] ease-etiqueta hover:border-foreground/40 focus-visible:ring-2 focus-visible:ring-foreground"
             >
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+              <div className="mb-3 flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex items-center gap-2">
                     <PriorityBadge priority={order.priority} />
                     <StatusBadge status={order.status} />
                   </div>
-                  <p className="font-medium text-zinc-900 truncate">
-                    {order.title}
-                  </p>
+                  <p className="truncate font-medium text-foreground">{order.title}</p>
                   {order.description && (
-                    <p className="text-sm text-zinc-400 truncate mt-0.5">
-                      {order.description}
-                    </p>
+                    <p className="mt-0.5 truncate text-sm text-muted-foreground">{order.description}</p>
                   )}
                 </div>
-                <div className="flex items-start gap-2 flex-shrink-0">
+                <div className="flex flex-shrink-0 items-start gap-2">
                   <div className="text-right">
                     {order.due_date && (
-                      <p className="text-xs text-zinc-400">
-                        {format(new Date(order.due_date), "dd MMM", {
-                          locale: dateLocale,
-                        })}
+                      <p className="text-xs text-muted-foreground tabular-nums">
+                        {format(new Date(order.due_date), "dd MMM", { locale: dateLocale })}
                       </p>
                     )}
-                    <p className="text-xs text-zinc-500 mt-0.5">
+                    <p className="mt-0.5 text-xs text-muted-foreground">
                       {order.employee?.name ?? t("unassigned")}
                     </p>
                   </div>
                   {isAdmin && (
                     <button
+                      type="button"
+                      aria-label={t("delete")}
                       onClick={(e) => {
                         e.stopPropagation();
                         setToDelete(order);
                       }}
-                      className="p-1.5 rounded-lg text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      className="rounded-[6px] p-1.5 text-muted-foreground outline-none transition-colors duration-[120ms] hover:bg-destructive/10 hover:text-destructive focus-visible:ring-2 focus-visible:ring-foreground"
                     >
                       <Trash2 size={15} />
                     </button>
@@ -180,9 +320,9 @@ export default function OrdenesPage() {
 
               {order.items_count > 0 && (
                 <div className="mt-2">
-                  <div className="flex justify-between text-xs text-zinc-400 mb-1">
+                  <div className="mb-1 flex justify-between text-xs text-muted-foreground">
                     <span>{t("items")}</span>
-                    <span>
+                    <span className="tabular-nums">
                       {order.items_done}/{order.items_count}
                     </span>
                   </div>
@@ -193,6 +333,10 @@ export default function OrdenesPage() {
           ))
         )}
       </div>
+
+      {data?.info && data.info.total > 0 && (
+        <Pagination info={data.info} onPageChange={setPage} />
+      )}
 
       <WorkOrderDialog open={createOpen} onClose={() => setCreateOpen(false)} />
 
@@ -209,7 +353,7 @@ export default function OrdenesPage() {
           <DialogHeader>
             <DialogTitle>{t("deleteTitle")}</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-muted-foreground">
             {t("deleteConfirm", { title: toDelete?.title ?? "" })}
           </p>
           <DialogFooter>

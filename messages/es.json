@@ -39,7 +39,8 @@
       "pageOf": "Página {page} de {total}",
       "previousPage": "Página anterior",
       "nextPage": "Página siguiente"
-    }
+    },
+    "refresh": "Actualizar"
   },
   "auth": {
     "title": "Draxuvo",
@@ -66,7 +67,9 @@
     "feature3Desc": "Métricas para tomar decisiones rápidas",
     "forgotPassword": "¿Olvidaste tu contraseña?",
     "noAccount": "¿No tienes cuenta?",
-    "register": "Prueba 30 días gratis"
+    "register": "Prueba 30 días gratis",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña"
   },
   "nav": {
     "home": "Inicio",
@@ -87,7 +90,8 @@
     "openMenu": "Abrir menú",
     "closeMenu": "Cerrar menú",
     "collapseMenu": "Contraer menú",
-    "expandMenu": "Expandir menú"
+    "expandMenu": "Expandir menú",
+    "superAdminRole": "Super Admin"
   },
   "home": {
     "welcome": "Bienvenido, {name}",
