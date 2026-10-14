@@ -186,15 +186,15 @@
     "legendHint": "Toca una barra o un concepto para abrir la lista filtrada.",
     "legendLabel": "Leyenda: {chart}",
     "subset": {
-      "active": "{count} activos",
-      "inactive": "{count} inactivos",
+      "active": "{count, plural, one {# activo} other {# activos}}",
+      "inactive": "{count, plural, one {# inactivo} other {# inactivos}}",
       "lowStock": "{count} con stock bajo",
-      "outOfStock": "{count} agotados",
-      "available": "{count} disponibles",
-      "pending": "{count} pendientes",
-      "paid": "{count} pagados",
+      "outOfStock": "{count, plural, one {# agotado} other {# agotados}}",
+      "available": "{count, plural, one {# disponible} other {# disponibles}}",
+      "pending": "{count, plural, one {# pendiente} other {# pendientes}}",
+      "paid": "{count, plural, one {# pagado} other {# pagados}}",
       "pendingRevenue": "{amount} por cobrar",
-      "thisMonth": "{count} registros este mes"
+      "thisMonth": "{count, plural, one {# registro este mes} other {# registros este mes}}"
     },
     "empty": {
       "noModules": "Tu plan no tiene módulos con indicadores.",

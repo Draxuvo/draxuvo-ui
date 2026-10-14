@@ -540,7 +540,7 @@ export default function DashboardPage() {
             </ul>
           </section>
 
-          {anyChart && <p className="-mb-4 text-sm text-muted-foreground">{t("legendHint")}</p>}
+          {anyChart && <p className="text-sm text-muted-foreground">{t("legendHint")}</p>}
 
           {showOrders && (
             <section>

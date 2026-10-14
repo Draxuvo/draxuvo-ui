@@ -49,16 +49,16 @@ export function TrialBanner() {
 
   if (subscription.status === "past_due") {
     return (
-      <div className="flex items-center justify-between gap-4 border-b border-red-200 bg-red-50 px-6 py-2 text-sm text-red-800">
+      <div className="flex items-center justify-between gap-4 border-b border-alerta/30 bg-alerta/10 px-4 py-2 text-sm text-foreground sm:px-6">
         <div className="flex items-center gap-2">
-          <AlertTriangle size={14} className="shrink-0" />
+          <AlertTriangle size={14} className="shrink-0 text-alerta" aria-hidden="true" />
           <span className="font-medium">{t("pastDueBanner")}</span>
         </div>
         <button
           type="button"
           onClick={handleUpdateCard}
           disabled={openingPortal}
-          className="flex shrink-0 items-center gap-1.5 rounded-md bg-red-100 px-3 py-1 text-xs font-medium text-red-800 transition-colors hover:bg-red-200 disabled:opacity-60"
+          className="flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition-colors duration-[120ms] hover:bg-oferta-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60"
         >
           <CreditCard size={12} />
           {openingPortal ? t("openingPortal") : t("pastDueAction")}
@@ -76,16 +76,16 @@ export function TrialBanner() {
     if (daysUntilRenewal > 30) return null;
 
     return (
-      <div className="flex items-center justify-between border-b border-blue-200 bg-blue-50 px-6 py-2 text-sm text-blue-800">
+      <div className="flex items-center justify-between gap-4 border-b border-border bg-card px-4 py-2 text-sm text-muted-foreground sm:px-6">
         <div className="flex items-center gap-2">
-          <CalendarDays size={14} className="shrink-0" />
+          <CalendarDays size={14} className="shrink-0" aria-hidden="true" />
           <span>
-            <span className="font-semibold">{daysUntilRenewal}</span> {t("activeBannerDays")}
+            <span className="font-display text-base font-semibold tabular-nums text-foreground">{daysUntilRenewal}</span> {t("activeBannerDays")}
           </span>
         </div>
         <Link
           href={`/${locale}/suscripcion`}
-          className="flex items-center gap-1.5 rounded-md bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800 transition-colors hover:bg-blue-200"
+          className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1 text-xs font-medium text-foreground transition-colors duration-[120ms] hover:border-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           {t("activeBannerAction")}
         </Link>
@@ -104,29 +104,26 @@ export function TrialBanner() {
   return (
     <div
       className={cn(
-        "flex items-center justify-between px-6 py-2 text-sm",
+        "flex items-center justify-between gap-4 px-4 py-2 text-sm text-foreground sm:px-6",
         isExpired
-          ? "border-b border-red-200 bg-red-50 text-red-800"
-          : "border-b border-amber-200 bg-amber-50 text-amber-800",
+          ? "border-b border-alerta/30 bg-alerta/10"
+          : "border-b border-tinta/10 bg-ceja",
       )}
     >
       <div className="flex items-center gap-2">
-        <AlertTriangle size={14} className="shrink-0" />
+        <AlertTriangle size={14} className={cn("shrink-0", isExpired && "text-alerta")} aria-hidden="true" />
         {isExpired ? (
           <span className="font-medium">{t("trialBannerExpired")}</span>
         ) : (
           <span>
-            <span className="font-semibold">{daysLeft}</span> {t("trialBannerDays")}
+            <span className="font-display text-base font-semibold tabular-nums">{daysLeft}</span> {t("trialBannerDays")}
           </span>
         )}
       </div>
       <Link
         href={`/${locale}/suscripcion`}
         className={cn(
-          "flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-colors",
-          isExpired
-            ? "bg-red-100 text-red-800 hover:bg-red-200"
-            : "bg-amber-100 text-amber-800 hover:bg-amber-200",
+          "flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition-colors duration-[120ms] hover:bg-oferta-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
         )}
       >
         <CreditCard size={12} />

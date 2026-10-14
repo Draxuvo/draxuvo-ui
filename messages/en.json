@@ -194,7 +194,7 @@
       "pending": "{count} pending",
       "paid": "{count} paid",
       "pendingRevenue": "{amount} to collect",
-      "thisMonth": "{count} records this month"
+      "thisMonth": "{count, plural, one {# record this month} other {# records this month}}"
     },
     "empty": {
       "noModules": "Your plan has no modules with key figures.",
