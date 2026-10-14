@@ -55,10 +55,11 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(data.email, data.password);
-      const { user } = useAuthStore.getState();
-      if (user?.role === "super_admin") {
+      // Rol en la primera empresa (la que queda activa al entrar).
+      const { role } = useAuthStore.getState();
+      if (role === "super_admin") {
         router.push(`/${locale}/empresas`);
-      } else if (user?.role === "staff") {
+      } else if (role === "staff") {
         router.push(`/${locale}/mis-ordenes`);
       } else {
         router.push(`/${locale}/inicio`);

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { AlertTriangle, CreditCard } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
+import { CompanySwitcher, useSwitchCompany } from "./company-switcher";
 import { apiClient } from "@/lib/api";
 import { getSubscription } from "@/services/subscription";
 import { Button } from "@/components/ui/button";
@@ -34,9 +35,9 @@ export function SubscriptionGuard() {
   const t = useTranslations("subscription");
   const locale = useLocale();
   const pathname = usePathname();
-  const { user, logout, selectedCompanyId } = useAuthStore();
+  const { user, logout, selectedCompanyId, role } = useAuthStore();
+  const switchCompany = useSwitchCompany();
 
-  const role = user?.role;
   const isSuperAdmin = role === "super_admin";
   const canBill = !!role && BILLING_ROLES.includes(role);
 
@@ -56,6 +57,10 @@ export function SubscriptionGuard() {
 
   if (!user || isSuperAdmin) return null;
 
+  // Con varias empresas, una bloqueada no deja a nadie atrapado: puede cambiar a otra.
+  const companies = user.companies ?? [];
+  const switcher = companies.length > 1 ? <CompanySwitcher className="mr-auto" /> : null;
+
   if (canBill) {
     if (!subscription || subscription.active_access) return null;
 
@@ -66,8 +71,29 @@ export function SubscriptionGuard() {
     const title =
       subscription.status === "cancelled" ? t("blockedTitleExpired") : t("blockedTitle");
 
+    // Sucursal: el pago se hace en la principal, no aquí.
+    if (subscription.managed_by_parent) {
+      const parentId = companies.find((c) => c.id === selectedCompanyId)?.parent_company_id;
+      const parent = companies.find((c) => c.id === parentId);
+      return (
+        <BlockedDialog title={title} description={t("managedByParentDesc")}>
+          <Button variant="outline" onClick={logout}>
+            {t("logout")}
+          </Button>
+          {parent ? (
+            <Button onClick={() => switchCompany(parent.id)}>
+              {t("managedByParentAction", { company: parent.name })}
+            </Button>
+          ) : (
+            switcher
+          )}
+        </BlockedDialog>
+      );
+    }
+
     return (
       <BlockedDialog title={title} description={t("blockedDescOwner")}>
+        {switcher}
         <Button variant="outline" onClick={logout}>
           {t("logout")}
         </Button>
@@ -85,6 +111,7 @@ export function SubscriptionGuard() {
 
   return (
     <BlockedDialog title={t("blockedTitleExpired")} description={t("blockedDescMember")}>
+      {switcher}
       <Button variant="outline" onClick={logout}>
         {t("logout")}
       </Button>

@@ -9,6 +9,7 @@ import {
   AlertTriangle,
   CalendarDays,
   Clock,
+  Building2,
   CreditCard,
   ExternalLink,
   ShieldCheck,
@@ -23,6 +24,7 @@ import {
   getSubscription,
   updateTrialPlan,
 } from "@/services/subscription";
+import { useSwitchCompany } from "@/components/layout/company-switcher";
 import { cn } from "@/lib/utils";
 import type { BillingCycle, PlanKey, Subscription } from "@/types";
 
@@ -34,6 +36,8 @@ export function SubscriptionDetail() {
   const locale = useLocale() as "es" | "en";
   const queryClient = useQueryClient();
   const companyId = useAuthStore((s) => s.selectedCompanyId);
+  const companies = useAuthStore((s) => s.user?.companies);
+  const switchCompany = useSwitchCompany();
   const queryKey = ["subscription", companyId];
 
   const [pickedPlan, setPickedPlan] = useState<PlanKey | null>(null);
@@ -62,8 +66,13 @@ export function SubscriptionDetail() {
   const status = subscription?.status;
   const plan: PlanKey = pickedPlan ?? subscription?.plan ?? "pro";
   const cycle: BillingCycle = pickedCycle ?? subscription?.billing_cycle ?? "monthly";
-  const canPay = status === "trialing" || status === "expired" || status === "cancelled";
-  const canManage = status === "active" || status === "past_due";
+  // Sucursal (R17): la suscripción es la de la principal y el cobro se hace allá.
+  const managedByParent = !!subscription?.managed_by_parent;
+  const parentId = companies?.find((c) => c.id === companyId)?.parent_company_id;
+  const parent = companies?.find((c) => c.id === parentId);
+  const canPay =
+    !managedByParent && (status === "trialing" || status === "expired" || status === "cancelled");
+  const canManage = !managedByParent && (status === "active" || status === "past_due");
   const busy = redirecting !== null || changePlan.isPending;
 
   const formatDate = (iso?: string | null) =>
@@ -149,6 +158,26 @@ export function SubscriptionDetail() {
             )}
 
             <StatusPanel subscription={subscription} formatDate={formatDate} />
+
+            {managedByParent && (
+              <Panel
+                tone="neutral"
+                icon={Building2}
+                title={t("managedByParentTitle", { company: parent?.name ?? t("mainCompany") })}
+              >
+                <p className="text-sm text-muted-foreground">{t("managedByParentDesc")}</p>
+                {parent && (
+                  <Button
+                    variant="outline"
+                    onClick={() => switchCompany(parent.id)}
+                    className="mt-3 h-11 gap-2 rounded-[6px] border-foreground bg-card px-4 text-sm font-semibold hover:bg-background"
+                  >
+                    <Building2 size={18} strokeWidth={1.75} aria-hidden />
+                    {t("managedByParentAction", { company: parent.name })}
+                  </Button>
+                )}
+              </Panel>
+            )}
           </div>
         ) : null}
       </section>

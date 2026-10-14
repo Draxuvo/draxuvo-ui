@@ -11,8 +11,7 @@ import { ModuleLocked, useModuleLocked } from "@/components/subscription/module-
 export default function ReportesPage() {
   const t = useTranslations("reports");
   const tc = useTranslations("companies");
-  const { user } = useAuthStore();
-  const isSuperAdmin = user?.role === "super_admin";
+  const isSuperAdmin = useAuthStore((s) => s.role) === "super_admin";
 
   const [companyId, setCompanyId] = useState<number | null>(null);
 

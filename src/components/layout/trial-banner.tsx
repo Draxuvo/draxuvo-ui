@@ -18,8 +18,8 @@ export function TrialBanner() {
   const t = useTranslations("subscription");
   const locale = useLocale();
   const pathname = usePathname();
-  const { user, selectedCompanyId } = useAuthStore();
-  const canBill = !!user && BILLING_ROLES.includes(user.role);
+  const { selectedCompanyId, role } = useAuthStore();
+  const canBill = !!role && BILLING_ROLES.includes(role);
   const [openingPortal, setOpeningPortal] = useState(false);
 
   // GET /subscription solo responde a owner, admin y super_admin; el banner no aplica al super admin.
@@ -33,6 +33,8 @@ export function TrialBanner() {
   const bare = pathname.replace(/^\/(es|en)(?=\/|$)/, "") || "/";
   if (BANNER_EXEMPT.some((r) => bare.startsWith(r))) return null;
   if (!canBill || !subscription) return null;
+  // En una sucursal el cobro se administra en la principal: el aviso queda, sin acciones de pago.
+  const managedByParent = !!subscription.managed_by_parent;
 
   async function handleUpdateCard() {
     setOpeningPortal(true);
@@ -54,21 +56,23 @@ export function TrialBanner() {
           <AlertTriangle size={14} className="shrink-0 text-alerta" aria-hidden="true" />
           <span className="font-medium">{t("pastDueBanner")}</span>
         </div>
-        <button
-          type="button"
-          onClick={handleUpdateCard}
-          disabled={openingPortal}
-          className="flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition-colors duration-[120ms] hover:bg-oferta-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60"
-        >
-          <CreditCard size={12} />
-          {openingPortal ? t("openingPortal") : t("pastDueAction")}
-        </button>
+        {!managedByParent && (
+          <button
+            type="button"
+            onClick={handleUpdateCard}
+            disabled={openingPortal}
+            className="flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition-colors duration-[120ms] hover:bg-oferta-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60"
+          >
+            <CreditCard size={12} />
+            {openingPortal ? t("openingPortal") : t("pastDueAction")}
+          </button>
+        )}
       </div>
     );
   }
 
   if (subscription.status === "active") {
-    if (subscription.cancel_at_period_end || !subscription.current_period_end) return null;
+    if (managedByParent || subscription.cancel_at_period_end || !subscription.current_period_end) return null;
     const daysUntilRenewal = Math.max(
       0,
       differenceInDays(new Date(subscription.current_period_end), new Date()),
@@ -120,15 +124,17 @@ export function TrialBanner() {
           </span>
         )}
       </div>
-      <Link
-        href={`/${locale}/suscripcion`}
-        className={cn(
-          "flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition-colors duration-[120ms] hover:bg-oferta-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
-        )}
-      >
-        <CreditCard size={12} />
-        {t("trialBannerAction")}
-      </Link>
+      {!managedByParent && (
+        <Link
+          href={`/${locale}/suscripcion`}
+          className={cn(
+            "flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition-colors duration-[120ms] hover:bg-oferta-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+          )}
+        >
+          <CreditCard size={12} />
+          {t("trialBannerAction")}
+        </Link>
+      )}
     </div>
   );
 }

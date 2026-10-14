@@ -8,9 +8,41 @@ export interface User {
   phone?: string;
   description?: string;
   avatar_url?: string;
-  role: "staff" | "manager" | "admin" | "owner" | "super_admin";
+  /** Compatibilidad: `super_admin` o el rol en la primera empresa. Usa `useAuthStore().role`. */
+  role: Role;
   active: boolean;
-  companies: Company[];
+  companies: UserCompany[];
+}
+
+export type CompanyRole = "staff" | "manager" | "admin" | "owner";
+export type Role = CompanyRole | "super_admin";
+
+/** Membresía del usuario: la empresa con el rol que tiene en ella (R16). */
+export interface UserCompany {
+  id: number;
+  name: string;
+  slug: string;
+  role: CompanyRole;
+  parent_company_id: number | null;
+}
+
+/** Persona del equipo de la empresa activa (`/company/members`). */
+export interface CompanyMember {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone?: string | null;
+  role: CompanyRole;
+  active: boolean;
+}
+
+/** Empresa principal o sucursal (`/company/branches`, R17). */
+export interface Branch {
+  id: number;
+  name: string;
+  slug: string;
+  parent_company_id: number | null;
 }
 
 export interface Company {
@@ -158,6 +190,8 @@ export interface Subscription {
   available_modules: ModuleKey[];
   active_access: boolean;
   trial_days_remaining?: number;
+  /** Sucursal: la suscripción es la de la empresa principal y el cobro se administra allá. */
+  managed_by_parent?: boolean;
 }
 
 export interface CheckoutResponse {

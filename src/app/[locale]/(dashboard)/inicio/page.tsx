@@ -33,7 +33,7 @@ export default function InicioPage() {
   const locale = useLocale();
   const user = useAuthStore((s) => s.user);
   const selectedCompanyId = useAuthStore((s) => s.selectedCompanyId);
-  const role = user?.role;
+  const role = useAuthStore((s) => s.role);
   const canSeeSubscription = !!role && BILLING_ROLES.includes(role);
 
   const stats = useQuery({

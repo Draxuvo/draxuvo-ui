@@ -65,9 +65,9 @@ function OrdenesContent() {
   const tf = useTranslations("common.filters");
   const locale = useLocale();
   const dateLocale = locale === "es" ? es : enUS;
-  const user = useAuthStore((s) => s.user);
   const selectedCompanyId = useAuthStore((s) => s.selectedCompanyId);
-  const isAdmin = ADMIN_ROLES.includes(user?.role as typeof ADMIN_ROLES[number]);
+  const role = useAuthStore((s) => s.role);
+  const isAdmin = ADMIN_ROLES.includes(role as typeof ADMIN_ROLES[number]);
 
   const { filters, page, setFilter, setPage, reset, isFiltered } = useUrlFilters(DEFAULTS, {
     allowed: ALLOWED,

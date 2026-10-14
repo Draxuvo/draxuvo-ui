@@ -203,7 +203,7 @@ export default function DashboardPage() {
     staleTime: 2 * 60 * 1000,
   });
 
-  const role = user?.role;
+  const role = useAuthStore((s) => s.role);
   const can = (module: ModuleKey, roles: Role[] = ANALYTICS_ROLES) =>
     !!data && !!role && data.active_modules.includes(module) && roles.includes(role);
   const href = (path: string) => `/${locale}${path}`;

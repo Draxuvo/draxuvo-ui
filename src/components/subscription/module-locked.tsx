@@ -22,8 +22,8 @@ export function moduleNotInPlan(error: unknown): ModuleKey | null {
 // true si el módulo no está en `active_modules` de la empresa o la API ya respondió 403
 // `module_not_in_plan` para él. Mientras carga la suscripción no bloquea.
 export function useModuleLocked(module: ModuleKey, error?: unknown): boolean {
-  const { user, selectedCompanyId } = useAuthStore();
-  const canReadSubscription = !!user && BILLING_ROLES.has(user.role) && !!selectedCompanyId;
+  const { selectedCompanyId, role } = useAuthStore();
+  const canReadSubscription = !!role && BILLING_ROLES.has(role) && !!selectedCompanyId;
 
   const { data: subscription } = useQuery({
     queryKey: ["subscription", selectedCompanyId],
@@ -32,7 +32,7 @@ export function useModuleLocked(module: ModuleKey, error?: unknown): boolean {
     enabled: canReadSubscription,
   });
 
-  if (user?.role === "super_admin") return false;
+  if (role === "super_admin") return false;
   if (moduleNotInPlan(error) === module) return true;
   return canReadSubscription && !!subscription && !subscription.active_modules.includes(module);
 }
@@ -41,7 +41,7 @@ export function ModuleLocked({ module }: { module: ModuleKey }) {
   const t = useTranslations("subscription");
   const tm = useTranslations("modules");
   const locale = useLocale();
-  const role = useAuthStore((s) => s.user?.role);
+  const role = useAuthStore((s) => s.role);
   const canUpgrade = !!role && BILLING_ROLES.has(role);
 
   return (

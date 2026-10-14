@@ -13,6 +13,8 @@ import {
   FileBarChart2,
   CreditCard,
   CalendarCheck,
+  UsersRound,
+  Building2,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -27,6 +29,7 @@ const ANALYTICS_ROLES = new Set(["admin", "owner", "manager"]);
 const ATTENDANCE_ROLES = new Set(["admin", "owner", "manager"]);
 const REPORTS_ROLES = new Set(["admin", "owner"]);
 const SUBSCRIPTION_ROLES = new Set(["admin", "owner"]);
+const TEAM_ROLES = new Set(["admin", "owner"]);
 
 /** DESIGN.md: the one label shadow ("etiqueta pegada"). */
 const LABEL_SHADOW =
@@ -115,26 +118,29 @@ export function Sidebar() {
   const tSub = useTranslations("subscription");
   const tCommon = useTranslations("common");
   const locale = useLocale();
-  const { user, selectedCompanyId } = useAuthStore();
+  const { user, selectedCompanyId, role } = useAuthStore();
   const { open, mobileOpen, setMobileOpen } = useSidebar();
 
-  const role = user?.role;
   const showAnalytics = !!role && ANALYTICS_ROLES.has(role);
   const showAttendance = !!role && ATTENDANCE_ROLES.has(role);
   const showReports = !!role && REPORTS_ROLES.has(role);
   const showSubscription = !!role && SUBSCRIPTION_ROLES.has(role);
+  const showTeam = !!role && TEAM_ROLES.has(role);
 
   const { data: subscription } = useQuery({
     queryKey: ["subscription", selectedCompanyId],
     queryFn: getSubscription,
     retry: false,
-    enabled: !!user && user.role !== "super_admin" && !!selectedCompanyId,
+    enabled: !!user && role !== "super_admin" && !!selectedCompanyId,
   });
 
   // Mientras carga (o si falla) se muestra el menú por rol, sin filtrar módulos.
   const activeModules = subscription?.active_modules;
   const hasModule = (module: ModuleKey) =>
     !activeModules || activeModules.includes(module);
+  // "Mis empresas" solo cuando el plan confirma `multi_company` (no mientras carga).
+  const showMyCompanies =
+    role === "owner" && !!activeModules?.includes("multi_company");
 
   const NAV: NavItem[] = [
     { href: `/${locale}/inicio`, label: t("home"), icon: Home },
@@ -170,6 +176,12 @@ export function Sidebar() {
             icon: FileBarChart2,
           },
         ]
+      : []),
+    ...(showTeam
+      ? [{ href: `/${locale}/equipo`, label: t("team"), icon: UsersRound }]
+      : []),
+    ...(showMyCompanies
+      ? [{ href: `/${locale}/mis-empresas`, label: t("myCompanies"), icon: Building2 }]
       : []),
     ...(showSubscription
       ? [

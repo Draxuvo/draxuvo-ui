@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LocaleSwitcher } from "./locale-switcher";
+import { CompanySwitcher } from "./company-switcher";
 import { SIDEBAR_DRAWER_ID, useSidebar } from "./sidebar-context";
 import { LogOut, Menu, PanelLeftClose, PanelLeftOpen, UserRound } from "lucide-react";
 import { useAppRouter } from "@/hooks/use-router";
@@ -33,7 +34,9 @@ function getInitials(firstName?: string, lastName?: string) {
 export function Header() {
   const t = useTranslations("nav");
   const tCommon = useTranslations("common");
-  const { user, logout } = useAuthStore();
+  const { user, logout, role } = useAuthStore();
+  // Con varias empresas el selector ocupa el lugar de la marca en celular.
+  const multiCompany = role !== "super_admin" && (user?.companies?.length ?? 0) > 1;
   const { open, mobileOpen, toggle } = useSidebar();
   const router = useAppRouter();
 
@@ -67,12 +70,14 @@ export function Header() {
       </button>
 
       {/* Marca en celular, donde el riel no se ve */}
-      <span className="flex min-w-0 items-center gap-2 md:hidden">
+      <span className={cn("flex min-w-0 items-center gap-2 md:hidden", multiCompany && "hidden")}>
         <Image src={logo} alt="" width={28} height={28} unoptimized className="size-7 shrink-0" />
         <span className="font-display text-base font-extrabold uppercase tracking-[0.01em] text-foreground">
           {tCommon("brandName")}
         </span>
       </span>
+
+      <CompanySwitcher className="md:ml-1" />
 
       <div className="ml-auto flex items-center gap-1 sm:gap-3">
         <LocaleSwitcher />

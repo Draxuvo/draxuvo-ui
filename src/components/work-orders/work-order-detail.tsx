@@ -224,8 +224,8 @@ export function WorkOrderDetail({
   const tt = useTranslations("tickets");
   const router = useAppRouter();
   const qc = useQueryClient();
-  const { user } = useAuthStore();
-  const ticketsPath = user?.role === "staff" ? "/mis-tickets" : "/tickets";
+  const role = useAuthStore((s) => s.role);
+  const ticketsPath = role === "staff" ? "/mis-tickets" : "/tickets";
 
   const { data: order, isLoading } = useQuery<WorkOrder>({
     queryKey: ["work-orders", initialOrder.id],

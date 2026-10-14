@@ -4,7 +4,7 @@ import { Sidebar } from "./sidebar";
 import { SuperAdminSidebar } from "./super-admin-sidebar";
 
 export function LayoutSidebar() {
-  const { user } = useAuthStore();
-  if (user?.role === "super_admin") return <SuperAdminSidebar />;
+  const role = useAuthStore((s) => s.role);
+  if (role === "super_admin") return <SuperAdminSidebar />;
   return <Sidebar />;
 }

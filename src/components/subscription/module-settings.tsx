@@ -19,8 +19,8 @@ export function ModuleSettings() {
   const tp = useTranslations("plans");
   const locale = useLocale();
   const queryClient = useQueryClient();
-  const { user, selectedCompanyId } = useAuthStore();
-  const canManage = !!user && MANAGE_ROLES.has(user.role);
+  const { selectedCompanyId, role } = useAuthStore();
+  const canManage = !!role && MANAGE_ROLES.has(role);
   const queryKey = ["subscription", selectedCompanyId];
 
   const { data: subscription } = useQuery({

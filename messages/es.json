@@ -91,7 +91,9 @@
     "closeMenu": "Cerrar menú",
     "collapseMenu": "Contraer menú",
     "expandMenu": "Expandir menú",
-    "superAdminRole": "Super Admin"
+    "superAdminRole": "Super Admin",
+    "team": "Equipo",
+    "myCompanies": "Mis empresas"
   },
   "home": {
     "welcome": "Bienvenido, {name}",
@@ -618,7 +620,11 @@
     "moduleLocked": "Este módulo no está en tu plan",
     "moduleLockedDesc": "Mejora tu plan para usar {module}.",
     "upgradePlan": "Mejorar plan",
-    "availableIn": "Disponible en {plans}"
+    "availableIn": "Disponible en {plans}",
+    "managedByParentTitle": "La facturación la administra {company}",
+    "managedByParentDesc": "Esta sucursal usa la suscripción de la empresa principal. Los pagos y el plan se cambian desde ahí.",
+    "managedByParentAction": "Ir a {company}",
+    "mainCompany": "la empresa principal"
   },
   "profile": {
     "pageTitle": "Mi perfil",
@@ -948,5 +954,86 @@
     "notInPlanTitle": "La asistencia no está en tu plan",
     "notInPlanBody": "Cambia de plan para ver las entradas, salidas y retardos de tu personal.",
     "notInPlanCta": "Ver planes"
+  },
+  "companySwitcher": {
+    "label": "Empresa activa",
+    "trigger": "Cambiar de empresa. Activa: {company}, {role}",
+    "heading": "Tus empresas",
+    "branch": "Sucursal",
+    "switched": "Ahora trabajas en {company}"
+  },
+  "team": {
+    "title": "Equipo",
+    "subtitle": "{count, plural, =0 {Sin personas} one {# persona} other {# personas}} en {company}",
+    "invite": "Invitar persona",
+    "inviteTitle": "Invitar al equipo",
+    "inviteSubtitle": "Si ya tiene cuenta en Draxuvo solo se agrega a esta empresa. Si no, le llega un correo para crear su contraseña.",
+    "email": "Correo electrónico",
+    "emailPlaceholder": "ana@empresa.mx",
+    "emailInvalid": "Escribe un correo válido",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "phone": "Teléfono",
+    "optional": "opcional",
+    "role": "Rol",
+    "roleHint": "Solo puedes dar roles hasta el tuyo.",
+    "roleOf": "Rol de {name}",
+    "person": "Persona",
+    "status": "Estado",
+    "active": "Activa",
+    "inactive": "Inactiva",
+    "you": "Tú",
+    "remove": "Quitar",
+    "removeLabel": "Quitar a {name} del equipo",
+    "removeTitle": "¿Quitar del equipo?",
+    "removeConfirm": "{name} deja de tener acceso a {company}. Su cuenta y sus otras empresas no cambian.",
+    "removing": "Quitando...",
+    "removed": "{name} ya no está en el equipo",
+    "roleUpdated": "{name} ahora es {role}",
+    "invited": "{email} se agregó al equipo",
+    "sending": "Invitando...",
+    "send": "Invitar",
+    "cancel": "Cancelar",
+    "empty": "Todavía no hay nadie más en el equipo.",
+    "loadError": "No se pudo cargar el equipo.",
+    "errors": {
+      "role_not_allowed": "No puedes asignar ni modificar un rol mayor al tuyo. Solo un propietario administra propietarios.",
+      "already_member": "Esa persona ya es parte del equipo.",
+      "last_owner": "La empresa necesita al menos un propietario. Nombra a otro antes de hacer este cambio.",
+      "generic": "No se pudo guardar el cambio. Inténtalo de nuevo."
+    }
+  },
+  "myCompanies": {
+    "title": "Mis empresas",
+    "subtitle": "Tu empresa principal y sus sucursales comparten la suscripción de la principal.",
+    "usage": "{count} de {max} empresas",
+    "main": "Principal",
+    "branch": "Sucursal",
+    "current": "Activa",
+    "switch": "Entrar",
+    "switchLabel": "Entrar a {company}",
+    "add": "Agregar sucursal",
+    "addTitle": "Nueva sucursal",
+    "addSubtitle": "Quedas como propietario. Usa la suscripción y los módulos de {company}, sin cobro extra.",
+    "name": "Nombre",
+    "namePlaceholder": "Por ejemplo, Sucursal Norte",
+    "nameRequired": "Escribe el nombre de la sucursal",
+    "create": "Agregar",
+    "creating": "Agregando...",
+    "created": "{company} se agregó a tu cuenta",
+    "cancel": "Cancelar",
+    "limitReached": "Ya tienes {max} empresas, el máximo del plan Empresa.",
+    "fromBranch": "Las sucursales se agregan desde la empresa principal.",
+    "goToMain": "Ir a {company}",
+    "upgradeTitle": "Varias empresas es parte del plan Empresa",
+    "upgradeDesc": "Con el plan Empresa agregas hasta {max} empresas o sucursales en una cuenta, con una sola suscripción.",
+    "upgradeAction": "Ver planes",
+    "loadError": "No se pudieron cargar tus empresas.",
+    "errors": {
+      "company_limit_reached": "Ya llegaste al máximo de {max} empresas por cuenta.",
+      "module_not_in_plan": "Tu plan no incluye varias empresas. Cambia al plan Empresa para agregar sucursales.",
+      "not_a_main_company": "Las sucursales se agregan desde la empresa principal.",
+      "generic": "No se pudo agregar la sucursal. Inténtalo de nuevo."
+    }
   }
 }

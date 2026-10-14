@@ -5,13 +5,16 @@ import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/auth";
 import { LogOut, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CompanySwitcher } from "./company-switcher";
 
 export function EmployeeHeader() {
   const t = useTranslations("nav");
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
-  const { user, logout } = useAuthStore();
+  const { user, logout, selectedCompanyId } = useAuthStore();
+  const companies = user?.companies ?? [];
+  const companyName = (companies.find((c) => c.id === selectedCompanyId) ?? companies[0])?.name;
 
   function switchLocale(next: string) {
     router.push(pathname.replace(`/${locale}`, `/${next}`));
@@ -24,11 +27,15 @@ export function EmployeeHeader() {
         <p className="text-sm font-medium text-zinc-800 truncate">
           {user?.first_name} {user?.last_name}
         </p>
-        {user?.companies?.[0]?.name && (
-          <>
-            <span className="text-zinc-300 text-xs">·</span>
-            <p className="text-xs text-zinc-400 truncate">{user.companies[0].name}</p>
-          </>
+        {companies.length > 1 ? (
+          <CompanySwitcher className="ml-2" />
+        ) : (
+          companyName && (
+            <>
+              <span className="text-zinc-300 text-xs">·</span>
+              <p className="text-xs text-zinc-400 truncate">{companyName}</p>
+            </>
+          )
         )}
       </div>
 
