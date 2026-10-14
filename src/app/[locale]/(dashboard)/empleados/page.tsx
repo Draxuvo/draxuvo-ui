@@ -1,31 +1,48 @@
 // src/app/[locale]/(dashboard)/empleados/page.tsx
 "use client";
-import { useRef, useState, useMemo } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Search, RefreshCw } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { DataTable } from "@/components/ui/data-table";
 import { Pagination } from "@/components/ui/pagination";
 import { EmployeeForm } from "@/components/employees/employee-form";
 import { EmployeeDeleteDialog } from "@/components/employees/employee-delete-dialog";
 import { getEmployeeColumns } from "@/components/employees/columns";
 import { employeesService } from "@/services/employees";
-import { usePagination } from "@/hooks/use-pagination";
-import type { Employee } from "@/types";
-import { ModuleLocked, useModuleLocked } from "@/components/subscription/module-locked";
+import { useUrlFilters } from "@/hooks/use-url-filters";
+import { cn } from "@/lib/utils";
+import { EMPLOYEE_STATUSES, type Employee, type EmployeeStatus } from "@/types";
+import { ModuleLocked, useModuleGate } from "@/components/subscription/module-locked";
+import { FilterNotice } from "@/components/filters/filter-notice";
+import { SearchInput } from "@/components/filters/search-input";
 
 const PAGE_SIZE = 10;
+const DEFAULTS = { status: "", search: "" };
+const ALLOWED = { status: EMPLOYEE_STATUSES };
+
+const CHIP =
+  "inline-flex h-8 items-center rounded-full border px-3 text-sm transition-colors duration-[120ms] ease-etiqueta foco-etiqueta";
+const CHIP_ON = "border-foreground bg-foreground text-background";
+const CHIP_OFF = "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground";
 
 export default function EmpleadosPage() {
+  return (
+    <Suspense>
+      <EmpleadosContent />
+    </Suspense>
+  );
+}
+
+function EmpleadosContent() {
   const t = useTranslations("employees");
   const tc = useTranslations("common");
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { page, goTo, reset } = usePagination();
+  const tf = useTranslations("common.filters");
+  const { filters, page, setFilter, setPage, reset, isFiltered } = useUrlFilters(DEFAULTS, {
+    allowed: ALLOWED,
+  });
 
   const qc = useQueryClient();
   const [formOpen, setFormOpen] = useState(false);
@@ -41,21 +58,21 @@ export default function EmpleadosPage() {
     onError: () => toast.error(t("toggleError")),
   });
 
+  // Puerta del módulo antes de consultar: fuera del plan no hay request ni toast.
+  const gate = useModuleGate("employees");
   const { data, isLoading, isFetching, refetch, error } = useQuery({
-    queryKey: ["employees", page, PAGE_SIZE, debouncedSearch],
-    queryFn: () => employeesService.list(page, debouncedSearch, PAGE_SIZE),
+    queryKey: ["employees", filters, page],
+    enabled: gate.enabled,
+    queryFn: () =>
+      employeesService.list({
+        page,
+        page_size: PAGE_SIZE,
+        status: (filters.status || undefined) as EmployeeStatus | undefined,
+        search: filters.search || undefined,
+      }),
   });
 
   const employees: Employee[] = data?.results ?? [];
-
-  function handleSearch(value: string) {
-    setSearch(value);
-    if (searchTimer.current) clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(() => {
-      setDebouncedSearch(value);
-      reset();
-    }, 400);
-  }
 
   function openCreate() {
     setEditing(null);
@@ -73,21 +90,38 @@ export default function EmpleadosPage() {
     [],
   );
 
-  const locked = useModuleLocked("employees", error);
-  if (locked) return <ModuleLocked module="employees" />;
+  if (gate.isLocked(error)) return <ModuleLocked module="employees" />;
+
+  const statusOptions = [
+    { value: "", label: t("filters.all") },
+    { value: "active", label: t("filters.active") },
+    { value: "inactive", label: t("filters.inactive") },
+  ];
+  const applied = [
+    filters.status && `${t("filters.status")}: ${t(`filters.${filters.status as EmployeeStatus}`)}`,
+    filters.search && `"${filters.search}"`,
+  ].filter(Boolean);
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-xl font-medium text-zinc-900">{t("title")}</h1>
-          <p className="text-sm text-zinc-500 mt-0.5">
-            {t("subtitle", { count: data?.info?.total ?? 0 })}
+          <h1 className="font-display text-3xl font-semibold leading-tight text-foreground">{t("title")}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {isFiltered
+              ? tf("results", { count: data?.info?.total ?? 0 })
+              : t("subtitle", { count: data?.info?.total ?? 0 })}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => refetch()} disabled={isFetching}>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            aria-label={tc("refresh")}
+          >
             <RefreshCw size={15} className={isFetching ? "animate-spin" : ""} />
           </Button>
           <Button onClick={openCreate} className="gap-2">
@@ -97,16 +131,29 @@ export default function EmpleadosPage() {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
-        <Input
-          className="pl-8"
+      {/* Filtros */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <SearchInput
+          value={filters.search}
+          onSearch={(value) => setFilter("search", value)}
           placeholder={t("searchPlaceholder")}
-          value={search}
-          onChange={(e) => handleSearch(e.target.value)}
         />
+        <div role="group" aria-label={t("filters.status")} className="flex flex-wrap gap-2">
+          {statusOptions.map((o) => (
+            <button
+              key={o.value || "all"}
+              type="button"
+              aria-pressed={filters.status === o.value}
+              onClick={() => setFilter("status", o.value || null)}
+              className={cn(CHIP, filters.status === o.value ? CHIP_ON : CHIP_OFF)}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
       </div>
+
+      {isFiltered && <FilterNotice applied={applied} onClear={reset} />}
 
       {/* Table */}
       <DataTable
@@ -115,12 +162,12 @@ export default function EmpleadosPage() {
         pageSize={PAGE_SIZE}
         isLoading={isLoading}
         loadingMessage={tc("loading")}
-        emptyMessage={t("empty")}
+        emptyMessage={isFiltered ? tf("noResults") : t("empty")}
       />
 
       {/* Pagination */}
       {data?.info && data.info.total > 0 && (
-        <Pagination info={data.info} onPageChange={goTo} />
+        <Pagination info={data.info} onPageChange={setPage} />
       )}
 
       {/* Form Sheet */}

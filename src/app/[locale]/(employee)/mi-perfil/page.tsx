@@ -29,7 +29,7 @@ export default function MiPerfilPage() {
   const t = useTranslations("profile");
   const tCommon = useTranslations("common");
   const tRoles = useTranslations("adminUsers.roles");
-  const { user, fetchMe } = useAuthStore();
+  const { user, fetchMe, role } = useAuthStore();
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -91,7 +91,7 @@ export default function MiPerfilPage() {
     ? `${user.first_name[0] ?? ""}${user.last_name[0] ?? ""}`.toUpperCase()
     : "?";
 
-  const roleLabel = user?.role ? tRoles(user.role) : "";
+  const roleLabel = role && role !== "super_admin" ? tRoles(role) : "";
 
   return (
     <div className="max-w-2xl space-y-6">

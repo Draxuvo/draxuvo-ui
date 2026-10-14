@@ -3,17 +3,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Lock } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { useAuthStore } from "@/store/auth";
 import { getSubscription, updateModules } from "@/services/subscription";
 import { getPlans } from "@/services/plans";
+import { cn } from "@/lib/utils";
 import type { ModuleKey } from "@/types";
 
 const MANAGE_ROLES = new Set(["owner", "admin", "super_admin"]);
@@ -25,8 +19,8 @@ export function ModuleSettings() {
   const tp = useTranslations("plans");
   const locale = useLocale();
   const queryClient = useQueryClient();
-  const { user, selectedCompanyId } = useAuthStore();
-  const canManage = !!user && MANAGE_ROLES.has(user.role);
+  const { selectedCompanyId, role } = useAuthStore();
+  const canManage = !!role && MANAGE_ROLES.has(role);
   const queryKey = ["subscription", selectedCompanyId];
 
   const { data: subscription } = useQuery({
@@ -72,43 +66,47 @@ export function ModuleSettings() {
   }
 
   return (
-    <Card className="mt-6">
-      <CardHeader>
-        <CardTitle>{t("modulesTitle")}</CardTitle>
-        <CardDescription>{t("modulesDesc")}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ul className="divide-y divide-zinc-100">
-          {catalog.map((module) => {
-            const inPlan = available.includes(module);
-            const on = inPlan && !disabled.includes(module);
-            return (
-              <li key={module} className="flex items-center justify-between gap-4 py-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-zinc-900">{tm(module)}</p>
-                  <p className="text-xs text-zinc-500">
-                    {inPlan
-                      ? on
-                        ? t("moduleOn")
-                        : t("moduleOff")
-                      : t("availableIn", { plans: plansWith(module) })}
-                  </p>
-                </div>
-                {inPlan ? (
-                  <Switch
-                    checked={on}
-                    disabled={save.isPending}
-                    onCheckedChange={(checked) => toggle(module, checked)}
-                    aria-label={tm(module)}
-                  />
-                ) : (
-                  <Lock size={16} className="shrink-0 text-zinc-400" aria-label={t("moduleLocked")} />
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      </CardContent>
-    </Card>
+    <section className="mt-8 rounded-etiqueta border border-border bg-card p-4 text-card-foreground shadow-etiqueta sm:p-6">
+      <h2 className="font-display text-2xl font-extrabold uppercase leading-none">
+        {t("modulesTitle")}
+      </h2>
+      <p className="mt-2 text-sm text-muted-foreground">{t("modulesDesc")}</p>
+      <ul className="mt-4 divide-y divide-border">
+        {catalog.map((module) => {
+          const inPlan = available.includes(module);
+          const on = inPlan && !disabled.includes(module);
+          return (
+            <li key={module} className="flex min-h-14 items-center justify-between gap-4 py-3">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-foreground">{tm(module)}</p>
+                <p className={cn("text-sm", on ? "text-sello" : "text-muted-foreground")}>
+                  {inPlan
+                    ? on
+                      ? t("moduleOn")
+                      : t("moduleOff")
+                    : t("availableIn", { plans: plansWith(module) })}
+                </p>
+              </div>
+              {inPlan ? (
+                <Switch
+                  checked={on}
+                  disabled={save.isPending}
+                  onCheckedChange={(checked) => toggle(module, checked)}
+                  aria-label={tm(module)}
+                  className="h-6 w-11 data-[state=checked]:bg-sello data-[state=unchecked]:bg-muted-foreground/70 [&>span]:size-5 [&>span]:data-[state=checked]:translate-x-5"
+                />
+              ) : (
+                <Lock
+                  size={20}
+                  strokeWidth={1.75}
+                  className="shrink-0 text-muted-foreground"
+                  aria-label={t("moduleLocked")}
+                />
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }

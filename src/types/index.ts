@@ -8,9 +8,41 @@ export interface User {
   phone?: string;
   description?: string;
   avatar_url?: string;
-  role: "staff" | "manager" | "admin" | "owner" | "super_admin";
+  /** Compatibilidad: `super_admin` o el rol en la primera empresa. Usa `useAuthStore().role`. */
+  role: Role;
   active: boolean;
-  companies: Company[];
+  companies: UserCompany[];
+}
+
+export type CompanyRole = "staff" | "manager" | "admin" | "owner";
+export type Role = CompanyRole | "super_admin";
+
+/** Membresía del usuario: la empresa con el rol que tiene en ella (R16). */
+export interface UserCompany {
+  id: number;
+  name: string;
+  slug: string;
+  role: CompanyRole;
+  parent_company_id: number | null;
+}
+
+/** Persona del equipo de la empresa activa (`/company/members`). */
+export interface CompanyMember {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone?: string | null;
+  role: CompanyRole;
+  active: boolean;
+}
+
+/** Empresa principal o sucursal (`/company/branches`, R17). */
+export interface Branch {
+  id: number;
+  name: string;
+  slug: string;
+  parent_company_id: number | null;
 }
 
 export interface Company {
@@ -35,6 +67,8 @@ export interface AdminUser {
   created_at: string;
 }
 
+export type EmployeeStatus = "active" | "inactive";
+
 export interface Employee {
   id: number;
   name: string;
@@ -43,18 +77,24 @@ export interface Employee {
   salary?: number | string;
   email?: string;
   phone?: string;
-  status: "active" | "inactive";
+  status: EmployeeStatus;
   created_at: string;
 }
+
+export type AttendanceType = "normal" | "late" | "absent";
 
 export interface Attendance {
   id: number;
   employee_id: number;
+  company_id: number;
+  attendance_type: AttendanceType;
   checkin_at: string;
-  checkout_at?: string;
-  lat?: number;
-  lng?: number;
-  attendance_type: "normal" | "late" | "absent";
+  checkout_at: string | null;
+  lat: string | null;
+  lng: string | null;
+  created_at: string;
+  updated_at: string;
+  employee: { id: number; name: string; position: string | null };
 }
 
 export interface Product {
@@ -150,6 +190,8 @@ export interface Subscription {
   available_modules: ModuleKey[];
   active_access: boolean;
   trial_days_remaining?: number;
+  /** Sucursal: la suscripción es la de la empresa principal y el cobro se administra allá. */
+  managed_by_parent?: boolean;
 }
 
 export interface CheckoutResponse {
@@ -185,6 +227,9 @@ export interface AuthResponse {
   user: User;
 }
 
+export type WorkOrderStatus = "pending" | "in_progress" | "in_review" | "completed" | "cancelled";
+export type WorkOrderPriority = "low" | "medium" | "high" | "urgent";
+
 export interface WorkOrderItem {
   id: number;
   description: string;
@@ -203,8 +248,8 @@ export interface WorkOrder {
   id: number;
   title: string;
   description?: string;
-  priority: "low" | "medium" | "high" | "urgent";
-  status: "pending" | "in_progress" | "in_review" | "completed" | "cancelled";
+  priority: WorkOrderPriority;
+  status: WorkOrderStatus;
   due_date?: string;
   completed_at?: string;
   notes?: string;
@@ -225,12 +270,12 @@ export interface DashboardStats {
   };
   users: {
     total: number;
-    by_role: Record<string, number>;
+    by_role: Record<User["role"], number>;
   };
   work_orders: {
     total: number;
-    by_status: Record<string, number>;
-    by_priority: Record<string, number>;
+    by_status: Record<WorkOrderStatus, number>;
+    by_priority: Record<WorkOrderPriority, number>;
   };
   tickets: {
     total: number;
@@ -250,6 +295,7 @@ export interface DashboardStats {
     today: { total: number; normal: number; late: number; absent: number };
     this_month: number;
   };
+  active_modules: ModuleKey[];
 }
 
 export interface ReportSummary {
@@ -316,6 +362,8 @@ export interface PayrollReport {
   employees: PayrollEmployee[];
 }
 
+export type TicketStatus = "pending" | "paid";
+
 export interface TicketItem {
   id: number;
   description: string;
@@ -335,10 +383,64 @@ export interface Ticket {
     description?: string;
     employee?: { id: number; name: string };
   };
-  status: "pending" | "paid";
+  status: TicketStatus;
   total: number;
   items?: TicketItem[];
   notes?: string;
   created_at: string;
   paid_at?: string;
 }
+
+// ── Filtros de lista (contracts/ui-routes.md). Los nombres son los de la API (R5). ──
+
+/** Paginación que cada lista pasa a la API. `page_size` no va en la URL. */
+export interface ListParams {
+  page?: number;
+  page_size?: number;
+}
+
+export interface EmployeeFilters {
+  status?: EmployeeStatus;
+  search?: string;
+}
+
+export interface ProductFilters {
+  low_stock?: boolean;
+  out_of_stock?: boolean;
+  /** `true` = disponibles; `false` = no disponibles (fila del resumen de inventario). */
+  available?: boolean;
+  search?: string;
+}
+
+export interface WorkOrderFilters {
+  status?: WorkOrderStatus;
+  priority?: WorkOrderPriority;
+  employee_id?: number;
+  search?: string;
+}
+
+export interface TicketFilters {
+  status?: TicketStatus;
+  search?: string;
+}
+
+export interface AttendanceFilters {
+  /** `YYYY-MM-DD`, día completo en America/Mexico_City. */
+  from?: string;
+  /** `YYYY-MM-DD`, inclusivo. */
+  to?: string;
+  employee_id?: number;
+  type?: AttendanceType;
+}
+
+export const EMPLOYEE_STATUSES: readonly EmployeeStatus[] = ["active", "inactive"];
+export const WORK_ORDER_STATUSES: readonly WorkOrderStatus[] = [
+  "pending",
+  "in_progress",
+  "in_review",
+  "completed",
+  "cancelled",
+];
+export const WORK_ORDER_PRIORITIES: readonly WorkOrderPriority[] = ["low", "medium", "high", "urgent"];
+export const TICKET_STATUSES: readonly TicketStatus[] = ["pending", "paid"];
+export const ATTENDANCE_TYPES: readonly AttendanceType[] = ["normal", "late", "absent"];

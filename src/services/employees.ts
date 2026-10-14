@@ -1,6 +1,8 @@
 // src/services/employees.ts
 import { apiClient } from "@/lib/api";
-import type { Employee, PaginatedResponse } from "@/types";
+import type { Employee, EmployeeFilters, ListParams, PaginatedResponse } from "@/types";
+
+export type EmployeeListParams = EmployeeFilters & ListParams;
 
 export interface EmployeePayload {
   name: string;
@@ -23,10 +25,15 @@ export interface CreateEmployeeResponse extends Employee {
 }
 
 export const employeesService = {
-  list: (page = 1, search = "", pageSize = 10): Promise<PaginatedResponse<Employee>> =>
+  list: ({
+    page = 1,
+    page_size = 10,
+    status,
+    search,
+  }: EmployeeListParams = {}): Promise<PaginatedResponse<Employee>> =>
     apiClient
       .get("/api/v1/employees", {
-        params: { page, page_size: pageSize, search: search || undefined },
+        params: { page, page_size, status, search: search?.trim() || undefined },
       })
       .then((r) => r.data),
 

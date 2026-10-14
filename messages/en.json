@@ -13,7 +13,34 @@
     "noResults": "No results",
     "error": "Error",
     "success": "Success",
-    "actions": "Actions"
+    "actions": "Actions",
+    "retry": "Retry",
+    "loadError": "Could not load the information.",
+    "viewAll": "View all",
+    "filters": {
+      "title": "Filters",
+      "appliedFromDashboard": "Filter applied from the dashboard",
+      "applied": "Filter applied: {filters}",
+      "clear": "Clear filters",
+      "remove": "Remove filter {name}",
+      "all": "All",
+      "allFeminine": "All",
+      "status": "Status",
+      "priority": "Priority",
+      "employee": "Employee",
+      "type": "Type",
+      "dateRange": "Date range",
+      "from": "From",
+      "to": "To",
+      "today": "Today",
+      "noResults": "No records match these filters.",
+      "noResultsHint": "Try other filters or clear them to see the full list.",
+      "results": "{count, plural, =0 {No results} one {# result} other {# results}}",
+      "pageOf": "Page {page} of {total}",
+      "previousPage": "Previous page",
+      "nextPage": "Next page"
+    },
+    "refresh": "Refresh"
   },
   "auth": {
     "title": "Draxuvo",
@@ -40,7 +67,9 @@
     "feature3Desc": "Metrics to make fast decisions",
     "forgotPassword": "Forgot your password?",
     "noAccount": "Don't have an account?",
-    "register": "Try 30 days free"
+    "register": "Try 30 days free",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "nav": {
     "home": "Home",
@@ -54,7 +83,17 @@
     "logout": "Sign out",
     "companies": "Companies",
     "users": "Users",
-    "subscriptions": "Subscriptions"
+    "subscriptions": "Subscriptions",
+    "attendance": "Attendance",
+    "mainNav": "Main navigation",
+    "menu": "Menu",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "collapseMenu": "Collapse menu",
+    "expandMenu": "Expand menu",
+    "superAdminRole": "Super Admin",
+    "team": "Team",
+    "myCompanies": "My companies"
   },
   "home": {
     "welcome": "Welcome, {name}",
@@ -62,7 +101,20 @@
     "activeEmployees": "Active employees",
     "totalProducts": "Products in inventory",
     "lowStock": "Low stock products",
-    "activePlan": "Active plan"
+    "activePlan": "Active plan",
+    "greetingMorning": "Good morning, {name}",
+    "greetingAfternoon": "Good afternoon, {name}",
+    "greetingEvening": "Good evening, {name}",
+    "todaySummary": "Here's how your business is doing today.",
+    "shortcuts": "Shortcuts",
+    "viewDashboard": "View dashboard",
+    "planStatus": "Status: {status}",
+    "aria": {
+      "activeEmployees": "{count, plural, one {View # active employee} other {View # active employees}}",
+      "products": "{count, plural, one {View # product} other {View # products}}",
+      "lowStock": "{count, plural, one {View # low-stock product} other {View # low-stock products}}",
+      "plan": "View your subscription: {plan} plan, {status}"
+    }
   },
   "analyticsBoard": {
     "title": "Dashboard",
@@ -117,6 +169,66 @@
       "medium": "Medium",
       "high": "High",
       "urgent": "Urgent"
+    },
+    "kpis": "Key figures",
+    "charts": "Charts",
+    "viewAll": "View all",
+    "viewList": "View list",
+    "collected": "Collected",
+    "employeesActive": "Active employees",
+    "employeesInactive": "Inactive employees",
+    "products": "Products",
+    "available": "Available",
+    "pendingOrders": "Pending orders",
+    "ticketsPendingLabel": "Pending tickets",
+    "ticketsPaidLabel": "Paid tickets",
+    "reports": "Reports",
+    "reportsSub": "Income, expenses and payroll by period",
+    "chartInventory": "Inventory summary",
+    "legendHint": "Tap a bar or an item to open the filtered list.",
+    "legendLabel": "Legend: {chart}",
+    "subset": {
+      "active": "{count} active",
+      "inactive": "{count} inactive",
+      "lowStock": "{count} low stock",
+      "outOfStock": "{count} out of stock",
+      "available": "{count} available",
+      "pending": "{count} pending",
+      "paid": "{count} paid",
+      "pendingRevenue": "{amount} to collect",
+      "thisMonth": "{count, plural, one {# record this month} other {# records this month}}"
+    },
+    "empty": {
+      "noModules": "Your plan has no modules with key figures.",
+      "noModulesHint": "Check your subscription to enable employees, inventory, orders or tickets.",
+      "viewPlans": "View plans",
+      "chart": "No records for this chart yet.",
+      "attendanceToday": "No one has checked in today.",
+      "workOrders": "No work orders yet.",
+      "tickets": "No tickets yet.",
+      "inventory": "No products in inventory yet.",
+      "loadError": "Could not load the dashboard."
+    },
+    "aria": {
+      "employees": "{count, plural, one {View # employee} other {View # employees}}",
+      "employeesActive": "{count, plural, one {View # active employee} other {View # active employees}}",
+      "employeesInactive": "{count, plural, one {View # inactive employee} other {View # inactive employees}}",
+      "products": "{count, plural, one {View # product} other {View # products}}",
+      "lowStock": "{count, plural, one {View # low-stock product} other {View # low-stock products}}",
+      "outOfStock": "{count, plural, one {View # out-of-stock product} other {View # out-of-stock products}}",
+      "available": "{count, plural, one {View # available product} other {View # available products}}",
+      "unavailable": "{count, plural, one {View # unavailable product} other {View # unavailable products}}",
+      "workOrders": "{count, plural, one {View # work order} other {View # work orders}}",
+      "workOrdersPending": "{count, plural, one {View # pending order} other {View # pending orders}}",
+      "workOrdersStatus": "{count, plural, one {View # order with status {status}} other {View # orders with status {status}}}",
+      "workOrdersPriority": "{count, plural, one {View # order with priority {priority}} other {View # orders with priority {priority}}}",
+      "tickets": "{count, plural, one {View # ticket} other {View # tickets}}",
+      "ticketsPending": "{count, plural, one {View # pending ticket} other {View # pending tickets}}",
+      "ticketsPaid": "{count, plural, one {View # paid ticket} other {View # paid tickets}}",
+      "revenue": "View paid tickets: {amount} collected",
+      "attendanceToday": "{count, plural, one {View # attendance record from today} other {View # attendance records from today}}",
+      "attendanceType": "{count, plural, one {View # record from today: {type}} other {View # records from today: {type}}}",
+      "reports": "Open reports"
     }
   },
   "employees": {
@@ -166,7 +278,13 @@
     "saving": "Saving...",
     "activateSuccess": "Employee activated",
     "deactivateSuccess": "Employee deactivated",
-    "toggleError": "Error changing employee status"
+    "toggleError": "Error changing employee status",
+    "filters": {
+      "status": "Status",
+      "all": "All",
+      "active": "Active",
+      "inactive": "Inactive"
+    }
   },
   "api": {
     "invalidRequest": "Invalid request",
@@ -243,7 +361,16 @@
     "importSuccess": "{count} products imported",
     "importError": "Error importing file",
     "importInvalidFile": "Only .xlsx, .xls or .csv files are accepted",
-    "templateError": "Error downloading template"
+    "templateError": "Error downloading template",
+    "outOfStockBadge": "Out of stock",
+    "filters": {
+      "stock": "Stock",
+      "all": "All",
+      "lowStock": "Low stock",
+      "outOfStock": "Out of stock",
+      "available": "Available",
+      "unavailable": "Unavailable"
+    }
   },
   "companies": {
     "title": "Companies",
@@ -412,7 +539,9 @@
     "send": "Send",
     "whatsappSent": "Ticket sent via WhatsApp",
     "whatsappSkip": "Not now",
-    "resendWhatsapp": "Resend via WhatsApp"
+    "resendWhatsapp": "Resend via WhatsApp",
+    "allStatuses": "All statuses",
+    "filterStatus": "Filter by status"
   },
   "subscription": {
     "nav": "Subscription",
@@ -491,7 +620,11 @@
     "moduleLocked": "This module is not in your plan",
     "moduleLockedDesc": "Upgrade your plan to use {module}.",
     "upgradePlan": "Upgrade plan",
-    "availableIn": "Available in {plans}"
+    "availableIn": "Available in {plans}",
+    "managedByParentTitle": "Billing is managed by {company}",
+    "managedByParentDesc": "This branch uses the main company's subscription. Payments and plan changes happen there.",
+    "managedByParentAction": "Go to {company}",
+    "mainCompany": "the main company"
   },
   "profile": {
     "pageTitle": "My profile",
@@ -701,7 +834,13 @@
     "deleteConfirm": "Are you sure you want to delete \"{title}\"? This action cannot be undone.",
     "deleteSuccess": "Order deleted",
     "delete": "Delete",
-    "deleting": "Deleting..."
+    "deleting": "Deleting...",
+    "allStatuses": "All statuses",
+    "allPriorities": "All priorities",
+    "allEmployees": "All employees",
+    "filterStatus": "Filter by status",
+    "filterPriority": "Filter by priority",
+    "filterEmployee": "Filter by employee"
   },
   "registration": {
     "title": "Create your account",
@@ -779,5 +918,122 @@
     "reports": "Reports",
     "whatsapp": "WhatsApp",
     "multi_company": "Multiple companies or branches"
+  },
+  "attendance": {
+    "title": "Attendance",
+    "subtitle": "{count, plural, =0 {No records} one {# record} other {# records}}",
+    "subtitleToday": "Today's records",
+    "subtitleRange": "From {from} to {to}",
+    "employee": "Employee",
+    "position": "Position",
+    "checkin": "Check-in",
+    "checkout": "Check-out",
+    "type": "Type",
+    "date": "Date",
+    "dateRange": "Date range",
+    "from": "From",
+    "to": "To",
+    "today": "Today",
+    "allEmployees": "All employees",
+    "allTypes": "All types",
+    "filterEmployee": "Filter by employee",
+    "filterType": "Filter by type",
+    "types": {
+      "normal": "On time",
+      "late": "Late",
+      "absent": "Absent"
+    },
+    "noCheckout": "No check-out",
+    "noPosition": "No position",
+    "empty": "No attendance records for these dates.",
+    "emptyToday": "No one has checked in today.",
+    "emptyHint": "Records appear when staff check in.",
+    "readOnlyHint": "Check-ins and check-outs are recorded from Staff.",
+    "goToEmployees": "Go to Staff",
+    "loadError": "Could not load attendance.",
+    "notInPlanTitle": "Attendance is not in your plan",
+    "notInPlanBody": "Change plans to see your staff's check-ins, check-outs and late arrivals.",
+    "notInPlanCta": "View plans"
+  },
+  "companySwitcher": {
+    "label": "Active company",
+    "trigger": "Switch company. Active: {company}, {role}",
+    "heading": "Your companies",
+    "branch": "Branch",
+    "switched": "You are now working in {company}"
+  },
+  "team": {
+    "title": "Team",
+    "subtitle": "{count, plural, =0 {No people} one {# person} other {# people}} in {company}",
+    "invite": "Invite person",
+    "inviteTitle": "Invite to the team",
+    "inviteSubtitle": "If they already have a Draxuvo account they are only added to this company. Otherwise they get an email to create their password.",
+    "email": "Email",
+    "emailPlaceholder": "ana@company.com",
+    "emailInvalid": "Enter a valid email",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "phone": "Phone",
+    "optional": "optional",
+    "role": "Role",
+    "roleHint": "You can only grant roles up to your own.",
+    "roleOf": "Role of {name}",
+    "person": "Person",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "you": "You",
+    "remove": "Remove",
+    "removeLabel": "Remove {name} from the team",
+    "removeTitle": "Remove from the team?",
+    "removeConfirm": "{name} loses access to {company}. Their account and other companies don't change.",
+    "removing": "Removing...",
+    "removed": "{name} is no longer on the team",
+    "roleUpdated": "{name} is now {role}",
+    "invited": "{email} was added to the team",
+    "sending": "Inviting...",
+    "send": "Invite",
+    "cancel": "Cancel",
+    "empty": "There's nobody else on the team yet.",
+    "loadError": "The team could not be loaded.",
+    "errors": {
+      "role_not_allowed": "You can't grant or change a role above your own. Only an owner manages owners.",
+      "already_member": "That person is already on the team.",
+      "last_owner": "The company needs at least one owner. Name another one before making this change.",
+      "generic": "The change could not be saved. Try again."
+    }
+  },
+  "myCompanies": {
+    "title": "My companies",
+    "subtitle": "Your main company and its branches share the main company's subscription.",
+    "usage": "{count} of {max} companies",
+    "main": "Main",
+    "branch": "Branch",
+    "current": "Active",
+    "switch": "Open",
+    "switchLabel": "Open {company}",
+    "add": "Add branch",
+    "addTitle": "New branch",
+    "addSubtitle": "You become its owner. It uses the subscription and modules of {company}, at no extra cost.",
+    "name": "Name",
+    "namePlaceholder": "For example, North branch",
+    "nameRequired": "Enter the branch name",
+    "create": "Add",
+    "creating": "Adding...",
+    "created": "{company} was added to your account",
+    "cancel": "Cancel",
+    "limitReached": "You already have {max} companies, the Business plan maximum.",
+    "fromBranch": "Branches are added from the main company.",
+    "goToMain": "Go to {company}",
+    "upgradeTitle": "Multiple companies is part of the Business plan",
+    "upgradeDesc": "With the Business plan you add up to {max} companies or branches to one account, with a single subscription.",
+    "upgradeAction": "See plans",
+    "loadError": "Your companies could not be loaded.",
+    "errors": {
+      "company_limit_reached": "You reached the maximum of {max} companies per account.",
+      "module_not_in_plan": "Your plan doesn't include multiple companies. Switch to the Business plan to add branches.",
+      "not_a_main_company": "Branches are added from the main company.",
+      "generic": "The branch could not be added. Try again."
+    }
   }
 }

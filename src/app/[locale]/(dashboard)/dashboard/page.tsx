@@ -1,121 +1,69 @@
 // src/app/[locale]/(dashboard)/dashboard/page.tsx
+// Dashboard navegable (US1, contracts/ui-routes.md "Dashboard: tarjeta o gráfica a destino").
+// Cada tarjeta, barra, rebanada y concepto de leyenda abre su lista filtrada. Una pieza se
+// muestra solo si su módulo está en `active_modules` y el rol puede abrir el destino.
 "use client";
+import { useState } from "react";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
-import { useAuthStore } from "@/store/auth";
-import { getDashboardStats } from "@/services/analytics";
+import { useLocale, useTranslations } from "next-intl";
 import { ResponsiveBar } from "@nivo/bar";
 import { ResponsivePie } from "@nivo/pie";
 import {
-  Users,
-  Package,
-  ClipboardList,
-  Receipt,
-  UserCheck,
   AlertTriangle,
-  TrendingUp,
-  DollarSign,
+  Banknote,
+  CalendarCheck,
+  ClipboardList,
+  FileBarChart2,
+  Package,
+  Receipt,
   RefreshCw,
+  Users,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/auth";
+import { useAppRouter } from "@/hooks/use-router";
+import { getDashboardStats } from "@/services/analytics";
+import { StatLinkCard, StatLinkCardSkeleton, type StatLinkCardProps } from "@/components/dashboard/stat-link-card";
+import {
+  ChartLegendLinks,
+  useChartColors,
+  type ChartColor,
+  type LegendItem,
+} from "@/components/dashboard/chart-legend-links";
+import {
+  ATTENDANCE_TYPES,
+  WORK_ORDER_PRIORITIES,
+  WORK_ORDER_STATUSES,
+  type ModuleKey,
+  type User,
+  type WorkOrderPriority,
+  type WorkOrderStatus,
+} from "@/types";
 
-const NIVO_THEME = {
-  axis: {
-    ticks: {
-      text: { fontSize: 11, fill: "#71717a" },
-      line: { strokeWidth: 0 },
-    },
-    domain: { line: { strokeWidth: 0 } },
-  },
-  grid: { line: { stroke: "#f4f4f5" } },
-} as const;
+type Role = User["role"];
+const ANALYTICS_ROLES: Role[] = ["owner", "admin", "manager"];
+const REPORTS_ROLES: Role[] = ["owner", "admin"];
+const BILLING_ROLES: Role[] = ["owner", "admin"];
 
-const tooltipStyle: React.CSSProperties = {
-  padding: "6px 10px",
-  background: "white",
-  border: "1px solid #e4e4e7",
-  borderRadius: 8,
-  fontSize: 12,
-  color: "#3f3f46",
-  boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+const STATUS_COLOR: Record<WorkOrderStatus, ChartColor> = {
+  pending: 2,
+  in_progress: 1,
+  in_review: 5,
+  completed: 3,
+  cancelled: 4,
 };
-
-const STATUS_COLORS: Record<string, string> = {
-  pending: "#f59e0b",
-  in_progress: "#3b82f6",
-  in_review: "#8b5cf6",
-  completed: "#10b981",
-  cancelled: "#ef4444",
+const PRIORITY_COLOR: Record<WorkOrderPriority, ChartColor> = {
+  low: 5,
+  medium: 4,
+  high: 2,
+  urgent: 1,
 };
+const ATTENDANCE_COLOR = { normal: 3, late: 4, absent: 1 } as const satisfies Record<string, ChartColor>;
+const ATTENDANCE_LABEL = { normal: "attendanceNormal", late: "attendanceLate", absent: "attendanceAbsent" } as const;
 
-const PRIORITY_COLORS: Record<string, string> = {
-  low: "#6ee7b7",
-  medium: "#3b82f6",
-  high: "#f59e0b",
-  urgent: "#ef4444",
-};
-
-function StatCard({
-  label,
-  value,
-  sub,
-  icon: Icon,
-  iconColor,
-  iconBg,
-}: {
-  label: string;
-  value: string | number;
-  sub?: string;
-  icon: React.ElementType;
-  iconColor: string;
-  iconBg: string;
-}) {
-  return (
-    <div className="bg-white rounded-xl border border-zinc-200 p-5">
-      <div
-        className={cn(
-          "w-9 h-9 rounded-lg flex items-center justify-center mb-3",
-          iconBg,
-        )}
-      >
-        <Icon size={16} className={iconColor} />
-      </div>
-      <p className="text-2xl font-semibold text-zinc-900">{value}</p>
-      <p className="text-xs text-zinc-500 mt-0.5">{label}</p>
-      {sub && <p className="text-xs text-zinc-400 mt-0.5">{sub}</p>}
-    </div>
-  );
-}
-
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <h2 className="text-sm font-medium text-zinc-700 mb-4">{children}</h2>
-  );
-}
-
-function ChartCard({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="bg-white rounded-xl border border-zinc-200 p-5">
-      <p className="text-sm font-medium text-zinc-700 mb-4">{title}</p>
-      {children}
-    </div>
-  );
-}
-
-function SkeletonCard() {
-  return (
-    <div className="bg-white rounded-xl border border-zinc-200 p-5 animate-pulse">
-      <div className="w-9 h-9 rounded-lg bg-zinc-100 mb-3" />
-      <div className="h-7 w-16 bg-zinc-100 rounded mb-1" />
-      <div className="h-3 w-24 bg-zinc-100 rounded" />
-    </div>
-  );
+/** Hoy en America/Mexico_City como `YYYY-MM-DD`, la misma zona que usa la API. */
+function todayInMexico() {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Mexico_City" }).format(new Date());
 }
 
 function formatCurrency(value: number) {
@@ -126,388 +74,541 @@ function formatCurrency(value: number) {
   }).format(value);
 }
 
+/** Una pieza del gráfico: conserva la clave cruda y la ruta (sin locale) a la que navega. */
+interface ChartPart extends LegendItem {
+  path?: string;
+}
+
+function ChartCard({
+  title,
+  legendLabel,
+  emptyText,
+  parts,
+  kind,
+}: {
+  title: string;
+  legendLabel: string;
+  emptyText: string;
+  parts: ChartPart[];
+  kind: "bar" | "pie";
+}) {
+  const router = useAppRouter();
+  const colors = useChartColors();
+  const total = parts.reduce((sum, p) => sum + p.count, 0);
+  const data = parts.map((p) => ({
+    id: p.key,
+    key: p.key,
+    label: p.label,
+    value: p.count,
+    color: colors[p.color],
+    path: p.path ?? "",
+  }));
+  const go = (path: string) => path && router.push(path);
+  const tooltip = (label: string | number, value: number) => (
+    <div className="rounded-etiqueta bg-card px-2.5 py-1.5 text-xs text-foreground shadow-etiqueta">
+      {label}: <strong className="tabular-nums">{value}</strong>
+    </div>
+  );
+
+  return (
+    <section className="flex flex-col rounded-etiqueta bg-card p-4 text-card-foreground shadow-etiqueta">
+      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+      <div className="mt-3 h-48">
+        {total === 0 ? (
+          <p className="flex h-full items-center justify-center text-center text-sm text-muted-foreground">
+            {emptyText}
+          </p>
+        ) : kind === "bar" ? (
+          <div className="h-full [&_svg_rect]:cursor-pointer">
+            <ResponsiveBar
+              data={data}
+              keys={["value"]}
+              indexBy="label"
+              margin={{ top: 8, right: 8, bottom: 28, left: 32 }}
+              padding={0.35}
+              borderRadius={3}
+              colors={(bar) => bar.data.color}
+              borderWidth={1}
+              borderColor={{ from: "color", modifiers: [["darker", 0.6]] }}
+              theme={{
+                text: { fill: colors[5], fontSize: 11 },
+                axis: { ticks: { line: { strokeWidth: 0 } }, domain: { line: { strokeWidth: 0 } } },
+              }}
+              enableGridY={false}
+              axisBottom={{ tickSize: 0, tickPadding: 6 }}
+              axisLeft={{
+                tickSize: 0,
+                tickPadding: 6,
+                tickValues: 4,
+                format: (v) => (Number.isInteger(Number(v)) ? String(v) : ""),
+              }}
+              enableLabel={false}
+              animate={false}
+              role="img"
+              ariaLabel={title}
+              onClick={(bar) => go(bar.data.path)}
+              tooltip={({ indexValue, value }) => tooltip(indexValue, value)}
+            />
+          </div>
+        ) : (
+          <div className="h-full [&_svg_path]:cursor-pointer">
+            <ResponsivePie
+              data={data}
+              innerRadius={0.62}
+              padAngle={2}
+              cornerRadius={2}
+              colors={(d) => d.data.color}
+              borderWidth={1}
+              borderColor={{ from: "color", modifiers: [["darker", 0.6]] }}
+              enableArcLinkLabels={false}
+              enableArcLabels={false}
+              margin={{ top: 8, right: 8, bottom: 8, left: 8 }}
+              animate={false}
+              role="img"
+              onClick={(d) => go(d.data.path)}
+              tooltip={({ datum }) => tooltip(datum.label, datum.value)}
+            />
+          </div>
+        )}
+      </div>
+      <ChartLegendLinks className="mt-3" label={legendLabel} items={parts} />
+    </section>
+  );
+}
+
+function SummaryCard({ title, legendLabel, items }: { title: string; legendLabel: string; items: LegendItem[] }) {
+  return (
+    <section className="flex flex-col rounded-etiqueta bg-card p-4 text-card-foreground shadow-etiqueta">
+      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+      <ChartLegendLinks className="mt-3" label={legendLabel} items={items} />
+    </section>
+  );
+}
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return <h2 className="mb-3 font-display text-xl font-semibold leading-tight text-foreground">{children}</h2>;
+}
+
 export default function DashboardPage() {
   const t = useTranslations("analyticsBoard");
+  const tc = useTranslations("common");
+  const locale = useLocale();
   const user = useAuthStore((s) => s.user);
-  const { data, isLoading, refetch, isFetching } = useQuery({
-    queryKey: ["dashboard-stats"],
+  const selectedCompanyId = useAuthStore((s) => s.selectedCompanyId);
+  const [today] = useState(todayInMexico);
+
+  const { data, isLoading, isError, refetch, isFetching } = useQuery({
+    queryKey: ["dashboard", selectedCompanyId],
     queryFn: getDashboardStats,
     staleTime: 2 * 60 * 1000,
   });
 
-  const workOrderStatusData = data
-    ? Object.entries(data.work_orders.by_status).map(([key, val]) => ({
-        name: t(`workOrderStatuses.${key}`),
-        value: val,
-        fill: STATUS_COLORS[key] ?? "#94a3b8",
-      }))
-    : [];
+  const role = useAuthStore((s) => s.role);
+  const can = (module: ModuleKey, roles: Role[] = ANALYTICS_ROLES) =>
+    !!data && !!role && data.active_modules.includes(module) && roles.includes(role);
+  const href = (path: string) => `/${locale}${path}`;
+  const attendancePath = `/asistencia?from=${today}&to=${today}`;
 
-  const workOrderPriorityData = data
-    ? Object.entries(data.work_orders.by_priority).map(([key, val]) => ({
-        name: t(`priorities.${key}`),
-        value: val,
-        fill: PRIORITY_COLORS[key] ?? "#94a3b8",
-      }))
-    : [];
+  const cards: (StatLinkCardProps & { id: string })[] = [];
+  const legend = (chart: string) => t("legendLabel", { chart });
 
-  const ticketData = data
+  if (data) {
+    const { employees, work_orders, tickets, inventory, attendance } = data;
+    if (can("employees")) {
+      cards.push({
+        id: "employees",
+        label: t("totalEmployees"),
+        value: employees.total,
+        href: href("/empleados"),
+        ariaLabel: t("aria.employees", { count: employees.total }),
+        icon: Users,
+        subsets: [
+          {
+            label: t("subset.active", { count: employees.active }),
+            href: href("/empleados?status=active"),
+            ariaLabel: t("aria.employeesActive", { count: employees.active }),
+          },
+          {
+            label: t("subset.inactive", { count: employees.inactive }),
+            href: href("/empleados?status=inactive"),
+            ariaLabel: t("aria.employeesInactive", { count: employees.inactive }),
+          },
+        ],
+      });
+    }
+    if (can("work_orders")) {
+      const pending = work_orders.by_status.pending ?? 0;
+      cards.push({
+        id: "work_orders",
+        label: t("totalWorkOrders"),
+        value: work_orders.total,
+        href: href("/ordenes"),
+        ariaLabel: t("aria.workOrders", { count: work_orders.total }),
+        icon: ClipboardList,
+        subsets: [
+          {
+            label: t("subset.pending", { count: pending }),
+            href: href("/ordenes?status=pending"),
+            ariaLabel: t("aria.workOrdersPending", { count: pending }),
+            highlight: pending > 0,
+          },
+        ],
+      });
+    }
+    if (can("tickets")) {
+      cards.push({
+        id: "tickets",
+        label: t("totalTickets"),
+        value: tickets.total,
+        href: href("/tickets"),
+        ariaLabel: t("aria.tickets", { count: tickets.total }),
+        icon: Receipt,
+        subsets: [
+          {
+            label: t("subset.pending", { count: tickets.pending }),
+            href: href("/tickets?status=pending"),
+            ariaLabel: t("aria.ticketsPending", { count: tickets.pending }),
+            highlight: tickets.pending > 0,
+          },
+          {
+            label: t("subset.paid", { count: tickets.paid }),
+            href: href("/tickets?status=paid"),
+            ariaLabel: t("aria.ticketsPaid", { count: tickets.paid }),
+          },
+        ],
+      });
+      // `total_revenue` ya suma solo tickets pagados: es lo cobrado (data-model §2).
+      cards.push({
+        id: "revenue",
+        label: t("collected"),
+        value: formatCurrency(tickets.total_revenue),
+        href: href("/tickets?status=paid"),
+        ariaLabel: t("aria.revenue", { amount: formatCurrency(tickets.total_revenue) }),
+        icon: Banknote,
+        subsets: [
+          {
+            label: t("subset.pendingRevenue", { amount: formatCurrency(tickets.pending_revenue) }),
+            href: href("/tickets?status=pending"),
+            ariaLabel: t("aria.ticketsPending", { count: tickets.pending }),
+          },
+        ],
+      });
+    }
+    if (can("inventory")) {
+      cards.push({
+        id: "inventory",
+        label: t("products"),
+        value: inventory.total,
+        href: href("/inventario"),
+        ariaLabel: t("aria.products", { count: inventory.total }),
+        icon: Package,
+        subsets: [
+          {
+            label: t("subset.available", { count: inventory.available }),
+            href: href("/inventario?available=true"),
+            ariaLabel: t("aria.available", { count: inventory.available }),
+          },
+        ],
+      });
+      cards.push({
+        id: "low_stock",
+        label: t("lowStock"),
+        value: inventory.low_stock,
+        href: href("/inventario?low_stock=true"),
+        ariaLabel: t("aria.lowStock", { count: inventory.low_stock }),
+        icon: AlertTriangle,
+        subsets: [
+          {
+            label: t("subset.outOfStock", { count: inventory.out_of_stock }),
+            href: href("/inventario?out_of_stock=true"),
+            ariaLabel: t("aria.outOfStock", { count: inventory.out_of_stock }),
+            highlight: inventory.out_of_stock > 0,
+          },
+        ],
+      });
+    }
+    if (can("attendance")) {
+      cards.push({
+        id: "attendance_today",
+        label: t("attendanceToday"),
+        value: attendance.today.total,
+        href: href(attendancePath),
+        ariaLabel: t("aria.attendanceToday", { count: attendance.today.total }),
+        icon: CalendarCheck,
+        subsets: [{ label: t("subset.thisMonth", { count: attendance.this_month }) }],
+      });
+    }
+    if (can("reports", REPORTS_ROLES)) {
+      cards.push({
+        id: "reports",
+        label: t("reports"),
+        description: t("reportsSub"),
+        href: href("/reportes"),
+        ariaLabel: t("aria.reports"),
+        icon: FileBarChart2,
+      });
+    }
+  }
+
+  // Partes de gráficas y leyendas (data-model §2), con la clave cruda de la API.
+  const statusParts: ChartPart[] = data
+    ? WORK_ORDER_STATUSES.map((s) => {
+        const count = data.work_orders.by_status[s] ?? 0;
+        const label = t(`workOrderStatuses.${s}`);
+        const path = `/ordenes?status=${s}`;
+        return {
+          key: s,
+          label,
+          count,
+          color: STATUS_COLOR[s],
+          path,
+          href: href(path),
+          ariaLabel: t("aria.workOrdersStatus", { count, status: label }),
+        };
+      })
+    : [];
+  const priorityParts: ChartPart[] = data
+    ? WORK_ORDER_PRIORITIES.map((p) => {
+        const count = data.work_orders.by_priority[p] ?? 0;
+        const label = t(`priorities.${p}`);
+        const path = `/ordenes?priority=${p}`;
+        return {
+          key: p,
+          label,
+          count,
+          color: PRIORITY_COLOR[p],
+          path,
+          href: href(path),
+          ariaLabel: t("aria.workOrdersPriority", { count, priority: label }),
+        };
+      })
+    : [];
+  const ticketParts: ChartPart[] = data
     ? [
-        { name: t("ticketPaid"), value: data.tickets.paid, fill: "#10b981" },
         {
-          name: t("ticketPending"),
-          value: data.tickets.pending,
-          fill: "#f59e0b",
+          key: "paid",
+          label: t("ticketPaid"),
+          count: data.tickets.paid,
+          color: 3,
+          path: "/tickets?status=paid",
+          href: href("/tickets?status=paid"),
+          ariaLabel: t("aria.ticketsPaid", { count: data.tickets.paid }),
+        },
+        {
+          key: "pending",
+          label: t("ticketPending"),
+          count: data.tickets.pending,
+          color: 4,
+          path: "/tickets?status=pending",
+          href: href("/tickets?status=pending"),
+          ariaLabel: t("aria.ticketsPending", { count: data.tickets.pending }),
+        },
+      ]
+    : [];
+  const revenueItems: LegendItem[] = data
+    ? [
+        {
+          key: "collected",
+          label: t("collectedRevenue"),
+          count: data.tickets.total_revenue,
+          display: formatCurrency(data.tickets.total_revenue),
+          color: 3,
+          href: href("/tickets?status=paid"),
+          ariaLabel: t("aria.revenue", { amount: formatCurrency(data.tickets.total_revenue) }),
+        },
+        {
+          key: "pending",
+          label: t("pendingRevenueLabel"),
+          count: data.tickets.pending_revenue,
+          display: formatCurrency(data.tickets.pending_revenue),
+          color: 4,
+          href: href("/tickets?status=pending"),
+          ariaLabel: t("aria.ticketsPending", { count: data.tickets.pending }),
+        },
+      ]
+    : [];
+  const attendanceParts: ChartPart[] = data
+    ? ATTENDANCE_TYPES.map((type) => {
+        const count = data.attendance.today[type];
+        const label = t(ATTENDANCE_LABEL[type]);
+        const path = `${attendancePath}&type=${type}`;
+        return {
+          key: type,
+          label,
+          count,
+          color: ATTENDANCE_COLOR[type],
+          path,
+          href: href(path),
+          ariaLabel: t("aria.attendanceType", { count, type: label }),
+        };
+      })
+    : [];
+  // "No disponibles" sin enlace: la API solo filtra available=true.
+  const inventoryItems: LegendItem[] = data
+    ? [
+        {
+          key: "available",
+          label: t("inventoryAvailable"),
+          count: data.inventory.available,
+          color: 3,
+          href: href("/inventario?available=true"),
+          ariaLabel: t("aria.available", { count: data.inventory.available }),
+        },
+        { key: "unavailable", label: t("inventoryUnavailable"), count: data.inventory.unavailable, color: 5 },
+        {
+          key: "low_stock",
+          label: t("inventoryLowStock"),
+          count: data.inventory.low_stock,
+          color: 4,
+          href: href("/inventario?low_stock=true"),
+          ariaLabel: t("aria.lowStock", { count: data.inventory.low_stock }),
+        },
+        {
+          key: "out_of_stock",
+          label: t("inventoryOutOfStock"),
+          count: data.inventory.out_of_stock,
+          color: 1,
+          href: href("/inventario?out_of_stock=true"),
+          ariaLabel: t("aria.outOfStock", { count: data.inventory.out_of_stock }),
         },
       ]
     : [];
 
-  const attendanceTodayData = data
-    ? [
-        {
-          name: t("attendanceNormal"),
-          value: data.attendance.today.normal,
-          fill: "#10b981",
-        },
-        {
-          name: t("attendanceLate"),
-          value: data.attendance.today.late,
-          fill: "#f59e0b",
-        },
-        {
-          name: t("attendanceAbsent"),
-          value: data.attendance.today.absent,
-          fill: "#ef4444",
-        },
-      ]
-    : [];
+  const showOrders = can("work_orders");
+  const showTickets = can("tickets");
+  const showAttendance = can("attendance");
+  const showInventory = can("inventory");
+  const anyChart = showOrders || showTickets || showAttendance || showInventory;
 
   return (
-    <div>
-      {/* Header */}
-      <div className="mb-8 flex items-start justify-between">
+    <div className="space-y-8">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-medium text-zinc-900">
-            {t("title")}
-          </h1>
-          <p className="text-sm text-zinc-500 mt-1">
-            {t("subtitle", { name: user?.first_name ?? "" })}
-          </p>
+          <h1 className="font-display text-3xl font-semibold leading-tight text-foreground">{t("title")}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t("subtitle", { name: user?.first_name ?? "" })}</p>
         </div>
         <button
+          type="button"
           onClick={() => refetch()}
           disabled={isFetching}
-          className="p-2 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors disabled:pointer-events-none"
+          aria-label={tc("refresh")}
+          className="rounded-etiqueta p-2 text-muted-foreground transition-colors duration-[120ms] hover:bg-card hover:text-foreground foco-etiqueta disabled:pointer-events-none"
         >
-          <RefreshCw size={16} className={isFetching ? "animate-spin" : ""} />
+          <RefreshCw size={18} strokeWidth={1.75} className={isFetching ? "animate-spin" : ""} />
         </button>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {isLoading ? (
-          Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
-        ) : (
-          <>
-            <StatCard
-              label={t("totalEmployees")}
-              value={data?.employees.total ?? 0}
-              sub={t("employeesSub", {
-                active: data?.employees.active ?? 0,
-                inactive: data?.employees.inactive ?? 0,
-              })}
-              icon={Users}
-              iconColor="text-blue-600"
-              iconBg="bg-blue-50"
-            />
-            <StatCard
-              label={t("totalWorkOrders")}
-              value={data?.work_orders.total ?? 0}
-              sub={t("workOrdersSub", {
-                completed: data?.work_orders.by_status.completed ?? 0,
-              })}
-              icon={ClipboardList}
-              iconColor="text-indigo-600"
-              iconBg="bg-indigo-50"
-            />
-            <StatCard
-              label={t("totalTickets")}
-              value={data?.tickets.total ?? 0}
-              sub={t("ticketsPending", { count: data?.tickets.pending ?? 0 })}
-              icon={Receipt}
-              iconColor="text-amber-600"
-              iconBg="bg-amber-50"
-            />
-            <StatCard
-              label={t("totalRevenue")}
-              value={formatCurrency(data?.tickets.total_revenue ?? 0)}
-              sub={t("pendingRevenue", {
-                amount: formatCurrency(data?.tickets.pending_revenue ?? 0),
-              })}
-              icon={DollarSign}
-              iconColor="text-emerald-600"
-              iconBg="bg-emerald-50"
-            />
-            <StatCard
-              label={t("totalInventory")}
-              value={data?.inventory.total ?? 0}
-              sub={t("inventorySub", {
-                available: data?.inventory.available ?? 0,
-              })}
-              icon={Package}
-              iconColor="text-teal-600"
-              iconBg="bg-teal-50"
-            />
-            <StatCard
-              label={t("lowStock")}
-              value={data?.inventory.low_stock ?? 0}
-              sub={t("outOfStock", { count: data?.inventory.out_of_stock ?? 0 })}
-              icon={AlertTriangle}
-              iconColor="text-orange-600"
-              iconBg="bg-orange-50"
-            />
-            <StatCard
-              label={t("attendanceToday")}
-              value={data?.attendance.today.total ?? 0}
-              sub={t("attendanceMonth", { count: data?.attendance.this_month ?? 0 })}
-              icon={UserCheck}
-              iconColor="text-purple-600"
-              iconBg="bg-purple-50"
-            />
-            <StatCard
-              label={t("totalUsers")}
-              value={data?.users.total ?? 0}
-              icon={TrendingUp}
-              iconColor="text-pink-600"
-              iconBg="bg-pink-50"
-            />
-          </>
-        )}
-      </div>
+      {isLoading ? (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <StatLinkCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : isError || !data ? (
+        <div role="alert" className="rounded-etiqueta bg-card p-6 text-sm shadow-etiqueta">
+          <p className="font-medium text-foreground">{t("empty.loadError")}</p>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="mt-3 rounded-etiqueta px-1 font-medium text-foreground underline decoration-border underline-offset-4 hover:decoration-foreground foco-etiqueta"
+          >
+            {tc("retry")}
+          </button>
+        </div>
+      ) : cards.length === 0 ? (
+        <div className="rounded-etiqueta bg-card p-6 shadow-etiqueta">
+          <p className="font-medium text-foreground">{t("empty.noModules")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("empty.noModulesHint")}</p>
+          {role && BILLING_ROLES.includes(role) && (
+            <Link
+              href={href("/suscripcion")}
+              className="mt-4 inline-flex h-9 items-center rounded-etiqueta bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors duration-[120ms] hover:bg-oferta-hover foco-etiqueta"
+            >
+              {t("empty.viewPlans")}
+            </Link>
+          )}
+        </div>
+      ) : (
+        <>
+          <section aria-label={t("kpis")}>
+            <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {cards.map(({ id, ...card }) => (
+                <li key={id} className="flex">
+                  <StatLinkCard {...card} className="w-full" />
+                </li>
+              ))}
+            </ul>
+          </section>
 
-      {/* Charts row 1 */}
-      <SectionTitle>{t("sectionOrders")}</SectionTitle>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
-        <ChartCard title={t("chartOrdersByStatus")}>
-          <div style={{ height: 220 }}>
-            <ResponsiveBar<{ name: string; value: number; fill: string }>
-              data={workOrderStatusData}
-              keys={["value"]}
-              indexBy="name"
-              margin={{ top: 10, right: 10, bottom: 36, left: 36 }}
-              padding={0.4}
-              borderRadius={4}
-              colors={(bar) => bar.data.fill}
-              theme={NIVO_THEME}
-              axisBottom={{ tickSize: 0, tickPadding: 5 }}
-              axisLeft={{
-                tickSize: 0,
-                tickPadding: 5,
-                format: (v) => (Number.isInteger(Number(v)) ? String(v) : ""),
-              }}
-              enableLabel={false}
-              tooltip={({ indexValue, value }) => (
-                <div style={tooltipStyle}>
-                  {indexValue}: <strong>{value}</strong>
-                </div>
-              )}
-            />
-          </div>
-        </ChartCard>
+          {anyChart && <p className="text-sm text-muted-foreground">{t("legendHint")}</p>}
 
-        <ChartCard title={t("chartOrdersByPriority")}>
-          <div style={{ height: 220 }}>
-            <ResponsivePie<{ id: string; value: number; color: string }>
-              data={workOrderPriorityData.map((d) => ({
-                id: d.name,
-                value: d.value,
-                color: d.fill,
-              }))}
-              innerRadius={0.65}
-              padAngle={3}
-              colors={(d) => d.data.color}
-              enableArcLinkLabels={false}
-              enableArcLabels={false}
-              margin={{ top: 10, right: 10, bottom: 60, left: 10 }}
-              theme={NIVO_THEME}
-              legends={[
-                {
-                  anchor: "bottom",
-                  direction: "row",
-                  itemWidth: 80,
-                  itemHeight: 16,
-                  itemsSpacing: 8,
-                  symbolSize: 8,
-                  symbolShape: "circle",
-                  itemTextColor: "#52525b",
-                },
-              ]}
-              tooltip={({ datum }) => (
-                <div style={tooltipStyle}>
-                  {datum.label}: <strong>{datum.value}</strong>
-                </div>
-              )}
-            />
-          </div>
-        </ChartCard>
-      </div>
-
-      {/* Charts row 2 */}
-      <SectionTitle>{t("sectionFinance")}</SectionTitle>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
-        <ChartCard title={t("chartTickets")}>
-          <div style={{ height: 220 }}>
-            <ResponsivePie<{ id: string; value: number; color: string }>
-              data={ticketData.map((d) => ({
-                id: d.name,
-                value: d.value,
-                color: d.fill,
-              }))}
-              innerRadius={0.65}
-              padAngle={3}
-              colors={(d) => d.data.color}
-              enableArcLinkLabels={false}
-              enableArcLabels={false}
-              margin={{ top: 10, right: 10, bottom: 60, left: 10 }}
-              theme={NIVO_THEME}
-              legends={[
-                {
-                  anchor: "bottom",
-                  direction: "row",
-                  itemWidth: 80,
-                  itemHeight: 16,
-                  itemsSpacing: 8,
-                  symbolSize: 8,
-                  symbolShape: "circle",
-                  itemTextColor: "#52525b",
-                },
-              ]}
-              tooltip={({ datum }) => (
-                <div style={tooltipStyle}>
-                  {datum.label}: <strong>{datum.value}</strong>
-                </div>
-              )}
-            />
-          </div>
-        </ChartCard>
-
-        {/* Revenue summary */}
-        <div className="bg-white rounded-xl border border-zinc-200 p-5 flex flex-col gap-4 justify-center">
-          <p className="text-sm font-medium text-zinc-700">{t("revenueBreakdown")}</p>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
-                <span className="text-sm text-zinc-600">{t("collectedRevenue")}</span>
+          {showOrders && (
+            <section>
+              <SectionTitle>{t("sectionOrders")}</SectionTitle>
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <ChartCard
+                  kind="bar"
+                  title={t("chartOrdersByStatus")}
+                  legendLabel={legend(t("chartOrdersByStatus"))}
+                  emptyText={t("empty.workOrders")}
+                  parts={statusParts}
+                />
+                <ChartCard
+                  kind="pie"
+                  title={t("chartOrdersByPriority")}
+                  legendLabel={legend(t("chartOrdersByPriority"))}
+                  emptyText={t("empty.workOrders")}
+                  parts={priorityParts}
+                />
               </div>
-              <span className="text-sm font-medium text-zinc-900">
-                {formatCurrency(
-                  (data?.tickets.total_revenue ?? 0) -
-                    (data?.tickets.pending_revenue ?? 0),
+            </section>
+          )}
+
+          {showTickets && (
+            <section>
+              <SectionTitle>{t("sectionFinance")}</SectionTitle>
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <ChartCard
+                  kind="pie"
+                  title={t("chartTickets")}
+                  legendLabel={legend(t("chartTickets"))}
+                  emptyText={t("empty.tickets")}
+                  parts={ticketParts}
+                />
+                <SummaryCard
+                  title={t("revenueBreakdown")}
+                  legendLabel={legend(t("revenueBreakdown"))}
+                  items={revenueItems}
+                />
+              </div>
+            </section>
+          )}
+
+          {(showAttendance || showInventory) && (
+            <section>
+              <SectionTitle>{t("sectionAttendance")}</SectionTitle>
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                {showAttendance && (
+                  <ChartCard
+                    kind="bar"
+                    title={t("chartAttendanceToday")}
+                    legendLabel={legend(t("chartAttendanceToday"))}
+                    emptyText={t("empty.attendanceToday")}
+                    parts={attendanceParts}
+                  />
                 )}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0" />
-                <span className="text-sm text-zinc-600">{t("pendingRevenueLabel")}</span>
+                {showInventory && (
+                  <SummaryCard
+                    title={t("chartInventory")}
+                    legendLabel={legend(t("chartInventory"))}
+                    items={inventoryItems}
+                  />
+                )}
               </div>
-              <span className="text-sm font-medium text-zinc-900">
-                {formatCurrency(data?.tickets.pending_revenue ?? 0)}
-              </span>
-            </div>
-            <div className="border-t border-zinc-100 pt-3 flex items-center justify-between">
-              <span className="text-sm font-medium text-zinc-700">{t("totalRevenue")}</span>
-              <span className="text-base font-semibold text-zinc-900">
-                {formatCurrency(data?.tickets.total_revenue ?? 0)}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Charts row 3 */}
-      <SectionTitle>{t("sectionAttendance")}</SectionTitle>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ChartCard title={t("chartAttendanceToday")}>
-          <div style={{ height: 220 }}>
-            <ResponsiveBar<{ name: string; value: number; fill: string }>
-              data={attendanceTodayData}
-              keys={["value"]}
-              indexBy="name"
-              margin={{ top: 10, right: 10, bottom: 36, left: 36 }}
-              padding={0.35}
-              borderRadius={4}
-              colors={(bar) => bar.data.fill}
-              theme={NIVO_THEME}
-              axisBottom={{ tickSize: 0, tickPadding: 5 }}
-              axisLeft={{
-                tickSize: 0,
-                tickPadding: 5,
-                format: (v) => (Number.isInteger(Number(v)) ? String(v) : ""),
-              }}
-              enableLabel={false}
-              tooltip={({ indexValue, value }) => (
-                <div style={tooltipStyle}>
-                  {indexValue}: <strong>{value}</strong>
-                </div>
-              )}
-            />
-          </div>
-        </ChartCard>
-
-        {/* Inventory summary */}
-        <div className="bg-white rounded-xl border border-zinc-200 p-5 flex flex-col gap-4 justify-center">
-          <p className="text-sm font-medium text-zinc-700">{t("inventoryBreakdown")}</p>
-          <div className="space-y-3">
-            {[
-              {
-                label: t("inventoryAvailable"),
-                value: data?.inventory.available ?? 0,
-                color: "bg-emerald-500",
-              },
-              {
-                label: t("inventoryUnavailable"),
-                value: data?.inventory.unavailable ?? 0,
-                color: "bg-zinc-300",
-              },
-              {
-                label: t("inventoryLowStock"),
-                value: data?.inventory.low_stock ?? 0,
-                color: "bg-amber-400",
-              },
-              {
-                label: t("inventoryOutOfStock"),
-                value: data?.inventory.out_of_stock ?? 0,
-                color: "bg-red-400",
-              },
-            ].map(({ label, value, color }) => {
-              const total = data?.inventory.total || 1;
-              const pct = Math.round((value / total) * 100);
-              return (
-                <div key={label}>
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${color}`} />
-                      <span className="text-sm text-zinc-600">{label}</span>
-                    </div>
-                    <span className="text-sm font-medium text-zinc-900">
-                      {value}{" "}
-                      <span className="text-zinc-400 font-normal">({pct}%)</span>
-                    </span>
-                  </div>
-                  <div className="h-1.5 bg-zinc-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${color}`}
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+            </section>
+          )}
+        </>
+      )}
     </div>
   );
 }

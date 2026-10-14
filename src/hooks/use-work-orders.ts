@@ -2,14 +2,39 @@
 // src/hooks/use-work-orders.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
-import type { WorkOrder } from "@/types";
+import type { ListParams, PaginatedResponse, WorkOrder, WorkOrderFilters } from "@/types";
 
-export function useWorkOrders(filters?: Record<string, string>) {
-  const params = new URLSearchParams(filters).toString();
-  return useQuery<WorkOrder[]>({
-    queryKey: ["work-orders", filters],
-    queryFn: () =>
-      apiClient.get(`/api/v1/work_orders?${params}`).then((r) => r.data.results ?? r.data),
+export type WorkOrderListParams = WorkOrderFilters & ListParams;
+
+export function listWorkOrders({
+  page = 1,
+  page_size = 20,
+  status,
+  priority,
+  employee_id,
+  search,
+}: WorkOrderListParams = {}): Promise<PaginatedResponse<WorkOrder>> {
+  return apiClient
+    .get("/api/v1/work_orders", {
+      params: { page, page_size, status, priority, employee_id, search: search?.trim() || undefined },
+    })
+    .then((r) => r.data);
+}
+
+/**
+ * Lista paginada de órdenes. Query key `["work-orders", filters, page]` (contracts/ui-routes.md);
+ * las invalidaciones por prefijo `["work-orders"]` siguen aplicando. `enabled: false` cuando el
+ * módulo está fuera del plan (`useModuleGate`): sin request ni toast.
+ */
+export function useWorkOrders(
+  filters: WorkOrderFilters = {},
+  { page = 1, page_size = 20 }: ListParams = {},
+  { enabled = true }: { enabled?: boolean } = {},
+) {
+  return useQuery<PaginatedResponse<WorkOrder>>({
+    queryKey: ["work-orders", filters, page, page_size],
+    queryFn: () => listWorkOrders({ ...filters, page, page_size }),
+    enabled,
   });
 }
 

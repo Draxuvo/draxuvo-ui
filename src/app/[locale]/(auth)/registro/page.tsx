@@ -2,6 +2,7 @@
 "use client";
 import { Suspense, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import logo from "../../../../../public/logo.svg";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
@@ -12,11 +13,11 @@ import { z } from "zod";
 import { useAuthStore } from "@/store/auth";
 import { registrationsService } from "@/services/registrations";
 import type { BillingCycle, PlanKey } from "@/types";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
 
 const PLAN_KEYS = ["basic", "pro", "enterprise"] as const satisfies readonly PlanKey[];
 const CYCLES = ["monthly", "annual"] as const satisfies readonly BillingCycle[];
@@ -43,10 +44,31 @@ const TEXT_FIELDS: { name: TextField; type: string; autoComplete: string }[] = [
   { name: "company_name", type: "text", autoComplete: "organization" },
 ];
 
-function BrandMark({ size = "md" }: { size?: "sm" | "md" }) {
-  const px = size === "sm" ? 28 : 40;
-  const dim = size === "sm" ? "w-7 h-7" : "w-10 h-10";
-  return <Image src={logo} alt="" width={px} height={px} unoptimized className={`${dim} shrink-0`} />;
+const FIELD =
+  "h-11 rounded-etiqueta border-border bg-card px-3 text-base focus-visible:border-foreground focus-visible:ring-foreground/15";
+
+const TEXT_LINK =
+  "rounded-[2px] font-semibold text-foreground underline decoration-anaquel-borde decoration-2 underline-offset-4 transition-colors duration-[120ms] hover:decoration-foreground foco-etiqueta";
+
+/** Opción de radio como etiqueta: la elegida va marcada con oferta. */
+function choiceClass(selected: boolean) {
+  return cn(
+    "relative flex cursor-pointer flex-col rounded-etiqueta border bg-card px-3 py-2.5 text-left transition-colors duration-[120ms] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-foreground has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-card",
+    selected
+      ? "border-primary ring-1 ring-primary"
+      : "border-border hover:border-foreground/40",
+  );
+}
+
+function SelectedMark() {
+  return (
+    <span
+      aria-hidden
+      className="absolute right-2 top-2 flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground"
+    >
+      <Check size={14} strokeWidth={2.5} />
+    </span>
+  );
 }
 
 function RegistrationForm() {
@@ -121,177 +143,141 @@ function RegistrationForm() {
   }
 
   return (
-    <div className="min-h-screen flex">
-      {/* ── Left panel: branding ── */}
-      <div className="hidden lg:flex lg:w-[46%] relative flex-col justify-between p-12 overflow-hidden bg-slate-950 text-white select-none">
-        <div
-          className="absolute inset-0 opacity-[0.06] pointer-events-none"
-          style={{
-            backgroundImage: "radial-gradient(circle, #fff 1px, transparent 1px)",
-            backgroundSize: "26px 26px",
-          }}
-        />
-        <div className="absolute -bottom-24 -left-24 w-[420px] h-[420px] bg-amber-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-0 right-0 w-72 h-72 bg-orange-700/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex items-center gap-3">
-          <BrandMark />
-          <div>
-            <p className="font-semibold text-base leading-tight">{tc("brandName")}</p>
-            <p className="text-[11px] text-slate-400 uppercase tracking-widest">{tc("brandTagline")}</p>
-          </div>
+    <div className="flex min-h-svh flex-col bg-background text-foreground">
+      {/* Ceja: la banda de precio del anaquel lleva la marca */}
+      <header className="border-b border-foreground/15 bg-ceja">
+        <div className="mx-auto flex h-14 w-full max-w-2xl items-center gap-2.5 px-4 sm:px-6">
+          <Image src={logo} alt="" width={32} height={32} unoptimized className="size-8 shrink-0" />
+          <span className="font-display text-xl font-extrabold uppercase tracking-[0.01em]">
+            {tc("brandName")}
+          </span>
+          <span className="ml-auto hidden text-sm font-medium text-gris-texto sm:block">
+            {tc("brandTagline")}
+          </span>
         </div>
+      </header>
 
-        <div className="relative z-10 space-y-8">
-          <div>
-            <h1 className="text-[2.4rem] font-bold leading-tight tracking-tight">{t("title")}</h1>
-            <p className="mt-4 text-slate-400 text-sm leading-relaxed max-w-sm">{t("subtitle")}</p>
-          </div>
-          <ul className="space-y-3">
-            {PLAN_KEYS.map((key) => (
-              <li
-                key={key}
-                className={cn(
-                  "rounded-xl px-4 py-3.5 border transition-colors",
-                  key === selectedPlan
-                    ? "bg-amber-400/10 border-amber-400/40"
-                    : "bg-white/[0.04] border-white/[0.08]",
-                )}
-              >
-                <p className="text-sm font-medium leading-none mb-1">{tp(key)}</p>
-                <p className="text-xs text-slate-400">{tp(`${key}Desc`)}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
+      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
+        <h1 className="font-display text-[2.25rem] font-extrabold uppercase leading-none tracking-[-0.01em] sm:text-[2.5rem]">
+          {t("title")}
+        </h1>
+        <p className="mt-2 text-base text-muted-foreground">{t("subtitle")}</p>
 
-        <p className="relative z-10 text-xs text-slate-500 max-w-sm">{t("trialNote")}</p>
-      </div>
-
-      {/* ── Right panel: form ── */}
-      <div className="flex-1 flex items-center justify-center bg-slate-50 px-6 py-12">
-        <div className="w-full max-w-md">
-          <div className="lg:hidden flex items-center gap-2.5 mb-8 justify-center">
-            <BrandMark size="sm" />
-            <span className="font-semibold text-slate-900">{tc("brandName")}</span>
-          </div>
-
-          <div className="mb-7">
-            <h2 className="text-2xl font-semibold text-slate-900">{t("title")}</h2>
-            <p className="text-sm text-slate-500 mt-1">{t("subtitle")}</p>
-          </div>
-
-          <Card className="shadow-sm border-slate-200 bg-white">
-            <CardContent className="pt-6">
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-                <fieldset className="space-y-1.5">
-                  <legend className="text-sm font-medium text-slate-900 mb-1.5">{t("plan")}</legend>
-                  <div className="grid grid-cols-3 gap-2">
-                    {PLAN_KEYS.map((key) => (
-                      <label
-                        key={key}
-                        className={cn(
-                          "cursor-pointer rounded-lg border px-3 py-2 text-center text-sm transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-amber-400",
-                          key === selectedPlan
-                            ? "border-amber-500 bg-amber-50 font-medium text-slate-900"
-                            : "border-slate-200 text-slate-600 hover:border-slate-300",
-                        )}
-                      >
-                        <input type="radio" value={key} className="sr-only" {...register("plan")} />
+        <div className="mt-6 rounded-etiqueta border border-border bg-card p-4 shadow-etiqueta sm:p-8">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
+            <fieldset>
+              <legend className="mb-2 text-sm font-semibold">{t("plan")}</legend>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {PLAN_KEYS.map((key) => {
+                  const selected = key === selectedPlan;
+                  return (
+                    <label key={key} className={choiceClass(selected)}>
+                      <input type="radio" value={key} className="sr-only" {...register("plan")} />
+                      {selected && <SelectedMark />}
+                      <span className="pr-6 font-display text-xl font-extrabold uppercase leading-tight">
                         {tp(key)}
-                      </label>
-                    ))}
+                      </span>
+                      <span className="mt-1 text-xs leading-snug text-muted-foreground">
+                        {tp(`${key}Desc`)}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend className="mb-2 text-sm font-semibold">{t("cycle")}</legend>
+              <div className="grid grid-cols-2 gap-2">
+                {CYCLES.map((cycle) => {
+                  const selected = cycle === selectedCycle;
+                  return (
+                    <label key={cycle} className={cn(choiceClass(selected), "min-h-11 justify-center")}>
+                      <input type="radio" value={cycle} className="sr-only" {...register("billing_cycle")} />
+                      {selected && <SelectedMark />}
+                      <span className="pr-6 text-sm font-semibold">{tp(cycle)}</span>
+                      {cycle === "annual" && (
+                        <span className="mt-1 w-fit rounded-full bg-ceja px-2 py-0.5 text-xs font-semibold">
+                          {tp("annualNote")}
+                        </span>
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            <div className="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2">
+              {TEXT_FIELDS.map(({ name, type, autoComplete }) => {
+                const error = errors[name]?.message;
+                const errorId = `${name}-error`;
+                return (
+                  <div
+                    key={name}
+                    className={cn(
+                      "space-y-1.5",
+                      (name === "email" || name === "password" || name === "company_name") && "sm:col-span-2",
+                    )}
+                  >
+                    <Label htmlFor={name} className="text-sm font-semibold">
+                      {t(`fields.${name}`)}
+                    </Label>
+                    <Input
+                      id={name}
+                      type={type}
+                      autoComplete={autoComplete}
+                      placeholder={t(`placeholders.${name}`)}
+                      aria-invalid={!!error}
+                      aria-describedby={error ? errorId : undefined}
+                      className={FIELD}
+                      {...register(name)}
+                    />
+                    {error && (
+                      <p id={errorId} className="text-sm text-destructive">
+                        {error}
+                      </p>
+                    )}
                   </div>
-                </fieldset>
+                );
+              })}
+            </div>
 
-                <fieldset className="space-y-1.5">
-                  <legend className="text-sm font-medium text-slate-900 mb-1.5">{t("cycle")}</legend>
-                  <div className="grid grid-cols-2 gap-2">
-                    {CYCLES.map((cycle) => (
-                      <label
-                        key={cycle}
-                        className={cn(
-                          "cursor-pointer rounded-lg border px-3 py-2 text-center text-sm transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-amber-400",
-                          cycle === selectedCycle
-                            ? "border-amber-500 bg-amber-50 font-medium text-slate-900"
-                            : "border-slate-200 text-slate-600 hover:border-slate-300",
-                        )}
-                      >
-                        <input type="radio" value={cycle} className="sr-only" {...register("billing_cycle")} />
-                        {tp(cycle)}
-                        {cycle === "annual" && (
-                          <span className="block text-[11px] font-normal text-amber-700">{tp("annualNote")}</span>
-                        )}
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
+            {formError && (
+              <p
+                role="alert"
+                className="rounded-etiqueta border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+              >
+                {formError}
+              </p>
+            )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {TEXT_FIELDS.map(({ name, type, autoComplete }) => {
-                    const error = errors[name]?.message;
-                    const errorId = `${name}-error`;
-                    return (
-                      <div
-                        key={name}
-                        className={cn(
-                          "space-y-1.5",
-                          (name === "email" || name === "password" || name === "company_name") && "sm:col-span-2",
-                        )}
-                      >
-                        <Label htmlFor={name}>{t(`fields.${name}`)}</Label>
-                        <Input
-                          id={name}
-                          type={type}
-                          autoComplete={autoComplete}
-                          placeholder={t(`placeholders.${name}`)}
-                          aria-invalid={!!error}
-                          aria-describedby={error ? errorId : undefined}
-                          {...register(name)}
-                        />
-                        {error && (
-                          <p id={errorId} className="text-xs text-red-500">
-                            {error}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {formError && (
-                  <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">
-                    {formError}
-                  </p>
-                )}
-
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? t("submitting") : t("submit")}
-                </Button>
-                <p className="text-xs text-slate-500 text-center">{t("trialNote")}</p>
-              </form>
-            </CardContent>
-          </Card>
-
-          <p className="text-center mt-5 text-sm text-slate-500">
-            {t("haveAccount")}{" "}
-            <button
-              type="button"
-              className="text-slate-700 font-medium underline-offset-2 hover:underline"
-              onClick={() => router.push(`/${locale}/login`)}
-            >
-              {t("login")}
-            </button>
-          </p>
+            <div className="space-y-3">
+              <Button
+                type="submit"
+                disabled={loading}
+                className="h-11 w-full rounded-etiqueta text-base font-semibold"
+              >
+                {loading ? t("submitting") : t("submit")}
+              </Button>
+              <p className="text-center text-sm text-muted-foreground">{t("trialNote")}</p>
+            </div>
+          </form>
         </div>
-      </div>
+
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          {t("haveAccount")}{" "}
+          <Link href={`/${locale}/login`} className={TEXT_LINK}>
+            {t("login")}
+          </Link>
+        </p>
+      </main>
     </div>
   );
 }
 
 export default function RegistrationPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-50" />}>
+    <Suspense fallback={<div className="min-h-svh bg-background" />}>
       <RegistrationForm />
     </Suspense>
   );

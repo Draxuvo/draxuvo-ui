@@ -13,7 +13,34 @@
     "noResults": "Sin resultados",
     "error": "Error",
     "success": "Éxito",
-    "actions": "Acciones"
+    "actions": "Acciones",
+    "retry": "Reintentar",
+    "loadError": "No se pudo cargar la información.",
+    "viewAll": "Ver todos",
+    "filters": {
+      "title": "Filtros",
+      "appliedFromDashboard": "Filtro aplicado desde el dashboard",
+      "applied": "Filtro aplicado: {filters}",
+      "clear": "Limpiar filtros",
+      "remove": "Quitar filtro {name}",
+      "all": "Todos",
+      "allFeminine": "Todas",
+      "status": "Estado",
+      "priority": "Prioridad",
+      "employee": "Empleado",
+      "type": "Tipo",
+      "dateRange": "Rango de fechas",
+      "from": "Desde",
+      "to": "Hasta",
+      "today": "Hoy",
+      "noResults": "Ningún registro coincide con estos filtros.",
+      "noResultsHint": "Prueba con otros filtros o límpialos para ver la lista completa.",
+      "results": "{count, plural, =0 {Sin resultados} one {# resultado} other {# resultados}}",
+      "pageOf": "Página {page} de {total}",
+      "previousPage": "Página anterior",
+      "nextPage": "Página siguiente"
+    },
+    "refresh": "Actualizar"
   },
   "auth": {
     "title": "Draxuvo",
@@ -40,7 +67,9 @@
     "feature3Desc": "Métricas para tomar decisiones rápidas",
     "forgotPassword": "¿Olvidaste tu contraseña?",
     "noAccount": "¿No tienes cuenta?",
-    "register": "Prueba 30 días gratis"
+    "register": "Prueba 30 días gratis",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña"
   },
   "nav": {
     "home": "Inicio",
@@ -54,7 +83,17 @@
     "logout": "Cerrar sesión",
     "companies": "Empresas",
     "users": "Usuarios",
-    "subscriptions": "Suscripciones"
+    "subscriptions": "Suscripciones",
+    "attendance": "Asistencia",
+    "mainNav": "Navegación principal",
+    "menu": "Menú",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "collapseMenu": "Contraer menú",
+    "expandMenu": "Expandir menú",
+    "superAdminRole": "Super Admin",
+    "team": "Equipo",
+    "myCompanies": "Mis empresas"
   },
   "home": {
     "welcome": "Bienvenido, {name}",
@@ -62,7 +101,20 @@
     "activeEmployees": "Empleados activos",
     "totalProducts": "Productos en inventario",
     "lowStock": "Productos con stock bajo",
-    "activePlan": "Plan activo"
+    "activePlan": "Plan activo",
+    "greetingMorning": "Buenos días, {name}",
+    "greetingAfternoon": "Buenas tardes, {name}",
+    "greetingEvening": "Buenas noches, {name}",
+    "todaySummary": "Así va tu negocio hoy.",
+    "shortcuts": "Accesos rápidos",
+    "viewDashboard": "Ver dashboard",
+    "planStatus": "Estado: {status}",
+    "aria": {
+      "activeEmployees": "{count, plural, one {Ver # empleado activo} other {Ver # empleados activos}}",
+      "products": "{count, plural, one {Ver # producto} other {Ver # productos}}",
+      "lowStock": "{count, plural, one {Ver # producto con stock bajo} other {Ver # productos con stock bajo}}",
+      "plan": "Ver tu suscripción: plan {plan}, {status}"
+    }
   },
   "analyticsBoard": {
     "title": "Dashboard",
@@ -117,6 +169,66 @@
       "medium": "Media",
       "high": "Alta",
       "urgent": "Urgente"
+    },
+    "kpis": "Indicadores",
+    "charts": "Gráficas",
+    "viewAll": "Ver todos",
+    "viewList": "Ver lista",
+    "collected": "Cobrado",
+    "employeesActive": "Empleados activos",
+    "employeesInactive": "Empleados inactivos",
+    "products": "Productos",
+    "available": "Disponibles",
+    "pendingOrders": "Órdenes pendientes",
+    "ticketsPendingLabel": "Tickets pendientes",
+    "ticketsPaidLabel": "Tickets pagados",
+    "reports": "Reportes",
+    "reportsSub": "Ingresos, gastos y nómina por periodo",
+    "chartInventory": "Resumen de inventario",
+    "legendHint": "Toca una barra o un concepto para abrir la lista filtrada.",
+    "legendLabel": "Leyenda: {chart}",
+    "subset": {
+      "active": "{count, plural, one {# activo} other {# activos}}",
+      "inactive": "{count, plural, one {# inactivo} other {# inactivos}}",
+      "lowStock": "{count} con stock bajo",
+      "outOfStock": "{count, plural, one {# agotado} other {# agotados}}",
+      "available": "{count, plural, one {# disponible} other {# disponibles}}",
+      "pending": "{count, plural, one {# pendiente} other {# pendientes}}",
+      "paid": "{count, plural, one {# pagado} other {# pagados}}",
+      "pendingRevenue": "{amount} por cobrar",
+      "thisMonth": "{count, plural, one {# registro este mes} other {# registros este mes}}"
+    },
+    "empty": {
+      "noModules": "Tu plan no tiene módulos con indicadores.",
+      "noModulesHint": "Revisa tu suscripción para activar empleados, inventario, órdenes o tickets.",
+      "viewPlans": "Ver planes",
+      "chart": "Aún no hay registros para esta gráfica.",
+      "attendanceToday": "Nadie ha registrado asistencia hoy.",
+      "workOrders": "Aún no hay órdenes de trabajo.",
+      "tickets": "Aún no hay tickets.",
+      "inventory": "Aún no hay productos en inventario.",
+      "loadError": "No se pudo cargar el dashboard."
+    },
+    "aria": {
+      "employees": "{count, plural, one {Ver # empleado} other {Ver # empleados}}",
+      "employeesActive": "{count, plural, one {Ver # empleado activo} other {Ver # empleados activos}}",
+      "employeesInactive": "{count, plural, one {Ver # empleado inactivo} other {Ver # empleados inactivos}}",
+      "products": "{count, plural, one {Ver # producto} other {Ver # productos}}",
+      "lowStock": "{count, plural, one {Ver # producto con stock bajo} other {Ver # productos con stock bajo}}",
+      "outOfStock": "{count, plural, one {Ver # producto agotado} other {Ver # productos agotados}}",
+      "available": "{count, plural, one {Ver # producto disponible} other {Ver # productos disponibles}}",
+      "unavailable": "{count, plural, one {Ver # producto no disponible} other {Ver # productos no disponibles}}",
+      "workOrders": "{count, plural, one {Ver # orden de trabajo} other {Ver # órdenes de trabajo}}",
+      "workOrdersPending": "{count, plural, one {Ver # orden pendiente} other {Ver # órdenes pendientes}}",
+      "workOrdersStatus": "{count, plural, one {Ver # orden con estado {status}} other {Ver # órdenes con estado {status}}}",
+      "workOrdersPriority": "{count, plural, one {Ver # orden con prioridad {priority}} other {Ver # órdenes con prioridad {priority}}}",
+      "tickets": "{count, plural, one {Ver # ticket} other {Ver # tickets}}",
+      "ticketsPending": "{count, plural, one {Ver # ticket pendiente} other {Ver # tickets pendientes}}",
+      "ticketsPaid": "{count, plural, one {Ver # ticket pagado} other {Ver # tickets pagados}}",
+      "revenue": "Ver tickets pagados: {amount} cobrados",
+      "attendanceToday": "{count, plural, one {Ver # registro de asistencia de hoy} other {Ver # registros de asistencia de hoy}}",
+      "attendanceType": "{count, plural, one {Ver # registro de hoy: {type}} other {Ver # registros de hoy: {type}}}",
+      "reports": "Abrir reportes"
     }
   },
   "employees": {
@@ -166,7 +278,13 @@
     "saving": "Guardando...",
     "activateSuccess": "Empleado activado",
     "deactivateSuccess": "Empleado desactivado",
-    "toggleError": "Error al cambiar el estado del empleado"
+    "toggleError": "Error al cambiar el estado del empleado",
+    "filters": {
+      "status": "Estado",
+      "all": "Todos",
+      "active": "Activos",
+      "inactive": "Inactivos"
+    }
   },
   "api": {
     "invalidRequest": "Solicitud inválida",
@@ -243,7 +361,16 @@
     "importSuccess": "{count} productos importados",
     "importError": "Error al importar el archivo",
     "importInvalidFile": "Solo se aceptan archivos .xlsx, .xls o .csv",
-    "templateError": "Error al descargar la plantilla"
+    "templateError": "Error al descargar la plantilla",
+    "outOfStockBadge": "Agotado",
+    "filters": {
+      "stock": "Existencias",
+      "all": "Todos",
+      "lowStock": "Stock bajo",
+      "outOfStock": "Agotados",
+      "available": "Disponibles",
+      "unavailable": "No disponibles"
+    }
   },
   "companies": {
     "title": "Empresas",
@@ -412,7 +539,9 @@
     "send": "Enviar",
     "whatsappSent": "Ticket enviado por WhatsApp",
     "whatsappSkip": "Ahora no",
-    "resendWhatsapp": "Reenviar por WhatsApp"
+    "resendWhatsapp": "Reenviar por WhatsApp",
+    "allStatuses": "Todos los estados",
+    "filterStatus": "Filtrar por estado"
   },
   "subscription": {
     "nav": "Suscripción",
@@ -491,7 +620,11 @@
     "moduleLocked": "Este módulo no está en tu plan",
     "moduleLockedDesc": "Mejora tu plan para usar {module}.",
     "upgradePlan": "Mejorar plan",
-    "availableIn": "Disponible en {plans}"
+    "availableIn": "Disponible en {plans}",
+    "managedByParentTitle": "La facturación la administra {company}",
+    "managedByParentDesc": "Esta sucursal usa la suscripción de la empresa principal. Los pagos y el plan se cambian desde ahí.",
+    "managedByParentAction": "Ir a {company}",
+    "mainCompany": "la empresa principal"
   },
   "profile": {
     "pageTitle": "Mi perfil",
@@ -701,7 +834,13 @@
     "deleteConfirm": "¿Estás seguro que deseas eliminar \"{title}\"? Esta acción no se puede deshacer.",
     "deleteSuccess": "Orden eliminada",
     "delete": "Eliminar",
-    "deleting": "Eliminando..."
+    "deleting": "Eliminando...",
+    "allStatuses": "Todos los estados",
+    "allPriorities": "Todas las prioridades",
+    "allEmployees": "Todos los empleados",
+    "filterStatus": "Filtrar por estado",
+    "filterPriority": "Filtrar por prioridad",
+    "filterEmployee": "Filtrar por empleado"
   },
   "registration": {
     "title": "Crea tu cuenta",
@@ -779,5 +918,122 @@
     "reports": "Reportes",
     "whatsapp": "WhatsApp",
     "multi_company": "Varias empresas o sucursales"
+  },
+  "attendance": {
+    "title": "Asistencia",
+    "subtitle": "{count, plural, =0 {Sin registros} one {# registro} other {# registros}}",
+    "subtitleToday": "Registros de hoy",
+    "subtitleRange": "Del {from} al {to}",
+    "employee": "Empleado",
+    "position": "Puesto",
+    "checkin": "Entrada",
+    "checkout": "Salida",
+    "type": "Tipo",
+    "date": "Fecha",
+    "dateRange": "Rango de fechas",
+    "from": "Desde",
+    "to": "Hasta",
+    "today": "Hoy",
+    "allEmployees": "Todos los empleados",
+    "allTypes": "Todos los tipos",
+    "filterEmployee": "Filtrar por empleado",
+    "filterType": "Filtrar por tipo",
+    "types": {
+      "normal": "A tiempo",
+      "late": "Tarde",
+      "absent": "Ausente"
+    },
+    "noCheckout": "Sin salida",
+    "noPosition": "Sin puesto",
+    "empty": "No hay registros de asistencia en estas fechas.",
+    "emptyToday": "Nadie ha registrado asistencia hoy.",
+    "emptyHint": "Los registros aparecen cuando el personal marca su entrada.",
+    "readOnlyHint": "Las entradas y salidas se registran desde Personal.",
+    "goToEmployees": "Ir a Personal",
+    "loadError": "No se pudo cargar la asistencia.",
+    "notInPlanTitle": "La asistencia no está en tu plan",
+    "notInPlanBody": "Cambia de plan para ver las entradas, salidas y retardos de tu personal.",
+    "notInPlanCta": "Ver planes"
+  },
+  "companySwitcher": {
+    "label": "Empresa activa",
+    "trigger": "Cambiar de empresa. Activa: {company}, {role}",
+    "heading": "Tus empresas",
+    "branch": "Sucursal",
+    "switched": "Ahora trabajas en {company}"
+  },
+  "team": {
+    "title": "Equipo",
+    "subtitle": "{count, plural, =0 {Sin personas} one {# persona} other {# personas}} en {company}",
+    "invite": "Invitar persona",
+    "inviteTitle": "Invitar al equipo",
+    "inviteSubtitle": "Si ya tiene cuenta en Draxuvo solo se agrega a esta empresa. Si no, le llega un correo para crear su contraseña.",
+    "email": "Correo electrónico",
+    "emailPlaceholder": "ana@empresa.mx",
+    "emailInvalid": "Escribe un correo válido",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "phone": "Teléfono",
+    "optional": "opcional",
+    "role": "Rol",
+    "roleHint": "Solo puedes dar roles hasta el tuyo.",
+    "roleOf": "Rol de {name}",
+    "person": "Persona",
+    "status": "Estado",
+    "active": "Activa",
+    "inactive": "Inactiva",
+    "you": "Tú",
+    "remove": "Quitar",
+    "removeLabel": "Quitar a {name} del equipo",
+    "removeTitle": "¿Quitar del equipo?",
+    "removeConfirm": "{name} deja de tener acceso a {company}. Su cuenta y sus otras empresas no cambian.",
+    "removing": "Quitando...",
+    "removed": "{name} ya no está en el equipo",
+    "roleUpdated": "{name} ahora es {role}",
+    "invited": "{email} se agregó al equipo",
+    "sending": "Invitando...",
+    "send": "Invitar",
+    "cancel": "Cancelar",
+    "empty": "Todavía no hay nadie más en el equipo.",
+    "loadError": "No se pudo cargar el equipo.",
+    "errors": {
+      "role_not_allowed": "No puedes asignar ni modificar un rol mayor al tuyo. Solo un propietario administra propietarios.",
+      "already_member": "Esa persona ya es parte del equipo.",
+      "last_owner": "La empresa necesita al menos un propietario. Nombra a otro antes de hacer este cambio.",
+      "generic": "No se pudo guardar el cambio. Inténtalo de nuevo."
+    }
+  },
+  "myCompanies": {
+    "title": "Mis empresas",
+    "subtitle": "Tu empresa principal y sus sucursales comparten la suscripción de la principal.",
+    "usage": "{count} de {max} empresas",
+    "main": "Principal",
+    "branch": "Sucursal",
+    "current": "Activa",
+    "switch": "Entrar",
+    "switchLabel": "Entrar a {company}",
+    "add": "Agregar sucursal",
+    "addTitle": "Nueva sucursal",
+    "addSubtitle": "Quedas como propietario. Usa la suscripción y los módulos de {company}, sin cobro extra.",
+    "name": "Nombre",
+    "namePlaceholder": "Por ejemplo, Sucursal Norte",
+    "nameRequired": "Escribe el nombre de la sucursal",
+    "create": "Agregar",
+    "creating": "Agregando...",
+    "created": "{company} se agregó a tu cuenta",
+    "cancel": "Cancelar",
+    "limitReached": "Ya tienes {max} empresas, el máximo del plan Empresa.",
+    "fromBranch": "Las sucursales se agregan desde la empresa principal.",
+    "goToMain": "Ir a {company}",
+    "upgradeTitle": "Varias empresas es parte del plan Empresa",
+    "upgradeDesc": "Con el plan Empresa agregas hasta {max} empresas o sucursales en una cuenta, con una sola suscripción.",
+    "upgradeAction": "Ver planes",
+    "loadError": "No se pudieron cargar tus empresas.",
+    "errors": {
+      "company_limit_reached": "Ya llegaste al máximo de {max} empresas por cuenta.",
+      "module_not_in_plan": "Tu plan no incluye varias empresas. Cambia al plan Empresa para agregar sucursales.",
+      "not_a_main_company": "Las sucursales se agregan desde la empresa principal.",
+      "generic": "No se pudo agregar la sucursal. Inténtalo de nuevo."
+    }
   }
 }

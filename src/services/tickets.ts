@@ -1,22 +1,19 @@
 // src/services/tickets.ts
 import { apiClient } from "@/lib/api";
-import type { Ticket, PaginatedResponse } from "@/types";
+import type { ListParams, PaginatedResponse, Ticket, TicketFilters } from "@/types";
+
+export type TicketListParams = TicketFilters & ListParams;
 
 export const ticketsService = {
-  list: (
+  list: ({
     page = 1,
-    search = "",
-    status = "",
-    pageSize = 20,
-  ): Promise<PaginatedResponse<Ticket>> =>
+    page_size = 20,
+    status,
+    search,
+  }: TicketListParams = {}): Promise<PaginatedResponse<Ticket>> =>
     apiClient
       .get("/api/v1/tickets", {
-        params: {
-          page,
-          page_size: pageSize,
-          search: search || undefined,
-          status: status || undefined,
-        },
+        params: { page, page_size, status, search: search?.trim() || undefined },
       })
       .then((r) => r.data),
 

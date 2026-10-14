@@ -7,7 +7,17 @@ const intlMiddleware = createMiddleware(routing);
 
 const PUBLIC_ROUTES = ["/login", "/set-password", "/recuperar-contrasena", "/registro"];
 const EMPLOYEE_ROUTES = ["/mis-ordenes", "/mi-perfil", "/mis-tickets"];
-const ADMIN_ROUTES = ["/dashboard", "/inicio", "/empleados", "/inventario", "/ordenes", "/tickets"];
+const ADMIN_ROUTES = [
+  "/dashboard",
+  "/inicio",
+  "/empleados",
+  "/inventario",
+  "/ordenes",
+  "/tickets",
+  "/asistencia",
+  "/equipo",
+  "/mis-empresas",
+];
 
 export default function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -16,6 +26,7 @@ export default function middleware(request: NextRequest) {
   const bare = pathname.replace(/^\/(es|en)/, "") || "/";
 
   const token = request.cookies.get("auth_token")?.value;
+  // Rol en la empresa activa: lo escribe el store de auth al entrar y al cambiar de empresa.
   const role = request.cookies.get("user_role")?.value;
   const isPublic = PUBLIC_ROUTES.includes(bare);
 

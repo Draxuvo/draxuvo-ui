@@ -2,14 +2,38 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* Tema claro único: `dark:` de las primitivas solo aplicaría bajo .dark, que nunca se pone. */
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  /* Fuentes (DESIGN.md): next/font declara --font-barlow y --font-barlow-condensed en <html>. */
+  --font-sans: var(--font-barlow), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-barlow-condensed), var(--font-barlow), ui-sans-serif, system-ui, sans-serif;
+  /* CardTitle y títulos de bloque: Barlow Condensed (DESIGN.md "Title"). */
+  --font-heading: var(--font-barlow-condensed), var(--font-barlow), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Paleta "Etiqueta de anaquel" (DESIGN.md) como utilidades: bg-tinta, text-sello… */
+  --color-tinta: var(--tinta);
+  --color-etiqueta: var(--etiqueta);
+  --color-anaquel: var(--anaquel);
+  --color-anaquel-borde: var(--anaquel-borde);
+  --color-gris-texto: var(--gris-texto);
+  --color-ceja: var(--ceja);
+  --color-oferta: var(--oferta);
+  --color-oferta-hover: var(--oferta-hover);
+  --color-sello: var(--sello);
+  --color-alerta: var(--alerta);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  /* Sombra única de etiqueta pegada y movimiento (DESIGN.md: Elevación, Movimiento).
+     Mismo valor y misma forma que en el sitio. */
+  --shadow-etiqueta: 0 1px 0 rgba(20, 20, 20, 0.08), 0 2px 6px rgba(20, 20, 20, 0.06);
+  --ease-etiqueta: cubic-bezier(0.2, 0.8, 0.2, 1);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -46,85 +70,89 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  /* Radios de DESIGN.md: etiqueta (tarjetas, botones, campos, menú) e interior (segmentos). */
+  --radius-etiqueta: 6px;
+  --radius-interior: 4px;
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.769 0.188 70.08);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.769 0.188 70.08);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.769 0.188 70.08);
-  --sidebar-primary-foreground: oklch(0.205 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
+  /* Tokens de DESIGN.md */
+  --tinta: #141414;
+  --etiqueta: #ffffff;
+  --anaquel: #eceef0;
+  --anaquel-borde: #d5d9de;
+  --gris-texto: #4a4f55;
+  --ceja: #ffd23f;
+  --oferta: #ff5a1f;
+  --oferta-hover: #ff7a45;
+  --sello: #0b7a4b;
+  --alerta: #c62828;
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.828 0.189 84.429);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Panel: variables de shadcn (DESIGN.md "Panel") */
+  --background: var(--anaquel);
+  --foreground: var(--tinta);
+  --card: var(--etiqueta);
+  --card-foreground: var(--tinta);
+  --popover: var(--etiqueta);
+  --popover-foreground: var(--tinta);
+  /* Texto sobre oferta siempre tinta (blanco da 3.1). */
+  --primary: var(--oferta);
+  --primary-foreground: var(--tinta);
+  --secondary: var(--anaquel);
+  --secondary-foreground: var(--tinta);
+  --muted: var(--anaquel);
+  --muted-foreground: var(--gris-texto);
+  --accent: var(--ceja);
+  --accent-foreground: var(--tinta);
+  --destructive: var(--alerta);
+  --destructive-foreground: var(--etiqueta);
+  --success: var(--sello);
+  --success-foreground: var(--etiqueta);
+  --border: var(--anaquel-borde);
+  --input: var(--anaquel-borde);
+  --ring: var(--tinta);
+  --chart-1: var(--tinta);
+  --chart-2: var(--oferta);
+  --chart-3: var(--sello);
+  --chart-4: var(--ceja);
+  --chart-5: #6b7280;
+  --radius: 0.375rem;
+  --sidebar: var(--etiqueta);
+  --sidebar-foreground: var(--tinta);
+  --sidebar-primary: var(--oferta);
+  --sidebar-primary-foreground: var(--tinta);
+  --sidebar-accent: var(--anaquel);
+  --sidebar-accent-foreground: var(--tinta);
+  --sidebar-border: var(--anaquel-borde);
+  --sidebar-ring: var(--tinta);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
+  }
+  /* Foco por defecto (DESIGN.md): contorno de 2px en tinta con separación, como el sitio. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--ceja);
+    color: var(--tinta);
   }
   body {
     @apply bg-background text-foreground;
   }
   html {
     @apply font-sans;
+  }
+}
+
+/* Anillo de foco único del panel: primitivas y componentes propios. Gana a `outline-none`. */
+@utility foco-etiqueta {
+  outline: none;
+  &:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 }

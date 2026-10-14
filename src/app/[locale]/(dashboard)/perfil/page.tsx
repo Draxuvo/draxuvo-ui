@@ -32,7 +32,7 @@ export default function PerfilPage() {
   const t = useTranslations("profile");
   const tCommon = useTranslations("common");
   const tRoles = useTranslations("adminUsers.roles");
-  const { user, fetchMe } = useAuthStore();
+  const { user, fetchMe, role } = useAuthStore();
   const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>("profile");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -99,8 +99,8 @@ export default function PerfilPage() {
     ? `${user.first_name[0] ?? ""}${user.last_name[0] ?? ""}`.toUpperCase()
     : "?";
 
-  const roleLabel =
-    user?.role && user.role !== "super_admin" ? tRoles(user.role) : user?.role;
+  // Rol en la empresa activa.
+  const roleLabel = role && role !== "super_admin" ? tRoles(role) : role;
 
   return (
     <div className="max-w-2xl space-y-6">

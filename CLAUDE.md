@@ -109,7 +109,13 @@ TanStack Query hooks either inline in page components or in dedicated hook files
 Use `date-fns` with locale awareness: import `{ es, enUS } from "date-fns/locale"`, pick by `useLocale()`, and pass as `{ locale: dateLocale }` to `format()`.
 
 ### Charts
-`recharts` is used for analytics charts in `/estadisticas` and `/dashboard`. No wrapper abstraction — use `recharts` components directly.
+`@nivo/bar` and `@nivo/pie` are used for charts in `/estadisticas` and `/dashboard`. On the dashboard every bar or slice keeps its raw API key, navigates to the filtered list on click, and has a `ChartLegendLinks` legend of real links underneath (keyboard access). Colors come from `--chart-1..5` via `useChartColors()`.
+
+### URL filters
+List pages (`/empleados`, `/inventario`, `/ordenes`, `/tickets`, `/asistencia`) keep their filters in the URL with `useUrlFilters` (`src/hooks/use-url-filters.ts`), using the same param names as the API. Pages using it must wrap their content in `<Suspense>` (it reads `useSearchParams`). Dashboard and inicio cards are links to these filtered lists, shown only for modules in `active_modules` and roles allowed by the destination.
+
+### Design system
+Tokens come from `DESIGN.md` at the workspace root (Etiqueta de anaquel): use the semantic classes (`bg-background`, `bg-card`, `text-foreground`, `text-muted-foreground`, `border-border`, `bg-primary`) and the brand utilities (`bg-ceja`, `text-sello`, `shadow-etiqueta`, `font-display`). Text on `oferta`/`primary` is always `tinta`, never white.
 
 ### Server-Side Pagination
 All list endpoints accept `page`, `page_size`, `search`. Backend returns `PaginatedResponse<T>` shape: `{ info: PaginationInfo, results: T[] }`. Use `use-pagination.ts` hook for pagination state.

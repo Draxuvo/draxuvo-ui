@@ -1,6 +1,14 @@
 // src/services/inventory.ts
 import { apiClient } from "@/lib/api";
-import type { Product, StockMovement, PaginatedResponse } from "@/types";
+import type {
+  ListParams,
+  PaginatedResponse,
+  Product,
+  ProductFilters,
+  StockMovement,
+} from "@/types";
+
+export type ProductListParams = ProductFilters & ListParams;
 
 export interface ProductPayload {
   sku: string;
@@ -21,14 +29,25 @@ export interface StockMovementPayload {
 }
 
 export const inventoryService = {
-  list: (
+  list: ({
     page = 1,
-    search = "",
-    pageSize = 10,
-  ): Promise<PaginatedResponse<Product>> =>
+    page_size = 10,
+    low_stock,
+    out_of_stock,
+    available,
+    search,
+  }: ProductListParams = {}): Promise<PaginatedResponse<Product>> =>
     apiClient
       .get("/api/v1/products", {
-        params: { page, page_size: pageSize, search: search || undefined },
+        params: {
+          page,
+          page_size,
+          // Solo `true` aplica en la API; `false` se omite salvo en `available`.
+          low_stock: low_stock ? "true" : undefined,
+          out_of_stock: out_of_stock ? "true" : undefined,
+          available: available === undefined ? undefined : String(available),
+          search: search?.trim() || undefined,
+        },
       })
       .then((r) => r.data),
 

@@ -1,22 +1,22 @@
 // src/components/layout/employee-shell.tsx
-"use client";
-import { useState } from "react";
+// Marco del personal (staff): el mismo esqueleto que el panel (riel en escritorio, cajón en
+// celular) sobre anaquel, sin desbordar a 375px.
 import { EmployeeSidebar } from "./employee-sidebar";
 import { EmployeeHeader } from "./employee-header";
+import { SidebarProvider } from "./sidebar-context";
 
 export function EmployeeShell({ children }: { children: React.ReactNode }) {
-  const [collapsed, setCollapsed] = useState(false);
-
   return (
-    <div className="flex min-h-screen bg-zinc-50">
-      <EmployeeSidebar
-        collapsed={collapsed}
-        onToggle={() => setCollapsed((c) => !c)}
-      />
-      <div className="flex-1 flex flex-col min-w-0">
-        <EmployeeHeader />
-        <main className="flex-1 p-6 overflow-auto">{children}</main>
+    <SidebarProvider>
+      <div className="flex min-h-svh bg-background text-foreground">
+        <EmployeeSidebar />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <EmployeeHeader />
+          <main className="min-w-0 flex-1 overflow-x-hidden px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }

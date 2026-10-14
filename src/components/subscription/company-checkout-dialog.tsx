@@ -67,34 +67,38 @@ export function CompanyCheckoutDialog({ company, onOpenChange }: Props) {
         </DialogHeader>
 
         <div className="space-y-2">
-          <p className="text-sm font-medium text-zinc-700">{t("checkoutPlan")}</p>
+          <p className="text-sm font-medium text-foreground">{t("checkoutPlan")}</p>
           <div className="grid grid-cols-3 gap-2">
             {PLANS.map((p) => (
               <button
                 key={p}
+                type="button"
+                aria-pressed={plan === p}
                 onClick={() => setPlan(p)}
                 className={cn(
-                  "rounded-md border py-2.5 text-sm font-medium transition-colors",
+                  "foco-etiqueta min-h-11 rounded-etiqueta border text-sm font-medium transition-colors duration-[120ms] ease-etiqueta",
                   plan === p
-                    ? "border-zinc-900 bg-zinc-900 text-white"
-                    : "border-zinc-200 text-zinc-600 hover:border-zinc-400 hover:text-zinc-900",
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground",
                 )}
               >
                 {t(PLAN_LABEL[p])}
               </button>
             ))}
           </div>
-          <p className="pt-2 text-sm font-medium text-zinc-700">{t("checkoutCycle")}</p>
+          <p className="pt-2 text-sm font-medium text-foreground">{t("checkoutCycle")}</p>
           <div className="grid grid-cols-2 gap-2">
             {CYCLES.map((c) => (
               <button
                 key={c}
+                type="button"
+                aria-pressed={cycle === c}
                 onClick={() => setCycle(c)}
                 className={cn(
-                  "rounded-md border py-2.5 text-sm font-medium transition-colors",
+                  "foco-etiqueta min-h-11 rounded-etiqueta border text-sm font-medium transition-colors duration-[120ms] ease-etiqueta",
                   cycle === c
-                    ? "border-zinc-900 bg-zinc-900 text-white"
-                    : "border-zinc-200 text-zinc-600 hover:border-zinc-400 hover:text-zinc-900",
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground",
                 )}
               >
                 {tPlans(c)}
@@ -108,7 +112,7 @@ export function CompanyCheckoutDialog({ company, onOpenChange }: Props) {
             {t("checkoutCancel")}
           </Button>
           <Button onClick={handleConfirm} disabled={loading} className="gap-2">
-            <CreditCard size={14} />
+            <CreditCard size={16} strokeWidth={1.75} aria-hidden />
             {t("checkoutConfirm")}
           </Button>
         </DialogFooter>

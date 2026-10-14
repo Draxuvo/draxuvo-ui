@@ -19,16 +19,16 @@ export function LocaleSwitcher() {
       <Button
         variant="ghost"
         size="sm"
-        className={`text-xs px-2 h-7 ${locale === "es" ? "font-medium text-zinc-900" : "text-zinc-400"}`}
+        className={`text-xs px-2 h-7 ${locale === "es" ? "font-semibold text-foreground" : "text-muted-foreground"}`}
         onClick={() => switchLocale("es")}
       >
         ES
       </Button>
-      <span className="text-zinc-300 text-xs">|</span>
+      <span aria-hidden="true" className="text-border text-xs">|</span>
       <Button
         variant="ghost"
         size="sm"
-        className={`text-xs px-2 h-7 ${locale === "en" ? "font-medium text-zinc-900" : "text-zinc-400"}`}
+        className={`text-xs px-2 h-7 ${locale === "en" ? "font-semibold text-foreground" : "text-muted-foreground"}`}
         onClick={() => switchLocale("en")}
       >
         EN
