@@ -22,7 +22,8 @@ import { employeesService } from "@/services/employees";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { cn } from "@/lib/utils";
 import { ATTENDANCE_TYPES, type AttendanceType } from "@/types";
-import { ModuleLocked, useModuleLocked } from "@/components/subscription/module-locked";
+import { ModuleLocked, useModuleGate } from "@/components/subscription/module-locked";
+import { FilterNotice } from "@/components/filters/filter-notice";
 
 const PAGE_SIZE = 20;
 const TIME_ZONE = "America/Mexico_City";
@@ -36,11 +37,11 @@ function todayInMexico() {
 }
 
 const CHIP =
-  "inline-flex h-8 items-center rounded-full border px-3 text-sm transition-colors duration-[120ms] ease-etiqueta outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+  "inline-flex h-8 items-center rounded-full border px-3 text-sm transition-colors duration-[120ms] ease-etiqueta foco-etiqueta";
 const CHIP_ON = "border-foreground bg-foreground text-background";
 const CHIP_OFF = "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground";
 const FIELD =
-  "h-9 rounded-[6px] border border-input bg-card px-2.5 text-sm text-foreground tabular-nums outline-none transition-colors duration-[120ms] hover:border-foreground/40 focus-visible:ring-2 focus-visible:ring-foreground";
+  "h-9 rounded-etiqueta border border-input bg-card px-2.5 text-sm text-foreground tabular-nums transition-colors duration-[120ms] hover:border-foreground/40 foco-etiqueta";
 
 const TYPE_BADGE: Record<AttendanceType, string> = {
   normal: "bg-sello text-etiqueta",
@@ -77,7 +78,10 @@ function AsistenciaContent() {
   const type = filters.type as AttendanceType | "";
   const isToday = from === today && to === today;
 
+  // Puerta del módulo antes de consultar: fuera del plan no hay request ni toast.
+  const gate = useModuleGate("attendance");
   const { data, isLoading, isFetching, refetch, error } = useQuery({
+    enabled: gate.enabled,
     queryKey: ["attendances", { from, to, employee_id: employeeId, type }, page],
     queryFn: () =>
       attendancesService.list({
@@ -96,10 +100,10 @@ function AsistenciaContent() {
     queryFn: () => employeesService.list({ page: 1, page_size: 100 }),
     staleTime: 5 * 60 * 1000,
     retry: false,
+    enabled: gate.enabled,
   });
 
-  const locked = useModuleLocked("attendance", error);
-  if (locked) return <ModuleLocked module="attendance" />;
+  if (gate.isLocked(error)) return <ModuleLocked module="attendance" />;
 
   const dateFmt = new Intl.DateTimeFormat(locale === "es" ? "es-MX" : "en-US", {
     timeZone: TIME_ZONE,
@@ -218,30 +222,14 @@ function AsistenciaContent() {
         </div>
       </div>
 
-      {isFiltered && (
-        <div
-          role="status"
-          className="flex flex-wrap items-center justify-between gap-3 rounded-[6px] bg-card px-3 py-2 text-sm shadow-etiqueta"
-        >
-          <span className="rounded-full bg-ceja px-2 py-0.5 font-medium text-foreground">
-            {tf("applied", { filters: applied.join(" · ") })}
-          </span>
-          <button
-            type="button"
-            onClick={reset}
-            className="rounded-[6px] px-1 font-medium text-foreground underline decoration-border underline-offset-4 outline-none transition-colors duration-[120ms] hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-foreground"
-          >
-            {tf("clear")}
-          </button>
-        </div>
-      )}
+      {isFiltered && <FilterNotice applied={applied} onClear={reset} />}
 
       {error ? (
-        <div role="alert" className="rounded-[6px] border border-destructive/40 bg-card px-4 py-3 text-sm text-destructive">
+        <div role="alert" className="rounded-etiqueta border border-destructive/40 bg-card px-4 py-3 text-sm text-destructive">
           {t("loadError")}
         </div>
       ) : (
-        <div className="overflow-hidden rounded-[6px] bg-card shadow-etiqueta">
+        <div className="overflow-hidden rounded-etiqueta bg-card shadow-etiqueta">
           <Table>
             <TableHeader>
               <TableRow>
@@ -269,7 +257,7 @@ function AsistenciaContent() {
                     <p className="mt-1 text-sm text-muted-foreground">{t("emptyHint")}</p>
                     <Link
                       href={`/${locale}/empleados`}
-                      className="mt-3 inline-block rounded-[6px] px-1 text-sm font-medium text-foreground underline decoration-border underline-offset-4 outline-none hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-foreground"
+                      className="mt-3 inline-block rounded-etiqueta px-1 text-sm font-medium text-foreground underline decoration-border underline-offset-4 hover:decoration-foreground foco-etiqueta"
                     >
                       {t("goToEmployees")}
                     </Link>

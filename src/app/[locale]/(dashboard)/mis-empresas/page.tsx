@@ -111,12 +111,12 @@ export default function MisEmpresasPage() {
         )}
       </div>
 
-      <section className="rounded-[6px] border border-border bg-card shadow-etiqueta">
+      <section className="rounded-etiqueta border border-border bg-card shadow-etiqueta">
         {branchesQuery.isLoading ? (
           <ul aria-busy className="divide-y divide-border">
             {Array.from({ length: 2 }).map((_, i) => (
               <li key={i} className="p-4">
-                <div className="h-11 rounded-[6px] bg-muted motion-safe:animate-pulse" />
+                <div className="h-11 rounded-etiqueta bg-muted motion-safe:animate-pulse" />
               </li>
             ))}
           </ul>
@@ -126,7 +126,7 @@ export default function MisEmpresasPage() {
               <AlertTriangle size={18} strokeWidth={1.75} className="text-alerta" aria-hidden />
               {t("loadError")}
             </span>
-            <Button variant="outline" onClick={() => branchesQuery.refetch()} className="h-11 rounded-[6px]">
+            <Button variant="outline" onClick={() => branchesQuery.refetch()} className="h-11 rounded-etiqueta">
               {tc("retry")}
             </Button>
           </div>
@@ -156,7 +156,7 @@ export default function MisEmpresasPage() {
                       variant="outline"
                       onClick={() => switchCompany(company.id)}
                       aria-label={t("switchLabel", { company: company.name })}
-                      className="h-11 gap-2 rounded-[6px] border-foreground bg-card px-4 font-semibold hover:bg-background"
+                      className="h-11 gap-2 rounded-etiqueta border-foreground bg-card px-4 font-semibold hover:bg-background"
                     >
                       {t("switch")}
                       <ArrowRight size={16} strokeWidth={1.75} aria-hidden />
@@ -170,7 +170,7 @@ export default function MisEmpresasPage() {
       </section>
 
       {subscription && !hasMultiCompany ? (
-        <section className="flex flex-wrap items-start gap-4 rounded-[6px] border border-ceja bg-ceja/25 p-4 sm:p-6">
+        <section className="flex flex-wrap items-start gap-4 rounded-etiqueta border border-ceja bg-ceja/25 p-4 sm:p-6">
           <Sparkles size={20} strokeWidth={1.75} className="mt-0.5 shrink-0 text-foreground" aria-hidden />
           <div className="min-w-0 flex-1 basis-60 space-y-1">
             <h2 className="text-base font-semibold text-foreground">{t("upgradeTitle")}</h2>
@@ -178,29 +178,29 @@ export default function MisEmpresasPage() {
               {t("upgradeDesc", { max: MAX_COMPANIES })}
             </p>
           </div>
-          <Button asChild className="h-11 gap-2 rounded-[6px] px-5 font-semibold">
+          <Button asChild className="h-11 gap-2 rounded-etiqueta px-5 font-semibold">
             <Link href={`/${locale}/suscripcion`}>{t("upgradeAction")}</Link>
           </Button>
         </section>
       ) : activeIsBranch && main ? (
-        <section className="flex flex-wrap items-center justify-between gap-3 rounded-[6px] border border-border bg-background p-4 text-sm">
+        <section className="flex flex-wrap items-center justify-between gap-3 rounded-etiqueta border border-border bg-background p-4 text-sm">
           <p className="text-muted-foreground">{t("fromBranch")}</p>
           {memberOf.has(main.id) && (
             <Button
               variant="outline"
               onClick={() => switchCompany(main.id)}
-              className="h-11 rounded-[6px] border-foreground bg-card font-semibold hover:bg-background"
+              className="h-11 rounded-etiqueta border-foreground bg-card font-semibold hover:bg-background"
             >
               {t("goToMain", { company: main.name })}
             </Button>
           )}
         </section>
       ) : branchesQuery.data && atLimit ? (
-        <p className="rounded-[6px] border border-border bg-background p-4 text-sm text-muted-foreground">
+        <p className="rounded-etiqueta border border-border bg-background p-4 text-sm text-muted-foreground">
           {t("limitReached", { max: MAX_COMPANIES })}
         </p>
       ) : subscription && branchesQuery.data && main ? (
-        <section className="rounded-[6px] border border-border bg-card p-4 shadow-etiqueta sm:p-6">
+        <section className="rounded-etiqueta border border-border bg-card p-4 shadow-etiqueta sm:p-6">
           <h2 className="font-display text-2xl font-semibold leading-none text-foreground">{t("addTitle")}</h2>
           <p className="mt-2 max-w-prose text-sm text-muted-foreground">
             {t("addSubtitle", { company: main.name })}
@@ -220,7 +220,7 @@ export default function MisEmpresasPage() {
                 className="h-11"
               />
             </div>
-            <Button type="submit" disabled={create.isPending} className="h-11 gap-2 rounded-[6px] px-5 font-semibold">
+            <Button type="submit" disabled={create.isPending} className="h-11 gap-2 rounded-etiqueta px-5 font-semibold">
               <Plus size={18} strokeWidth={1.75} aria-hidden />
               {create.isPending ? t("creating") : t("create")}
             </Button>
@@ -231,7 +231,7 @@ export default function MisEmpresasPage() {
           {apiError && (
             <div
               role="alert"
-              className="mt-4 flex items-start gap-3 rounded-[6px] border border-alerta/30 bg-alerta/[0.06] p-4 text-sm text-foreground"
+              className="mt-4 flex items-start gap-3 rounded-etiqueta border border-alerta/30 bg-alerta/[0.06] p-4 text-sm text-foreground"
             >
               <AlertTriangle size={18} strokeWidth={1.75} className="mt-0.5 shrink-0 text-alerta" aria-hidden />
               <span>

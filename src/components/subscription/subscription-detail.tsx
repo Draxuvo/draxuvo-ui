@@ -115,7 +115,7 @@ export function SubscriptionDetail() {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-[6px] border border-border bg-card p-4 text-card-foreground shadow-etiqueta sm:p-6">
+      <section className="rounded-etiqueta border border-border bg-card p-4 text-card-foreground shadow-etiqueta sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground">
@@ -132,8 +132,8 @@ export function SubscriptionDetail() {
 
         {isLoading ? (
           <div className="mt-4 space-y-3" aria-busy>
-            <div className="h-8 w-32 rounded-[6px] bg-muted motion-safe:animate-pulse" />
-            <div className="h-16 rounded-[6px] bg-muted motion-safe:animate-pulse" />
+            <div className="h-8 w-32 rounded-etiqueta bg-muted motion-safe:animate-pulse" />
+            <div className="h-16 rounded-etiqueta bg-muted motion-safe:animate-pulse" />
           </div>
         ) : subscription ? (
           <div className="mt-4 space-y-4">
@@ -170,7 +170,7 @@ export function SubscriptionDetail() {
                   <Button
                     variant="outline"
                     onClick={() => switchCompany(parent.id)}
-                    className="mt-3 h-11 gap-2 rounded-[6px] border-foreground bg-card px-4 text-sm font-semibold hover:bg-background"
+                    className="mt-3 h-11 gap-2 rounded-etiqueta border-foreground bg-card px-4 text-sm font-semibold hover:bg-background"
                   >
                     <Building2 size={18} strokeWidth={1.75} aria-hidden />
                     {t("managedByParentAction", { company: parent.name })}
@@ -198,7 +198,7 @@ export function SubscriptionDetail() {
           <Button
             onClick={handleCheckout}
             disabled={busy}
-            className="h-11 w-full gap-2 rounded-[6px] px-5 text-base font-semibold focus-visible:ring-foreground/40 sm:w-auto"
+            className="h-11 w-full gap-2 rounded-etiqueta px-5 text-base font-semibold sm:w-auto"
           >
             <CreditCard size={20} strokeWidth={1.75} aria-hidden />
             {redirecting === "checkout" ? t("activating") : tp("payPlan", { plan: tp(plan) })}
@@ -207,7 +207,7 @@ export function SubscriptionDetail() {
       )}
 
       {subscription && canManage && (
-        <section className="rounded-[6px] border border-border bg-card p-4 text-card-foreground shadow-etiqueta sm:p-6">
+        <section className="rounded-etiqueta border border-border bg-card p-4 text-card-foreground shadow-etiqueta sm:p-6">
           <h2 className="font-display text-2xl font-extrabold uppercase leading-none">
             {t("manage")}
           </h2>
@@ -216,7 +216,7 @@ export function SubscriptionDetail() {
             variant="outline"
             onClick={handlePortal}
             disabled={busy}
-            className="mt-4 h-11 w-full gap-2 rounded-[6px] border-foreground bg-card px-5 text-base font-semibold hover:bg-background sm:w-auto"
+            className="mt-4 h-11 w-full gap-2 rounded-etiqueta border-foreground bg-card px-5 text-base font-semibold hover:bg-background sm:w-auto"
           >
             <ExternalLink size={20} strokeWidth={1.75} aria-hidden />
             {redirecting === "portal" ? t("openingPortal") : t("manage")}
@@ -343,7 +343,7 @@ function Panel({
 }) {
   const c = TONES[tone];
   return (
-    <div className={cn("flex items-start gap-3 rounded-[6px] border p-4", c.box)}>
+    <div className={cn("flex items-start gap-3 rounded-etiqueta border p-4", c.box)}>
       <Icon size={20} strokeWidth={1.75} className={cn("shrink-0", c.icon)} aria-hidden />
       <div className="space-y-1">
         <p className="text-sm font-semibold text-foreground">{title}</p>

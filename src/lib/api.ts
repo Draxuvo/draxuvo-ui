@@ -16,6 +16,20 @@ declare module "axios" {
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
+// Módulos cuya página está montada y muestra <ModuleLocked /> por su cuenta (R18): un 403
+// `module_not_in_plan` de ese módulo no lleva toast. Contador por si dos vistas lo marcan.
+const pageHandledModules = new Map<string, number>();
+
+/** La página del módulo marca su bloqueo como esperado; devuelve la limpieza (para useEffect). */
+export function expectModuleLock(module: string): () => void {
+  pageHandledModules.set(module, (pageHandledModules.get(module) ?? 0) + 1);
+  return () => {
+    const n = (pageHandledModules.get(module) ?? 1) - 1;
+    if (n > 0) pageHandledModules.set(module, n);
+    else pageHandledModules.delete(module);
+  };
+}
+
 export const apiClient = axios.create({
   baseURL: BASE_URL,
   headers: { "Content-Type": "application/json" },
@@ -66,8 +80,12 @@ apiClient.interceptors.response.use(
     }
 
     // Módulo fuera del plan (403, o 422 al activarlo): en vez del toast genérico, invita a subir de
-    // plan nombrando el módulo. La página del módulo muestra además <ModuleLocked />.
+    // plan nombrando el módulo (salvo que la página del módulo lo muestre con <ModuleLocked />).
     if ((status === 403 || status === 422) && err?.details?.code === "module_not_in_plan") {
+      // La página del módulo ya lo dice con <ModuleLocked />: sin toast de más.
+      if (status === 403 && pageHandledModules.has(String(err.details.module))) {
+        return Promise.reject(error);
+      }
       const locale = getLocale();
       const key = err.details.module as keyof (typeof MODULE_NAMES)["es"];
       const moduleName = MODULE_NAMES[locale][key] ?? String(err.details.module);

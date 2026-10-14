@@ -17,9 +17,6 @@ import { useAuthStore } from "@/store/auth";
 import { useAppRouter } from "@/hooks/use-router";
 import { cn } from "@/lib/utils";
 
-const FOCUS_RING =
-  "outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background";
-
 /** Cambia de empresa y lleva a la portada del rol nuevo. */
 export function useSwitchCompany() {
   const selectCompany = useAuthStore((s) => s.selectCompany);
@@ -57,8 +54,7 @@ export function CompanySwitcher({ className }: { className?: string }) {
           type="button"
           aria-label={t("trigger", { company: active.name, role: tRoles(active.role) })}
           className={cn(
-            "flex min-h-11 min-w-0 items-center gap-2 rounded-[6px] border border-border bg-card px-2.5 text-left transition-colors duration-[120ms] hover:border-foreground/40",
-            FOCUS_RING,
+            "foco-etiqueta flex min-h-11 min-w-0 items-center gap-2 rounded-etiqueta border border-border bg-card px-2.5 text-left transition-colors duration-[120ms] hover:border-foreground/40",
             className,
           )}
         >
@@ -84,7 +80,7 @@ export function CompanySwitcher({ className }: { className?: string }) {
             <DropdownMenuRadioItem
               key={company.id}
               value={String(company.id)}
-              className="min-h-11 rounded-[6px]"
+              className="min-h-11 rounded-etiqueta"
             >
               <span className="min-w-0 leading-tight">
                 <span className="block truncate font-semibold text-foreground">{company.name}</span>

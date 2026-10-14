@@ -1,78 +1,77 @@
 // src/components/layout/employee-header.tsx
 "use client";
-import { useLocale, useTranslations } from "next-intl";
-import { useRouter, usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { LogOut, Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
-import { LogOut, Globe } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/brand/logo";
 import { CompanySwitcher } from "./company-switcher";
+import { LocaleSwitcher } from "./locale-switcher";
+import { SIDEBAR_DRAWER_ID, useSidebar } from "./sidebar-context";
+import { cn } from "@/lib/utils";
+
+const ICON_BUTTON =
+  "foco-etiqueta flex size-11 shrink-0 items-center justify-center rounded-etiqueta text-muted-foreground transition-colors duration-[120ms] hover:bg-card hover:text-foreground";
 
 export function EmployeeHeader() {
   const t = useTranslations("nav");
-  const locale = useLocale();
-  const router = useRouter();
-  const pathname = usePathname();
-  const { user, logout, selectedCompanyId } = useAuthStore();
-  const companies = user?.companies ?? [];
-  const companyName = (companies.find((c) => c.id === selectedCompanyId) ?? companies[0])?.name;
-
-  function switchLocale(next: string) {
-    router.push(pathname.replace(`/${locale}`, `/${next}`));
-  }
+  const tc = useTranslations("common");
+  const { user, logout } = useAuthStore();
+  const multiCompany = (user?.companies?.length ?? 0) > 1;
+  const { open, mobileOpen, toggle } = useSidebar();
 
   return (
-    <header className="h-14 shrink-0 border-b border-zinc-200 bg-white flex items-center justify-between px-5">
-      {/* Left: user info */}
-      <div className="flex items-center gap-2 min-w-0">
-        <p className="text-sm font-medium text-zinc-800 truncate">
-          {user?.first_name} {user?.last_name}
-        </p>
-        {companies.length > 1 ? (
-          <CompanySwitcher className="ml-2" />
+    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background px-2 sm:px-4">
+      {/* Celular: abre el cajón del menú */}
+      <button
+        type="button"
+        onClick={toggle}
+        aria-controls={SIDEBAR_DRAWER_ID}
+        aria-expanded={mobileOpen}
+        aria-label={mobileOpen ? t("closeMenu") : t("openMenu")}
+        className={cn(ICON_BUTTON, "md:hidden")}
+      >
+        <Menu size={20} strokeWidth={1.75} aria-hidden />
+      </button>
+
+      {/* Escritorio: contrae o expande el riel */}
+      <button
+        type="button"
+        onClick={toggle}
+        aria-expanded={open}
+        aria-label={open ? t("collapseMenu") : t("expandMenu")}
+        className={cn(ICON_BUTTON, "hidden md:flex")}
+      >
+        {open ? (
+          <PanelLeftClose size={20} strokeWidth={1.75} aria-hidden />
         ) : (
-          companyName && (
-            <>
-              <span className="text-zinc-300 text-xs">·</span>
-              <p className="text-xs text-zinc-400 truncate">{companyName}</p>
-            </>
-          )
+          <PanelLeftOpen size={20} strokeWidth={1.75} aria-hidden />
         )}
-      </div>
+      </button>
 
-      {/* Right: locale + logout */}
-      <div className="flex items-center gap-1 shrink-0">
-        <div className="flex items-center gap-0.5 mr-1">
-          <Globe size={13} className="text-zinc-400 mr-1" />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => switchLocale("es")}
-            className={`text-xs px-2 h-7 ${locale === "es" ? "font-semibold text-zinc-900" : "text-zinc-400"}`}
-          >
-            ES
-          </Button>
-          <span className="text-zinc-200 text-xs">|</span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => switchLocale("en")}
-            className={`text-xs px-2 h-7 ${locale === "en" ? "font-semibold text-zinc-900" : "text-zinc-400"}`}
-          >
-            EN
-          </Button>
-        </div>
+      {/* Marca en celular, donde el riel no se ve; con varias empresas manda el selector. */}
+      <span className={cn("flex min-w-0 items-center gap-2 md:hidden", multiCompany && "hidden")}>
+        <Logo className="size-7" />
+        <span className="font-display text-base font-extrabold uppercase tracking-[0.01em] text-foreground">
+          {tc("brandName")}
+        </span>
+      </span>
 
-        <div className="w-px h-4 bg-zinc-200 mx-1" />
+      <CompanySwitcher className="min-w-0 md:ml-1" />
 
-        <Button
-          variant="ghost"
-          size="sm"
+      <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-3">
+        <span className="hidden max-w-48 truncate text-sm font-semibold text-foreground lg:block">
+          {user?.first_name} {user?.last_name}
+        </span>
+        <LocaleSwitcher />
+        <button
+          type="button"
           onClick={logout}
-          className="text-xs text-zinc-500 hover:text-zinc-800 gap-1.5 px-2.5"
+          aria-label={t("logout")}
+          className={cn(ICON_BUTTON, "sm:w-auto sm:gap-2 sm:px-3 sm:text-sm sm:font-medium")}
         >
-          <LogOut size={13} />
-          {t("logout")}
-        </Button>
+          <LogOut size={18} strokeWidth={1.75} aria-hidden />
+          <span className="hidden sm:inline">{t("logout")}</span>
+        </button>
       </div>
     </header>
   );

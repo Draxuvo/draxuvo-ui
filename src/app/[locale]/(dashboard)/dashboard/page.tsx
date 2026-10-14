@@ -105,13 +105,13 @@ function ChartCard({
   }));
   const go = (path: string) => path && router.push(path);
   const tooltip = (label: string | number, value: number) => (
-    <div className="rounded-[6px] bg-card px-2.5 py-1.5 text-xs text-foreground shadow-etiqueta">
+    <div className="rounded-etiqueta bg-card px-2.5 py-1.5 text-xs text-foreground shadow-etiqueta">
       {label}: <strong className="tabular-nums">{value}</strong>
     </div>
   );
 
   return (
-    <section className="flex flex-col rounded-[6px] bg-card p-4 text-card-foreground shadow-etiqueta">
+    <section className="flex flex-col rounded-etiqueta bg-card p-4 text-card-foreground shadow-etiqueta">
       <h3 className="text-sm font-semibold text-foreground">{title}</h3>
       <div className="mt-3 h-48">
         {total === 0 ? (
@@ -178,7 +178,7 @@ function ChartCard({
 
 function SummaryCard({ title, legendLabel, items }: { title: string; legendLabel: string; items: LegendItem[] }) {
   return (
-    <section className="flex flex-col rounded-[6px] bg-card p-4 text-card-foreground shadow-etiqueta">
+    <section className="flex flex-col rounded-etiqueta bg-card p-4 text-card-foreground shadow-etiqueta">
       <h3 className="text-sm font-semibold text-foreground">{title}</h3>
       <ChartLegendLinks className="mt-3" label={legendLabel} items={items} />
     </section>
@@ -492,7 +492,7 @@ export default function DashboardPage() {
           onClick={() => refetch()}
           disabled={isFetching}
           aria-label={tc("refresh")}
-          className="rounded-[6px] p-2 text-muted-foreground outline-none transition-colors duration-[120ms] hover:bg-card hover:text-foreground focus-visible:ring-2 focus-visible:ring-foreground disabled:pointer-events-none"
+          className="rounded-etiqueta p-2 text-muted-foreground transition-colors duration-[120ms] hover:bg-card hover:text-foreground foco-etiqueta disabled:pointer-events-none"
         >
           <RefreshCw size={18} strokeWidth={1.75} className={isFetching ? "animate-spin" : ""} />
         </button>
@@ -505,24 +505,24 @@ export default function DashboardPage() {
           ))}
         </div>
       ) : isError || !data ? (
-        <div role="alert" className="rounded-[6px] bg-card p-6 text-sm shadow-etiqueta">
+        <div role="alert" className="rounded-etiqueta bg-card p-6 text-sm shadow-etiqueta">
           <p className="font-medium text-foreground">{t("empty.loadError")}</p>
           <button
             type="button"
             onClick={() => refetch()}
-            className="mt-3 rounded-[6px] px-1 font-medium text-foreground underline decoration-border underline-offset-4 outline-none hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-foreground"
+            className="mt-3 rounded-etiqueta px-1 font-medium text-foreground underline decoration-border underline-offset-4 hover:decoration-foreground foco-etiqueta"
           >
             {tc("retry")}
           </button>
         </div>
       ) : cards.length === 0 ? (
-        <div className="rounded-[6px] bg-card p-6 shadow-etiqueta">
+        <div className="rounded-etiqueta bg-card p-6 shadow-etiqueta">
           <p className="font-medium text-foreground">{t("empty.noModules")}</p>
           <p className="mt-1 text-sm text-muted-foreground">{t("empty.noModulesHint")}</p>
           {role && BILLING_ROLES.includes(role) && (
             <Link
               href={href("/suscripcion")}
-              className="mt-4 inline-flex h-9 items-center rounded-[6px] bg-primary px-4 text-sm font-semibold text-primary-foreground outline-none transition-colors duration-[120ms] hover:bg-oferta-hover focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2"
+              className="mt-4 inline-flex h-9 items-center rounded-etiqueta bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors duration-[120ms] hover:bg-oferta-hover foco-etiqueta"
             >
               {t("empty.viewPlans")}
             </Link>

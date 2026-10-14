@@ -17,10 +17,10 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 const FIELD =
-  "h-11 rounded-[6px] border-border bg-card px-3 text-base focus-visible:border-foreground focus-visible:ring-foreground/15";
+  "h-11 rounded-etiqueta border-border bg-card px-3 text-base focus-visible:border-foreground focus-visible:ring-foreground/15";
 
 const TEXT_LINK =
-  "rounded-[2px] underline decoration-anaquel-borde decoration-2 underline-offset-4 transition-colors duration-[120ms] hover:decoration-foreground outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+  "rounded-[2px] underline decoration-anaquel-borde decoration-2 underline-offset-4 transition-colors duration-[120ms] hover:decoration-foreground foco-etiqueta";
 
 const FEATURES = [
   { labelKey: "feature1Label", descKey: "feature1Desc", icon: Package },
@@ -113,7 +113,7 @@ export default function LoginPage() {
         </section>
 
         <div className="w-full">
-          <div className="rounded-[6px] border border-border bg-card p-6 shadow-etiqueta sm:p-8">
+          <div className="rounded-etiqueta border border-border bg-card p-6 shadow-etiqueta sm:p-8">
             <h1 className="font-display text-[2rem] font-extrabold uppercase leading-none tracking-[-0.01em]">
               {t("subtitle")}
             </h1>
@@ -160,7 +160,7 @@ export default function LoginPage() {
                     onClick={() => setShowPassword((v) => !v)}
                     aria-label={showPassword ? t("hidePassword") : t("showPassword")}
                     aria-pressed={showPassword}
-                    className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-[6px] text-muted-foreground transition-colors duration-[120ms] hover:text-foreground outline-none focus-visible:ring-2 focus-visible:ring-foreground"
+                    className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-[6px] text-muted-foreground transition-colors duration-[120ms] hover:text-foreground foco-etiqueta"
                   >
                     {showPassword ? (
                       <EyeOff size={20} strokeWidth={1.75} aria-hidden />
@@ -179,7 +179,7 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="h-11 w-full rounded-[6px] text-base font-semibold focus-visible:ring-foreground/40"
+                className="h-11 w-full rounded-etiqueta text-base font-semibold"
               >
                 {loading ? t("submitting") : t("submit")}
               </Button>

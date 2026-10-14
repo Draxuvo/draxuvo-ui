@@ -137,12 +137,12 @@ function BlockedDialog({
       >
         <DialogHeader>
           <div className="mb-1 flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-alerta/10">
+              <AlertTriangle size={20} strokeWidth={1.75} className="text-alerta" aria-hidden />
             </div>
             <DialogTitle className="text-base">{title}</DialogTitle>
           </div>
-          <DialogDescription className="text-sm text-zinc-600">{description}</DialogDescription>
+          <DialogDescription className="text-sm text-muted-foreground">{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2">{children}</DialogFooter>
       </DialogContent>

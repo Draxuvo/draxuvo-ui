@@ -1,11 +1,10 @@
 // src/app/[locale]/(dashboard)/inventario/page.tsx
 "use client";
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, RefreshCw, FileUp } from "lucide-react";
+import { Plus, RefreshCw, FileUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { DataTable } from "@/components/ui/data-table";
 import { Pagination } from "@/components/ui/pagination";
 import { ProductForm } from "@/components/inventory/product-form";
@@ -19,7 +18,9 @@ import { useUrlFilters } from "@/hooks/use-url-filters";
 import { useAuthStore } from "@/store/auth";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/types";
-import { ModuleLocked, useModuleLocked } from "@/components/subscription/module-locked";
+import { ModuleLocked, useModuleGate } from "@/components/subscription/module-locked";
+import { FilterNotice } from "@/components/filters/filter-notice";
+import { SearchInput } from "@/components/filters/search-input";
 
 const PAGE_SIZE = 10;
 const DEFAULTS = { low_stock: "", out_of_stock: "", available: "", search: "" };
@@ -30,7 +31,7 @@ const ALLOWED = { low_stock: ONLY_TRUE, out_of_stock: ONLY_TRUE, available: ONLY
 type StockKey = "low_stock" | "out_of_stock" | "available";
 
 const CHIP =
-  "inline-flex h-8 items-center rounded-full border px-3 text-sm transition-colors duration-[120ms] ease-etiqueta outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+  "inline-flex h-8 items-center rounded-full border px-3 text-sm transition-colors duration-[120ms] ease-etiqueta foco-etiqueta";
 const CHIP_ON = "border-foreground bg-foreground text-background";
 const CHIP_OFF = "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground";
 
@@ -52,23 +53,6 @@ function InventarioContent() {
     allowed: ALLOWED,
   });
 
-  // Búsqueda: borrador local con debounce de 400 ms hacia la URL.
-  const [draft, setDraft] = useState(filters.search);
-  const [synced, setSynced] = useState(filters.search);
-  if (synced !== filters.search) {
-    setSynced(filters.search);
-    if (draft.trim() !== filters.search) setDraft(filters.search);
-  }
-  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => () => {
-    if (searchTimer.current) clearTimeout(searchTimer.current);
-  }, []);
-  function handleSearch(value: string) {
-    setDraft(value);
-    if (searchTimer.current) clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(() => setFilter("search", value), 400);
-  }
-
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState<Product | null>(null);
@@ -76,8 +60,11 @@ function InventarioContent() {
   const [movementType, setMovementType] = useState<"entry" | "exit" | null>(null);
   const [importOpen, setImportOpen] = useState(false);
 
+  // Puerta del módulo antes de consultar: fuera del plan no hay request ni toast.
+  const gate = useModuleGate("inventory");
   const { data, isLoading, isFetching, refetch, error } = useQuery({
     queryKey: ["products", filters, page],
+    enabled: gate.enabled,
     queryFn: () =>
       inventoryService.list({
         page,
@@ -94,6 +81,7 @@ function InventarioContent() {
     queryKey: ["dashboard", selectedCompanyId],
     queryFn: getDashboardStats,
     staleTime: 60 * 1000,
+    enabled: gate.enabled,
   });
 
   const products: Product[] = data?.results ?? [];
@@ -124,8 +112,7 @@ function InventarioContent() {
     [],
   );
 
-  const locked = useModuleLocked("inventory", error);
-  if (locked) return <ModuleLocked module="inventory" />;
+  if (gate.isLocked(error)) return <ModuleLocked module="inventory" />;
 
   const stockOptions: { key: StockKey | null; label: string }[] = [
     { key: null, label: t("filters.all") },
@@ -156,7 +143,7 @@ function InventarioContent() {
               <button
                 type="button"
                 onClick={() => selectStock("low_stock")}
-                className="rounded-full bg-ceja px-2 py-0.5 font-medium text-foreground tabular-nums outline-none transition-colors duration-[120ms] hover:bg-ceja/80 focus-visible:ring-2 focus-visible:ring-foreground"
+                className="rounded-full bg-ceja px-2 py-0.5 font-medium text-foreground tabular-nums transition-colors duration-[120ms] hover:bg-ceja/80 foco-etiqueta"
               >
                 {ta("subset.lowStock", { count: lowStockTotal })}
               </button>
@@ -186,17 +173,11 @@ function InventarioContent() {
 
       {/* Filtros */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative w-full sm:max-w-sm">
-          <Search size={14} aria-hidden className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            className="bg-card pl-8"
-            type="search"
-            aria-label={tc("search")}
-            placeholder={t("searchPlaceholder")}
-            value={draft}
-            onChange={(e) => handleSearch(e.target.value)}
-          />
-        </div>
+        <SearchInput
+          value={filters.search}
+          onSearch={(value) => setFilter("search", value)}
+          placeholder={t("searchPlaceholder")}
+        />
         <div role="group" aria-label={t("filters.stock")} className="flex flex-wrap gap-2">
           {stockOptions.map((o) => {
             const on = o.key ? filters[o.key] === "true" : noStockFilter;
@@ -215,23 +196,7 @@ function InventarioContent() {
         </div>
       </div>
 
-      {isFiltered && (
-        <div
-          role="status"
-          className="flex flex-wrap items-center justify-between gap-3 rounded-[6px] bg-card px-3 py-2 text-sm shadow-etiqueta"
-        >
-          <span className="rounded-full bg-ceja px-2 py-0.5 font-medium text-foreground">
-            {tf("applied", { filters: applied.join(" · ") })}
-          </span>
-          <button
-            type="button"
-            onClick={reset}
-            className="rounded-[6px] px-1 font-medium text-foreground underline decoration-border underline-offset-4 outline-none transition-colors duration-[120ms] hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-foreground"
-          >
-            {tf("clear")}
-          </button>
-        </div>
-      )}
+      {isFiltered && <FilterNotice applied={applied} onClear={reset} />}
 
       {/* Table */}
       <DataTable

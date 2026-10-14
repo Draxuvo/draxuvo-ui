@@ -66,7 +66,7 @@ export function ModuleSettings() {
   }
 
   return (
-    <section className="mt-8 rounded-[6px] border border-border bg-card p-4 text-card-foreground shadow-etiqueta sm:p-6">
+    <section className="mt-8 rounded-etiqueta border border-border bg-card p-4 text-card-foreground shadow-etiqueta sm:p-6">
       <h2 className="font-display text-2xl font-extrabold uppercase leading-none">
         {t("modulesTitle")}
       </h2>
@@ -93,7 +93,7 @@ export function ModuleSettings() {
                   disabled={save.isPending}
                   onCheckedChange={(checked) => toggle(module, checked)}
                   aria-label={tm(module)}
-                  className="h-6 w-11 focus-visible:ring-foreground data-[state=checked]:bg-sello data-[state=unchecked]:bg-muted-foreground/70 [&>span]:size-5 [&>span]:data-[state=checked]:translate-x-5"
+                  className="h-6 w-11 data-[state=checked]:bg-sello data-[state=unchecked]:bg-muted-foreground/70 [&>span]:size-5 [&>span]:data-[state=checked]:translate-x-5"
                 />
               ) : (
                 <Lock

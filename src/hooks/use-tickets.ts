@@ -3,7 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ticketsService } from "@/services/tickets";
 import type { Ticket, TicketFilters } from "@/types";
 
-export function useTickets(filters?: TicketFilters) {
+/** `enabled: false` cuando el módulo está fuera del plan (`useModuleGate`): sin request ni toast. */
+export function useTickets(filters?: TicketFilters, { enabled = true }: { enabled?: boolean } = {}) {
   return useQuery<Ticket[]>({
     queryKey: ["tickets", filters],
     queryFn: () =>
@@ -12,6 +13,7 @@ export function useTickets(filters?: TicketFilters) {
         .then((r) => r.results ?? (r as unknown as Ticket[])),
     staleTime: 0,
     refetchOnWindowFocus: true,
+    enabled,
   });
 }
 

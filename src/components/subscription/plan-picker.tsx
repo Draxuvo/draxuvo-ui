@@ -8,30 +8,35 @@ import type { BillingCycle, PlanKey } from "@/types";
 
 const PLAN_ORDER: PlanKey[] = ["basic", "pro", "enterprise"];
 
-const currency = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" });
+const currency = new Intl.NumberFormat("es-MX", {
+  style: "currency",
+  currency: "MXN",
+  currencyDisplay: "narrowSymbol",
+  minimumFractionDigits: 2,
+});
 
 export function formatCents(cents: number) {
   return currency.format(cents / 100);
 }
 
-/** Precio de etiqueta: cifra grande y condensada, el signo al 40% (DESIGN.md). */
+/**
+ * Precio de etiqueta, igual que el sitio (DESIGN.md "Precio"): el entero grande y condensado;
+ * signo, centavos y "MXN" al 40% alineados arriba.
+ */
 function TagPrice({ cents }: { cents: number }) {
   const parts = currency.formatToParts(cents / 100);
   return (
-    <span className="font-display text-[2.5rem] font-extrabold leading-none tabular-nums">
+    <span className="inline-flex items-start font-display text-[2.5rem] font-extrabold leading-none tabular-nums">
       {parts.map((part, i) =>
-        part.type === "currency" ? (
-          <span key={i} className="mr-0.5 align-[0.9em] text-[0.4em]">
-            {part.value}
-          </span>
-        ) : part.type === "decimal" || part.type === "fraction" ? (
-          <span key={i} className="text-[0.5em]">
+        part.type === "currency" || part.type === "decimal" || part.type === "fraction" ? (
+          <span key={i} className="mt-1 text-[0.4em]">
             {part.value}
           </span>
         ) : (
           <span key={i}>{part.value}</span>
         ),
       )}
+      <span className="mt-1 ml-1 text-[0.4em] opacity-60">MXN</span>
     </span>
   );
 }
@@ -70,7 +75,7 @@ export function PlanPicker({
     <div className="@container space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <div
-          className="inline-flex rounded-[6px] border border-border bg-background p-0.5"
+          className="inline-flex rounded-etiqueta border border-border bg-background p-0.5"
           role="group"
         >
           {(["monthly", "annual"] as const).map((c) => (
@@ -81,7 +86,7 @@ export function PlanPicker({
               aria-pressed={cycle === c}
               onClick={() => onCycleChange(c)}
               className={cn(
-                "min-h-10 rounded-[4px] px-4 text-sm font-semibold transition-colors duration-[120ms] outline-none focus-visible:ring-2 focus-visible:ring-foreground disabled:opacity-50",
+                "min-h-10 rounded-interior px-4 text-sm font-semibold transition-colors duration-[120ms] foco-etiqueta disabled:opacity-50",
                 cycle === c
                   ? "bg-card text-foreground shadow-etiqueta"
                   : "text-muted-foreground hover:text-foreground",
@@ -116,7 +121,7 @@ export function PlanPicker({
                 aria-pressed={isSelected}
                 onClick={() => onSelect(plan.key)}
                 className={cn(
-                  "relative flex flex-col rounded-[6px] border bg-card p-4 text-left text-foreground shadow-etiqueta transition-colors duration-[120ms] outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60",
+                  "relative flex flex-col rounded-etiqueta border bg-card p-4 text-left text-foreground shadow-etiqueta transition-colors duration-[120ms] foco-etiqueta disabled:cursor-not-allowed disabled:opacity-60",
                   isSelected
                     ? "border-primary ring-1 ring-primary"
                     : "border-border hover:border-foreground/40",
@@ -144,7 +149,7 @@ export function PlanPicker({
                   </span>
                 )}
 
-                <span className="mt-4 flex items-baseline gap-1">
+                <span className="mt-4 flex items-end gap-1.5">
                   <TagPrice cents={price.amount_cents} />
                   <span className="text-sm text-muted-foreground">
                     {cycle === "monthly" ? t("perMonth") : t("perYear")}

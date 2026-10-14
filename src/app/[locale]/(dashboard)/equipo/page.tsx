@@ -45,9 +45,9 @@ const ERROR_CODES = ["role_not_allowed", "already_member", "last_owner"] as cons
 type ErrorCode = (typeof ERROR_CODES)[number] | "generic";
 
 const FOCUS_RING =
-  "outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+  "foco-etiqueta";
 const SELECT = cn(
-  "h-11 rounded-[6px] border border-border bg-card px-3 text-sm text-foreground transition-colors duration-[120ms] hover:border-foreground/40 disabled:cursor-not-allowed disabled:opacity-60",
+  "h-11 rounded-etiqueta border border-border bg-card px-3 text-sm text-foreground transition-colors duration-[120ms] hover:border-foreground/40 disabled:cursor-not-allowed disabled:opacity-60",
   FOCUS_RING,
 );
 
@@ -124,19 +124,19 @@ export default function EquipoPage() {
             {t("subtitle", { count: data?.info?.total ?? 0, company: companyName })}
           </p>
         </div>
-        <Button onClick={() => setInviteOpen(true)} className="h-11 gap-2 rounded-[6px] px-4 font-semibold">
+        <Button onClick={() => setInviteOpen(true)} className="h-11 gap-2 rounded-etiqueta px-4 font-semibold">
           <UserPlus size={18} strokeWidth={1.75} aria-hidden />
           {t("invite")}
         </Button>
       </div>
 
-      <section className="rounded-[6px] border border-border bg-card shadow-etiqueta">
+      <section className="rounded-etiqueta border border-border bg-card shadow-etiqueta">
         {isLoading ? (
           <ul aria-busy className="divide-y divide-border">
             {Array.from({ length: 4 }).map((_, i) => (
               <li key={i} className="flex items-center gap-4 p-4">
-                <div className="h-10 flex-1 rounded-[6px] bg-muted motion-safe:animate-pulse" />
-                <div className="h-11 w-36 rounded-[6px] bg-muted motion-safe:animate-pulse" />
+                <div className="h-10 flex-1 rounded-etiqueta bg-muted motion-safe:animate-pulse" />
+                <div className="h-11 w-36 rounded-etiqueta bg-muted motion-safe:animate-pulse" />
               </li>
             ))}
           </ul>
@@ -146,7 +146,7 @@ export default function EquipoPage() {
               <AlertTriangle size={18} strokeWidth={1.75} className="text-alerta" aria-hidden />
               {t("loadError")}
             </span>
-            <Button variant="outline" onClick={() => refetch()} className="h-11 rounded-[6px]">
+            <Button variant="outline" onClick={() => refetch()} className="h-11 rounded-etiqueta">
               {tc("retry")}
             </Button>
           </div>
@@ -264,7 +264,7 @@ function MemberList({
                 aria-label={t("removeLabel", { name: fullName(m) })}
                 title={canEdit ? t("remove") : undefined}
                 className={cn(
-                  "size-11 rounded-[6px] text-muted-foreground hover:bg-alerta/10 hover:text-alerta",
+                  "size-11 rounded-etiqueta text-muted-foreground hover:bg-alerta/10 hover:text-alerta",
                   !canEdit && "invisible",
                 )}
               >
@@ -418,7 +418,7 @@ function InviteSheet({
             {apiError && (
               <div
                 role="alert"
-                className="flex items-start gap-3 rounded-[6px] border border-alerta/30 bg-alerta/[0.06] p-4 text-sm text-foreground"
+                className="flex items-start gap-3 rounded-etiqueta border border-alerta/30 bg-alerta/[0.06] p-4 text-sm text-foreground"
               >
                 <AlertTriangle size={18} strokeWidth={1.75} className="mt-0.5 shrink-0 text-alerta" aria-hidden />
                 {t(`errors.${apiError}`)}
@@ -427,10 +427,10 @@ function InviteSheet({
           </div>
 
           <div className="flex justify-end gap-2 border-t border-border px-6 py-4">
-            <Button type="button" variant="outline" className="h-11 rounded-[6px]" onClick={() => handleOpenChange(false)}>
+            <Button type="button" variant="outline" className="h-11 rounded-etiqueta" onClick={() => handleOpenChange(false)}>
               {t("cancel")}
             </Button>
-            <Button type="submit" disabled={invite.isPending} className="h-11 rounded-[6px] px-5 font-semibold">
+            <Button type="submit" disabled={invite.isPending} className="h-11 rounded-etiqueta px-5 font-semibold">
               {invite.isPending ? t("sending") : t("send")}
             </Button>
           </div>
@@ -489,12 +489,12 @@ function RemoveDialog({
           </p>
         )}
         <DialogFooter>
-          <Button variant="outline" className="h-11 rounded-[6px]" onClick={close}>
+          <Button variant="outline" className="h-11 rounded-etiqueta" onClick={close}>
             {t("cancel")}
           </Button>
           <Button
             variant="destructive"
-            className="h-11 rounded-[6px]"
+            className="h-11 rounded-etiqueta"
             disabled={remove.isPending || !member}
             onClick={() => member && remove.mutate(member)}
           >

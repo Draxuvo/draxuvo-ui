@@ -1,6 +1,5 @@
 // src/components/layout/header.tsx
 "use client";
-import Image from "next/image";
 import { useAuthStore } from "@/store/auth";
 import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -17,15 +16,10 @@ import { SIDEBAR_DRAWER_ID, useSidebar } from "./sidebar-context";
 import { LogOut, Menu, PanelLeftClose, PanelLeftOpen, UserRound } from "lucide-react";
 import { useAppRouter } from "@/hooks/use-router";
 import { cn } from "@/lib/utils";
-import logo from "../../../public/logo.svg";
+import { Logo } from "@/components/brand/logo";
 
-const FOCUS_RING =
-  "outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background";
-
-const ICON_BUTTON = cn(
-  "flex size-11 shrink-0 items-center justify-center rounded-[6px] text-muted-foreground transition-colors duration-[120ms] hover:bg-card hover:text-foreground",
-  FOCUS_RING,
-);
+const ICON_BUTTON =
+  "foco-etiqueta flex size-11 shrink-0 items-center justify-center rounded-etiqueta text-muted-foreground transition-colors duration-[120ms] hover:bg-card hover:text-foreground";
 
 function getInitials(firstName?: string, lastName?: string) {
   return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "?";
@@ -71,7 +65,7 @@ export function Header() {
 
       {/* Marca en celular, donde el riel no se ve */}
       <span className={cn("flex min-w-0 items-center gap-2 md:hidden", multiCompany && "hidden")}>
-        <Image src={logo} alt="" width={28} height={28} unoptimized className="size-7 shrink-0" />
+        <Logo className="size-7" />
         <span className="font-display text-base font-extrabold uppercase tracking-[0.01em] text-foreground">
           {tCommon("brandName")}
         </span>
@@ -87,8 +81,7 @@ export function Header() {
             <button
               type="button"
               className={cn(
-                "flex min-h-11 items-center gap-2.5 rounded-[6px] px-1.5 transition-colors duration-[120ms] hover:bg-card sm:px-2",
-                FOCUS_RING,
+                "foco-etiqueta flex min-h-11 items-center gap-2.5 rounded-etiqueta px-1.5 transition-colors duration-[120ms] hover:bg-card sm:px-2",
               )}
             >
               <Avatar>

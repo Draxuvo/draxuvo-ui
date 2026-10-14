@@ -45,15 +45,15 @@ const TEXT_FIELDS: { name: TextField; type: string; autoComplete: string }[] = [
 ];
 
 const FIELD =
-  "h-11 rounded-[6px] border-border bg-card px-3 text-base focus-visible:border-foreground focus-visible:ring-foreground/15";
+  "h-11 rounded-etiqueta border-border bg-card px-3 text-base focus-visible:border-foreground focus-visible:ring-foreground/15";
 
 const TEXT_LINK =
-  "rounded-[2px] font-semibold text-foreground underline decoration-anaquel-borde decoration-2 underline-offset-4 transition-colors duration-[120ms] hover:decoration-foreground outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+  "rounded-[2px] font-semibold text-foreground underline decoration-anaquel-borde decoration-2 underline-offset-4 transition-colors duration-[120ms] hover:decoration-foreground foco-etiqueta";
 
 /** Opción de radio como etiqueta: la elegida va marcada con oferta. */
 function choiceClass(selected: boolean) {
   return cn(
-    "relative flex cursor-pointer flex-col rounded-[6px] border bg-card px-3 py-2.5 text-left transition-colors duration-[120ms] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-foreground has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-card",
+    "relative flex cursor-pointer flex-col rounded-etiqueta border bg-card px-3 py-2.5 text-left transition-colors duration-[120ms] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-foreground has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-card",
     selected
       ? "border-primary ring-1 ring-primary"
       : "border-border hover:border-foreground/40",
@@ -163,7 +163,7 @@ function RegistrationForm() {
         </h1>
         <p className="mt-2 text-base text-muted-foreground">{t("subtitle")}</p>
 
-        <div className="mt-6 rounded-[6px] border border-border bg-card p-4 shadow-etiqueta sm:p-8">
+        <div className="mt-6 rounded-etiqueta border border-border bg-card p-4 shadow-etiqueta sm:p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
             <fieldset>
               <legend className="mb-2 text-sm font-semibold">{t("plan")}</legend>
@@ -245,7 +245,7 @@ function RegistrationForm() {
             {formError && (
               <p
                 role="alert"
-                className="rounded-[6px] border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+                className="rounded-etiqueta border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
               >
                 {formError}
               </p>
@@ -255,7 +255,7 @@ function RegistrationForm() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="h-11 w-full rounded-[6px] text-base font-semibold focus-visible:ring-foreground/40"
+                className="h-11 w-full rounded-etiqueta text-base font-semibold"
               >
                 {loading ? t("submitting") : t("submit")}
               </Button>

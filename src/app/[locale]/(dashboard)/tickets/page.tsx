@@ -1,14 +1,13 @@
 // src/app/[locale]/(dashboard)/tickets/page.tsx
 "use client";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/ui/pagination";
 import { TicketStatusBadge } from "@/components/tickets/ticket-status-badge";
 import { TicketDetail } from "@/components/tickets/ticket-detail";
-import { Receipt, Search, RefreshCw } from "lucide-react";
+import { Receipt, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { TICKET_STATUSES, type Ticket, type TicketStatus } from "@/types";
 import { ticketsService } from "@/services/tickets";
@@ -16,7 +15,9 @@ import { getDashboardStats } from "@/services/analytics";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { useAuthStore } from "@/store/auth";
 import { cn } from "@/lib/utils";
-import { ModuleLocked, useModuleLocked } from "@/components/subscription/module-locked";
+import { ModuleLocked, useModuleGate } from "@/components/subscription/module-locked";
+import { FilterNotice } from "@/components/filters/filter-notice";
+import { SearchInput } from "@/components/filters/search-input";
 
 const PAGE_SIZE = 20;
 const DEFAULTS = { status: "", search: "" };
@@ -24,7 +25,7 @@ const ALLOWED = { status: TICKET_STATUSES };
 const STATUS_TABS = ["all", "pending", "paid"] as const;
 
 const CHIP =
-  "inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors duration-[120ms] ease-etiqueta outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+  "inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors duration-[120ms] ease-etiqueta foco-etiqueta";
 const CHIP_ON = "border-foreground bg-foreground text-background";
 const CHIP_OFF = "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground";
 
@@ -45,27 +46,13 @@ function TicketsContent() {
     allowed: ALLOWED,
   });
 
-  // Búsqueda: borrador local con debounce de 400 ms hacia la URL.
-  const [draft, setDraft] = useState(filters.search);
-  const [synced, setSynced] = useState(filters.search);
-  if (synced !== filters.search) {
-    setSynced(filters.search);
-    if (draft.trim() !== filters.search) setDraft(filters.search);
-  }
-  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => () => {
-    if (searchTimer.current) clearTimeout(searchTimer.current);
-  }, []);
-  function handleSearch(value: string) {
-    setDraft(value);
-    if (searchTimer.current) clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(() => setFilter("search", value), 400);
-  }
-
   const [selected, setSelected] = useState<Ticket | null>(null);
 
+  // Puerta del módulo antes de consultar: fuera del plan no hay request ni toast.
+  const gate = useModuleGate("tickets");
   const { data, isLoading, isFetching, refetch, error } = useQuery({
     queryKey: ["tickets", filters, page],
+    enabled: gate.enabled,
     queryFn: () =>
       ticketsService.list({
         page,
@@ -83,6 +70,7 @@ function TicketsContent() {
     queryKey: ["dashboard", selectedCompanyId],
     queryFn: getDashboardStats,
     staleTime: 0,
+    enabled: gate.enabled,
   });
   const counts: Record<(typeof STATUS_TABS)[number], number | undefined> = {
     all: stats?.tickets.total,
@@ -90,8 +78,7 @@ function TicketsContent() {
     paid: stats?.tickets.paid,
   };
 
-  const locked = useModuleLocked("tickets", error);
-  if (locked) return <ModuleLocked module="tickets" />;
+  if (gate.isLocked(error)) return <ModuleLocked module="tickets" />;
 
   const applied = [
     filters.status && `${t("status")}: ${t(`statuses.${filters.status as TicketStatus}`)}`,
@@ -151,39 +138,17 @@ function TicketsContent() {
       </div>
 
       {/* Search */}
-      <div className="relative w-full sm:max-w-sm">
-        <Search size={15} aria-hidden className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          type="search"
-          aria-label={tc("search")}
-          placeholder={t("searchPlaceholder")}
-          className="bg-card pl-9"
-          value={draft}
-          onChange={(e) => handleSearch(e.target.value)}
-        />
-      </div>
+      <SearchInput
+        value={filters.search}
+        onSearch={(value) => setFilter("search", value)}
+        placeholder={t("searchPlaceholder")}
+      />
 
-      {isFiltered && (
-        <div
-          role="status"
-          className="flex flex-wrap items-center justify-between gap-3 rounded-[6px] bg-card px-3 py-2 text-sm shadow-etiqueta"
-        >
-          <span className="rounded-full bg-ceja px-2 py-0.5 font-medium text-foreground">
-            {tf("applied", { filters: applied.join(" · ") })}
-          </span>
-          <button
-            type="button"
-            onClick={reset}
-            className="rounded-[6px] px-1 font-medium text-foreground underline decoration-border underline-offset-4 outline-none transition-colors duration-[120ms] hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-foreground"
-          >
-            {tf("clear")}
-          </button>
-        </div>
-      )}
+      {isFiltered && <FilterNotice applied={applied} onClear={reset} />}
 
       {/* API error banner */}
       {error && (
-        <div role="alert" className="rounded-[6px] border border-destructive/40 bg-card px-4 py-3 text-sm text-destructive">
+        <div role="alert" className="rounded-etiqueta border border-destructive/40 bg-card px-4 py-3 text-sm text-destructive">
           {tc("loadError")}
         </div>
       )}
@@ -192,7 +157,7 @@ function TicketsContent() {
       <div className="space-y-2">
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} aria-hidden className="h-20 animate-pulse rounded-[6px] bg-card shadow-etiqueta" />
+            <div key={i} aria-hidden className="h-20 animate-pulse rounded-etiqueta bg-card shadow-etiqueta" />
           ))
         ) : tickets.length === 0 ? (
           <div className="py-16 text-center text-sm text-muted-foreground">
@@ -212,7 +177,7 @@ function TicketsContent() {
               key={ticket.id}
               type="button"
               onClick={() => setSelected(ticket)}
-              className="block w-full cursor-pointer rounded-[6px] border border-transparent bg-card p-4 text-left shadow-etiqueta outline-none transition-colors duration-[120ms] ease-etiqueta hover:border-foreground/40 focus-visible:ring-2 focus-visible:ring-foreground"
+              className="block w-full cursor-pointer rounded-etiqueta border border-transparent bg-card p-4 text-left shadow-etiqueta transition-colors duration-[120ms] ease-etiqueta hover:border-foreground/40 foco-etiqueta"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">

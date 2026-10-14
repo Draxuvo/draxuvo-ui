@@ -1,7 +1,5 @@
 // src/components/layout/super-admin-sidebar.tsx
 "use client";
-import Image from "next/image";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import {
@@ -11,69 +9,12 @@ import {
   FileBarChart2,
   Users,
   X,
-  type LucideIcon,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { SIDEBAR_DRAWER_ID, useSidebar } from "./sidebar-context";
 import { cn } from "@/lib/utils";
-import logo from "../../../public/logo.svg";
-
-const FOCUS_RING =
-  "outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background";
-
-interface NavItem {
-  href: string;
-  label: string;
-  icon: LucideIcon;
-}
-
-function NavList({
-  items,
-  pathname,
-  expanded,
-  onNavigate,
-}: {
-  items: NavItem[];
-  pathname: string;
-  expanded: boolean;
-  onNavigate?: () => void;
-}) {
-  return (
-    <ul className="flex flex-col gap-1">
-      {items.map(({ href, label, icon: Icon }) => {
-        const active = pathname === href || pathname.startsWith(`${href}/`);
-        return (
-          <li key={href}>
-            <Link
-              href={href}
-              onClick={onNavigate}
-              aria-current={active ? "page" : undefined}
-              title={expanded ? undefined : label}
-              className={cn(
-                "flex min-h-11 items-center gap-3 rounded-[6px] border text-sm transition-colors duration-[120ms]",
-                FOCUS_RING,
-                expanded ? "px-2" : "justify-center px-0",
-                active
-                  ? "border-border bg-card font-semibold text-foreground shadow-etiqueta"
-                  : "border-transparent font-medium text-muted-foreground hover:border-border hover:bg-card hover:text-foreground",
-              )}
-            >
-              <span
-                className={cn(
-                  "flex size-7 shrink-0 items-center justify-center rounded-[6px] transition-colors duration-[120ms]",
-                  active && "bg-primary text-primary-foreground",
-                )}
-              >
-                <Icon size={20} strokeWidth={1.75} aria-hidden />
-              </span>
-              <span className={cn("truncate", !expanded && "sr-only")}>{label}</span>
-            </Link>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
+import { Logo } from "@/components/brand/logo";
+import { NavList, type NavItem } from "./sidebar";
 
 export function SuperAdminSidebar() {
   const pathname = usePathname();
@@ -92,7 +33,7 @@ export function SuperAdminSidebar() {
 
   const brand = (expanded: boolean) => (
     <div className="flex min-w-0 items-center gap-2.5">
-      <Image src={logo} alt="" width={32} height={32} unoptimized className="size-8 shrink-0" />
+      <Logo />
       {expanded && (
         <div className="min-w-0 leading-tight">
           <p className="font-display text-base font-extrabold uppercase tracking-[0.01em] text-foreground">
@@ -146,8 +87,7 @@ export function SuperAdminSidebar() {
               onClick={() => setMobileOpen(false)}
               aria-label={t("closeMenu")}
               className={cn(
-                "flex size-11 shrink-0 items-center justify-center rounded-[6px] text-muted-foreground transition-colors duration-[120ms] hover:bg-card hover:text-foreground",
-                FOCUS_RING,
+                "foco-etiqueta flex size-11 shrink-0 items-center justify-center rounded-etiqueta text-muted-foreground transition-colors duration-[120ms] hover:bg-card hover:text-foreground",
               )}
             >
               <X size={20} strokeWidth={1.75} aria-hidden />

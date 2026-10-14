@@ -89,7 +89,7 @@ export function ChartLegendLinks({
               <Link
                 href={item.href}
                 aria-label={item.ariaLabel}
-                className="group -mx-2 flex min-h-10 items-center gap-3 rounded-[6px] px-2 text-sm transition-colors duration-[120ms] ease-etiqueta hover:bg-muted outline-none focus-visible:ring-2 focus-visible:ring-foreground"
+                className="group -mx-2 flex min-h-10 items-center gap-3 rounded-etiqueta px-2 text-sm transition-colors duration-[120ms] ease-etiqueta hover:bg-muted foco-etiqueta"
               >
                 {content}
               </Link>

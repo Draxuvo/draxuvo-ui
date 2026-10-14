@@ -30,10 +30,10 @@ export function getAdminUserColumns(
       header: t("name"),
       cell: ({ row }) => (
         <div>
-          <p className="font-medium text-zinc-800">
+          <p className="font-medium text-foreground">
             {row.original.first_name} {row.original.last_name}
           </p>
-          <p className="text-xs text-zinc-400">{row.original.email}</p>
+          <p className="text-xs text-muted-foreground">{row.original.email}</p>
         </div>
       ),
     },
@@ -50,14 +50,14 @@ export function getAdminUserColumns(
       cell: ({ row }) => {
         const companies = row.original.companies;
         if (!companies || companies.length === 0) {
-          return <span className="text-zinc-300 italic text-sm">{t("noCompany")}</span>;
+          return <span className="text-muted-foreground italic text-sm">{t("noCompany")}</span>;
         }
         return (
           <div className="flex flex-wrap gap-1">
             {companies.map((c) => (
               <span
                 key={c.id}
-                className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600"
+                className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
               >
                 {c.name}
               </span>
@@ -75,7 +75,7 @@ export function getAdminUserColumns(
             checked={row.original.active}
             onCheckedChange={() => actions.onToggleActive(row.original)}
           />
-          <span className={`text-xs ${row.original.active ? "text-zinc-700" : "text-zinc-400"}`}>
+          <span className={`text-xs ${row.original.active ? "text-foreground" : "text-muted-foreground"}`}>
             {row.original.active ? t("active") : t("inactive")}
           </span>
         </div>
@@ -92,7 +92,7 @@ export function getAdminUserColumns(
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0 text-zinc-400 hover:text-zinc-800"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                   onClick={() => actions.onEdit(row.original)}
                 >
                   <Pencil size={14} />
@@ -106,7 +106,7 @@ export function getAdminUserColumns(
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0 text-zinc-400 hover:text-red-600"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
                   onClick={() => actions.onDelete(row.original)}
                 >
                   <Trash2 size={14} />

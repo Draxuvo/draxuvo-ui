@@ -1,11 +1,10 @@
 // src/app/[locale]/(dashboard)/ordenes/page.tsx
 "use client";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { useWorkOrders, useDeleteWorkOrder } from "@/hooks/use-work-orders";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Pagination } from "@/components/ui/pagination";
 import {
   Dialog,
@@ -19,7 +18,7 @@ import { StatusBadge } from "@/components/work-orders/status-badge";
 import { ProgressBar } from "@/components/work-orders/progress-bar";
 import { WorkOrderDialog } from "@/components/work-orders/work-order-dialog";
 import { WorkOrderDetail } from "@/components/work-orders/work-order-detail";
-import { ClipboardList, Search, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { ClipboardList, Plus, RefreshCw, Trash2 } from "lucide-react";
 import {
   WORK_ORDER_PRIORITIES,
   WORK_ORDER_STATUSES,
@@ -27,7 +26,9 @@ import {
   type WorkOrderPriority,
   type WorkOrderStatus,
 } from "@/types";
-import { ModuleLocked, useModuleLocked } from "@/components/subscription/module-locked";
+import { ModuleLocked, useModuleGate } from "@/components/subscription/module-locked";
+import { FilterNotice } from "@/components/filters/filter-notice";
+import { SearchInput } from "@/components/filters/search-input";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { employeesService } from "@/services/employees";
 import { getDashboardStats } from "@/services/analytics";
@@ -45,11 +46,11 @@ const ID_PATTERN = /^\d+$/;
 const ADMIN_ROLES = ["admin", "owner", "super_admin"] as const;
 
 const CHIP =
-  "inline-flex h-8 items-center rounded-full border px-3 text-sm transition-colors duration-[120ms] ease-etiqueta outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+  "inline-flex h-8 items-center rounded-full border px-3 text-sm transition-colors duration-[120ms] ease-etiqueta foco-etiqueta";
 const CHIP_ON = "border-foreground bg-foreground text-background";
 const CHIP_OFF = "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground";
 const SELECT =
-  "h-9 w-full rounded-[6px] border border-input bg-card px-2.5 text-sm text-foreground outline-none transition-colors duration-[120ms] hover:border-foreground/40 focus-visible:ring-2 focus-visible:ring-foreground sm:w-auto";
+  "h-9 w-full rounded-etiqueta border border-input bg-card px-2.5 text-sm text-foreground transition-colors duration-[120ms] hover:border-foreground/40 foco-etiqueta sm:w-auto";
 
 export default function OrdenesPage() {
   return (
@@ -75,29 +76,14 @@ function OrdenesContent() {
   // employee_id: solo ids numéricos; otro valor se ignora.
   const employeeId = ID_PATTERN.test(filters.employee_id) ? filters.employee_id : "";
 
-  // Búsqueda: borrador local con debounce de 400 ms hacia la URL.
-  const [draft, setDraft] = useState(filters.search);
-  const [synced, setSynced] = useState(filters.search);
-  if (synced !== filters.search) {
-    setSynced(filters.search);
-    if (draft.trim() !== filters.search) setDraft(filters.search);
-  }
-  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => () => {
-    if (searchTimer.current) clearTimeout(searchTimer.current);
-  }, []);
-  function handleSearch(value: string) {
-    setDraft(value);
-    if (searchTimer.current) clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(() => setFilter("search", value), 400);
-  }
-
   const [createOpen, setCreateOpen] = useState(false);
   const [selected, setSelected] = useState<WorkOrder | null>(null);
   const [toDelete, setToDelete] = useState<WorkOrder | null>(null);
 
   const deleteOrder = useDeleteWorkOrder();
 
+  // Puerta del módulo antes de consultar: con el plan sin órdenes no hay request ni toast.
+  const gate = useModuleGate("work_orders");
   const { data, isLoading, isFetching, refetch, error } = useWorkOrders(
     {
       status: (filters.status || undefined) as WorkOrderStatus | undefined,
@@ -106,6 +92,7 @@ function OrdenesContent() {
       search: filters.search || undefined,
     },
     { page, page_size: PAGE_SIZE },
+    { enabled: gate.enabled },
   );
   const orders = data?.results ?? [];
 
@@ -114,6 +101,7 @@ function OrdenesContent() {
     queryKey: ["dashboard", selectedCompanyId],
     queryFn: getDashboardStats,
     staleTime: 60 * 1000,
+    enabled: gate.enabled,
   });
   const hasEmployees = !!stats?.active_modules.includes("employees");
   const { data: employeeOptions } = useQuery({
@@ -123,8 +111,7 @@ function OrdenesContent() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const locked = useModuleLocked("work_orders", error);
-  if (locked) return <ModuleLocked module="work_orders" />;
+  if (gate.isLocked(error)) return <ModuleLocked module="work_orders" />;
 
   const employeeName =
     employeeOptions?.results.find((e) => String(e.id) === employeeId)?.name ?? `#${employeeId}`;
@@ -184,17 +171,11 @@ function OrdenesContent() {
 
       {/* Búsqueda, prioridad y empleado */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative w-full sm:max-w-sm">
-          <Search size={15} aria-hidden className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="search"
-            aria-label={tc("search")}
-            placeholder={t("searchPlaceholder")}
-            className="bg-card pl-9"
-            value={draft}
-            onChange={(e) => handleSearch(e.target.value)}
-          />
-        </div>
+        <SearchInput
+          value={filters.search}
+          onSearch={(value) => setFilter("search", value)}
+          placeholder={t("searchPlaceholder")}
+        />
         <select
           aria-label={t("filterPriority")}
           className={SELECT}
@@ -228,29 +209,13 @@ function OrdenesContent() {
         )}
       </div>
 
-      {isFiltered && (
-        <div
-          role="status"
-          className="flex flex-wrap items-center justify-between gap-3 rounded-[6px] bg-card px-3 py-2 text-sm shadow-etiqueta"
-        >
-          <span className="rounded-full bg-ceja px-2 py-0.5 font-medium text-foreground">
-            {tf("applied", { filters: applied.join(" · ") })}
-          </span>
-          <button
-            type="button"
-            onClick={reset}
-            className="rounded-[6px] px-1 font-medium text-foreground underline decoration-border underline-offset-4 outline-none transition-colors duration-[120ms] hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-foreground"
-          >
-            {tf("clear")}
-          </button>
-        </div>
-      )}
+      {isFiltered && <FilterNotice applied={applied} onClear={reset} />}
 
       {/* Lista de órdenes */}
       <div className="space-y-2">
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} aria-hidden className="h-24 animate-pulse rounded-[6px] bg-card shadow-etiqueta" />
+            <div key={i} aria-hidden className="h-24 animate-pulse rounded-etiqueta bg-card shadow-etiqueta" />
           ))
         ) : orders.length === 0 ? (
           <div className="py-12 text-center text-sm text-muted-foreground">
@@ -278,7 +243,7 @@ function OrdenesContent() {
                   setSelected(order);
                 }
               }}
-              className="cursor-pointer rounded-[6px] border border-transparent bg-card p-4 shadow-etiqueta outline-none transition-colors duration-[120ms] ease-etiqueta hover:border-foreground/40 focus-visible:ring-2 focus-visible:ring-foreground"
+              className="cursor-pointer rounded-etiqueta border border-transparent bg-card p-4 shadow-etiqueta transition-colors duration-[120ms] ease-etiqueta hover:border-foreground/40 foco-etiqueta"
             >
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
@@ -310,7 +275,7 @@ function OrdenesContent() {
                         e.stopPropagation();
                         setToDelete(order);
                       }}
-                      className="rounded-[6px] p-1.5 text-muted-foreground outline-none transition-colors duration-[120ms] hover:bg-destructive/10 hover:text-destructive focus-visible:ring-2 focus-visible:ring-foreground"
+                      className="rounded-etiqueta p-1.5 text-muted-foreground transition-colors duration-[120ms] hover:bg-destructive/10 hover:text-destructive foco-etiqueta"
                     >
                       <Trash2 size={15} />
                     </button>

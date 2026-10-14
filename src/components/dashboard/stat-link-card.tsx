@@ -28,7 +28,7 @@ export interface StatLinkCardProps {
 }
 
 const FOCUS =
-  "outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-card";
+  "foco-etiqueta";
 
 export function StatLinkCard({
   label,
@@ -43,7 +43,7 @@ export function StatLinkCard({
   return (
     <div
       className={cn(
-        "group relative flex min-h-36 flex-col rounded-[6px] border border-transparent bg-card p-4 text-card-foreground shadow-etiqueta",
+        "group relative flex min-h-36 flex-col rounded-etiqueta border border-transparent bg-card p-4 text-card-foreground shadow-etiqueta",
         "transition-colors duration-[120ms] ease-etiqueta hover:border-foreground/40",
         "has-[[data-main]:focus-visible]:ring-2 has-[[data-main]:focus-visible]:ring-foreground has-[[data-main]:focus-visible]:ring-offset-2 has-[[data-main]:focus-visible]:ring-offset-background",
         className,
@@ -54,7 +54,7 @@ export function StatLinkCard({
           href={href}
           aria-label={ariaLabel}
           data-main
-          className="flex items-center gap-2 text-[0.8125rem] font-semibold uppercase tracking-[0.06em] text-muted-foreground outline-none after:absolute after:inset-0 after:rounded-[6px] after:content-['']"
+          className="flex items-center gap-2 text-[0.8125rem] font-semibold uppercase tracking-[0.06em] text-muted-foreground outline-none after:absolute after:inset-0 after:rounded-etiqueta after:content-['']"
         >
           {Icon && <Icon size={16} strokeWidth={1.75} aria-hidden className="shrink-0" />}
           {label}
@@ -106,7 +106,7 @@ export function StatLinkCard({
 
 export function StatLinkCardSkeleton() {
   return (
-    <div aria-hidden className="flex min-h-36 flex-col rounded-[6px] bg-card p-4 shadow-etiqueta">
+    <div aria-hidden className="flex min-h-36 flex-col rounded-etiqueta bg-card p-4 shadow-etiqueta">
       <div className="h-3 w-24 animate-pulse rounded bg-muted" />
       <div className="mt-4 h-9 w-16 animate-pulse rounded bg-muted" />
       <div className="mt-auto h-4 w-28 animate-pulse rounded bg-muted" />

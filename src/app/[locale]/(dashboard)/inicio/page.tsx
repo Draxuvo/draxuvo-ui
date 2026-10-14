@@ -131,7 +131,7 @@ export default function InicioPage() {
           }}
           disabled={refreshing}
           aria-label={tc("refresh")}
-          className="rounded-[6px] p-2 text-muted-foreground outline-none transition-colors duration-[120ms] hover:bg-card hover:text-foreground focus-visible:ring-2 focus-visible:ring-foreground disabled:pointer-events-none"
+          className="rounded-etiqueta p-2 text-muted-foreground transition-colors duration-[120ms] hover:bg-card hover:text-foreground foco-etiqueta disabled:pointer-events-none"
         >
           <RefreshCw size={18} strokeWidth={1.75} className={refreshing ? "animate-spin" : ""} />
         </button>
@@ -148,12 +148,12 @@ export default function InicioPage() {
             ))}
           </div>
         ) : stats.isError ? (
-          <div role="alert" className="rounded-[6px] bg-card p-6 text-sm shadow-etiqueta">
+          <div role="alert" className="rounded-etiqueta bg-card p-6 text-sm shadow-etiqueta">
             <p className="font-medium text-foreground">{tc("loadError")}</p>
             <button
               type="button"
               onClick={() => stats.refetch()}
-              className="mt-3 rounded-[6px] px-1 font-medium text-foreground underline decoration-border underline-offset-4 outline-none hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-foreground"
+              className="mt-3 rounded-etiqueta px-1 font-medium text-foreground underline decoration-border underline-offset-4 hover:decoration-foreground foco-etiqueta"
             >
               {tc("retry")}
             </button>
@@ -172,7 +172,7 @@ export default function InicioPage() {
       {role && ANALYTICS_ROLES.includes(role) && (
         <Link
           href={href("/dashboard")}
-          className="group inline-flex items-center gap-2 rounded-[6px] px-1 text-sm font-medium text-foreground underline decoration-border underline-offset-4 outline-none transition-colors duration-[120ms] hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-foreground"
+          className="group inline-flex items-center gap-2 rounded-etiqueta px-1 text-sm font-medium text-foreground underline decoration-border underline-offset-4 transition-colors duration-[120ms] hover:decoration-foreground foco-etiqueta"
         >
           {t("viewDashboard")}
           <ArrowRight size={16} strokeWidth={1.75} aria-hidden />

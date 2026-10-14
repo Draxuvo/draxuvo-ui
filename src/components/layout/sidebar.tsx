@@ -23,6 +23,7 @@ import { getSubscription } from "@/services/subscription";
 import type { ModuleKey } from "@/types";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { SIDEBAR_DRAWER_ID, useSidebar } from "./sidebar-context";
+import { Logo } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
 
 const ANALYTICS_ROLES = new Set(["admin", "owner", "manager"]);
@@ -31,35 +32,14 @@ const REPORTS_ROLES = new Set(["admin", "owner"]);
 const SUBSCRIPTION_ROLES = new Set(["admin", "owner"]);
 const TEAM_ROLES = new Set(["admin", "owner"]);
 
-/** DESIGN.md: the one label shadow ("etiqueta pegada"). */
-const LABEL_SHADOW =
-  "shadow-[0_1px_0_rgba(20,20,20,.08),0_2px_6px_rgba(20,20,20,.06)]";
-
-const FOCUS_RING =
-  "outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background";
-
-interface NavItem {
+export interface NavItem {
   href: string;
   label: string;
   icon: LucideIcon;
 }
 
-/** Price tag with a punched notch on the left and a "D": the panel's brand mark. */
-function BrandMark() {
-  const notch =
-    "radial-gradient(circle at 0 50%, transparent 3px, #000 3.5px)";
-  return (
-    <span
-      aria-hidden
-      className="flex size-8 shrink-0 items-center justify-center rounded-[6px] bg-primary pl-0.5 font-display text-lg font-extrabold leading-none text-primary-foreground"
-      style={{ WebkitMaskImage: notch, maskImage: notch }}
-    >
-      D
-    </span>
-  );
-}
-
-function NavList({
+/** Lista de navegación del panel; también la usa el menú del personal (EmployeeSidebar). */
+export function NavList({
   items,
   pathname,
   expanded,
@@ -82,20 +62,16 @@ function NavList({
               aria-current={active ? "page" : undefined}
               title={expanded ? undefined : label}
               className={cn(
-                "group flex min-h-11 items-center gap-3 rounded-[6px] border text-sm transition-colors duration-[120ms]",
-                FOCUS_RING,
+                "group foco-etiqueta flex min-h-11 items-center gap-3 rounded-etiqueta border text-sm transition-colors duration-[120ms] ease-etiqueta",
                 expanded ? "px-2" : "justify-center px-0",
                 active
-                  ? cn(
-                      "border-border bg-card font-semibold text-foreground",
-                      LABEL_SHADOW,
-                    )
+                  ? "border-border bg-card font-semibold text-foreground shadow-etiqueta"
                   : "border-transparent font-medium text-muted-foreground hover:border-border hover:bg-card hover:text-foreground",
               )}
             >
               <span
                 className={cn(
-                  "flex size-7 shrink-0 items-center justify-center rounded-[6px] transition-colors duration-[120ms]",
+                  "flex size-7 shrink-0 items-center justify-center rounded-etiqueta transition-colors duration-[120ms]",
                   active && "bg-primary text-primary-foreground",
                 )}
               >
@@ -201,7 +177,7 @@ export function Sidebar() {
 
   const brand = (expanded: boolean) => (
     <div className="flex min-w-0 items-center gap-2.5">
-      <BrandMark />
+      <Logo />
       {expanded && (
         <div className="min-w-0 leading-tight">
           <p className="font-display text-base font-extrabold uppercase tracking-[0.01em] text-foreground">
@@ -259,8 +235,7 @@ export function Sidebar() {
               onClick={() => setMobileOpen(false)}
               aria-label={t("closeMenu")}
               className={cn(
-                "flex size-11 shrink-0 items-center justify-center rounded-[6px] text-muted-foreground transition-colors duration-[120ms] hover:bg-card hover:text-foreground",
-                FOCUS_RING,
+                "foco-etiqueta flex size-11 shrink-0 items-center justify-center rounded-etiqueta text-muted-foreground transition-colors duration-[120ms] hover:bg-card hover:text-foreground",
               )}
             >
               <X size={20} strokeWidth={1.75} aria-hidden />

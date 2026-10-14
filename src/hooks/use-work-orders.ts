@@ -23,12 +23,18 @@ export function listWorkOrders({
 
 /**
  * Lista paginada de órdenes. Query key `["work-orders", filters, page]` (contracts/ui-routes.md);
- * las invalidaciones por prefijo `["work-orders"]` siguen aplicando.
+ * las invalidaciones por prefijo `["work-orders"]` siguen aplicando. `enabled: false` cuando el
+ * módulo está fuera del plan (`useModuleGate`): sin request ni toast.
  */
-export function useWorkOrders(filters: WorkOrderFilters = {}, { page = 1, page_size = 20 }: ListParams = {}) {
+export function useWorkOrders(
+  filters: WorkOrderFilters = {},
+  { page = 1, page_size = 20 }: ListParams = {},
+  { enabled = true }: { enabled?: boolean } = {},
+) {
   return useQuery<PaginatedResponse<WorkOrder>>({
     queryKey: ["work-orders", filters, page, page_size],
     queryFn: () => listWorkOrders({ ...filters, page, page_size }),
+    enabled,
   });
 }
 
