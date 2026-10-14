@@ -6,7 +6,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Bothi Soluciones ERP",
+  title: "Draxuvo · Tecnología y automatización",
   description: "Sistema de gestión empresarial",
 };
 

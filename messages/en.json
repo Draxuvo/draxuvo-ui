@@ -1,7 +1,7 @@
 {
   "common": {
-    "brandName": "Bothi Soluciones",
-    "brandTagline": "",
+    "brandName": "Draxuvo",
+    "brandTagline": "Technology and automation",
     "save": "Save changes",
     "cancel": "Cancel",
     "edit": "Edit",
@@ -16,7 +16,7 @@
     "actions": "Actions"
   },
   "auth": {
-    "title": "Bothi Soluciones",
+    "title": "Draxuvo",
     "subtitle": "Sign in to your account",
     "email": "Email",
     "password": "Password",
@@ -31,14 +31,16 @@
     "heroTitle": "Your business,",
     "heroTitleHighlight": "under control.",
     "heroSubtitle": "All-in-one management for bussinnes. Inventory, staff, orders and reports in one place.",
-    "copyright": "© {year} Bothi Soluciones · ERP System",
+    "copyright": "© {year} Draxuvo · Technology and automation",
     "feature1Label": "Inventory control",
     "feature1Desc": "Real-time stock for kitchen and warehouse",
     "feature2Label": "Work orders",
     "feature2Desc": "Digitised order and production flow",
     "feature3Label": "Reports & analytics",
     "feature3Desc": "Metrics to make fast decisions",
-    "forgotPassword": "Forgot your password?"
+    "forgotPassword": "Forgot your password?",
+    "noAccount": "Don't have an account?",
+    "register": "Try 30 days free"
   },
   "nav": {
     "home": "Home",
@@ -178,7 +180,10 @@
     "unauthorized": "Invalid credentials",
     "unexpected": "An unexpected error occurred",
     "noConnection": "No connection to server",
-    "subscriptionExpired": "Your company's plan has expired. Contact your administrator to renew the subscription."
+    "subscriptionExpired": "Your company's plan has expired. Contact your administrator to renew the subscription.",
+    "moduleNotInPlan": "The {module} module is not in your plan",
+    "moduleNotInPlanAction": "Upgrade plan",
+    "rateLimited": "Too many attempts. Wait a moment and try again."
   },
   "inventory": {
     "title": "Inventory",
@@ -270,8 +275,8 @@
     "save": "Save",
     "saving": "Saving...",
     "plans": {
-      "starter": "Starter",
-      "business": "Business",
+      "basic": "Basic",
+      "pro": "Pro",
       "enterprise": "Enterprise"
     },
     "subscription": "Subscription",
@@ -448,7 +453,45 @@
     "activeBannerAction": "View subscription",
     "expiredModalTitle": "Plan expired",
     "expiredModalDesc": "Your company's plan has expired. Contact your administrator to renew the subscription and continue using the platform.",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "trialing": "Trial",
+    "pastDue": "Payment due",
+    "statusCancelScheduled": "Cancellation scheduled",
+    "billingCycle": "Billing cycle",
+    "amount": "Amount",
+    "totalWithIva": "Total with VAT",
+    "nextRenewal": "Next renewal: {date}",
+    "choosePlan": "Choose your plan",
+    "changePlan": "Change plan",
+    "planChanged": "Plan updated",
+    "planChangeError": "Could not change the plan",
+    "pay": "Pay",
+    "manage": "Manage subscription",
+    "manageDesc": "Change plan or card, download your receipts or cancel.",
+    "openingPortal": "Opening the portal...",
+    "portalError": "Could not open the billing portal",
+    "cancelScheduled": "Cancels on {date}",
+    "cancelScheduledDesc": "You keep access until then. You can reactivate it from Manage subscription.",
+    "processingTitle": "Processing your payment",
+    "processingDesc": "We're confirming your payment. This may take a few seconds.",
+    "processingSlow": "Your payment is still processing. We'll let you know as soon as it's confirmed.",
+    "pastDueBanner": "We couldn't charge your subscription. Update your card to keep access.",
+    "pastDueAction": "Update card",
+    "blockedTitle": "Your trial has ended",
+    "blockedTitleExpired": "Your subscription has expired",
+    "blockedDescOwner": "Choose a plan and pay to keep using Draxuvo.",
+    "blockedAction": "Go to subscription",
+    "blockedDescMember": "Ask the account owner to renew the subscription.",
+    "modulesTitle": "Modules",
+    "modulesDesc": "Turn on the modules in your plan that your company uses. Turning a module off doesn't delete its data.",
+    "moduleOn": "On",
+    "moduleOff": "Off",
+    "modulesSaved": "Modules updated",
+    "modulesError": "Could not update the modules",
+    "moduleLocked": "This module is not in your plan",
+    "moduleLockedDesc": "Upgrade your plan to use {module}.",
+    "upgradePlan": "Upgrade plan",
+    "availableIn": "Available in {plans}"
   },
   "profile": {
     "pageTitle": "My profile",
@@ -519,8 +562,15 @@
     "cancelClose": "No, go back",
     "cancelSuccess": "Subscription cancelled",
     "cancelError": "Could not cancel the subscription",
-    "planBusiness": "Business",
-    "planEnterprise": "Enterprise"
+    "planEnterprise": "Enterprise",
+    "statusPastDue": "Payment due",
+    "statusCancelScheduled": "Cancels on {date}",
+    "filterPastDue": "Payment due",
+    "checkoutCycle": "Billing cycle",
+    "cancelScheduledDesc": "The subscription for {company} will be cancelled at the end of the paid period. The company keeps access until then.",
+    "cancelScheduledSuccess": "Cancellation scheduled",
+    "planBasic": "Basic",
+    "planPro": "Pro"
   },
   "reports": {
     "title": "Reports",
@@ -652,5 +702,82 @@
     "deleteSuccess": "Order deleted",
     "delete": "Delete",
     "deleting": "Deleting..."
+  },
+  "registration": {
+    "title": "Create your account",
+    "subtitle": "Try Draxuvo free for 30 days, no card required",
+    "fields": {
+      "first_name": "First name",
+      "last_name": "Last name",
+      "phone": "Phone",
+      "email": "Email",
+      "password": "Password",
+      "company_name": "Company name"
+    },
+    "placeholders": {
+      "first_name": "John",
+      "last_name": "Smith",
+      "phone": "55 1234 5678",
+      "email": "you@company.com",
+      "password": "At least 8 characters",
+      "company_name": "My company"
+    },
+    "errors": {
+      "first_nameRequired": "First name is required",
+      "last_nameRequired": "Last name is required",
+      "phoneRequired": "Phone is required",
+      "emailInvalid": "Enter a valid email",
+      "passwordMin": "Password must be at least 8 characters",
+      "company_nameRequired": "Company name is required",
+      "generic": "Could not create the account. Please try again."
+    },
+    "plan": "Plan",
+    "cycle": "Billing cycle",
+    "submit": "Create account",
+    "submitting": "Creating account...",
+    "emailTaken": "An account with this email already exists",
+    "rateLimited": "Too many attempts. Wait a moment and try again.",
+    "haveAccount": "Already have an account?",
+    "login": "Sign in",
+    "trialNote": "Your 30-day trial starts today. We won't charge you until you choose to pay.",
+    "success": "Welcome to Draxuvo!"
+  },
+  "plans": {
+    "basic": "Basic",
+    "pro": "Pro",
+    "enterprise": "Enterprise",
+    "basicDesc": "Staff, attendance and inventory",
+    "proDesc": "Everything in Basic plus work orders, tickets and reports",
+    "enterpriseDesc": "Everything in Pro plus WhatsApp and multiple companies or branches",
+    "monthly": "Monthly",
+    "annual": "Annual",
+    "perMonth": "/month",
+    "perYear": "/year",
+    "price": "Price",
+    "subtotal": "Subtotal",
+    "iva": "VAT",
+    "ivaRate": "VAT ({rate}%)",
+    "total": "Total",
+    "totalWithIva": "Total with VAT",
+    "pricesWithoutIva": "Prices exclude VAT",
+    "annualNote": "2 months free",
+    "includes": "Includes",
+    "current": "Current plan",
+    "recommended": "Recommended",
+    "choose": "Choose plan",
+    "pay": "Pay",
+    "payPlan": "Pay {plan} plan",
+    "loading": "Loading plans...",
+    "loadError": "Could not load the plans"
+  },
+  "modules": {
+    "employees": "Staff",
+    "attendance": "Attendance",
+    "inventory": "Inventory",
+    "work_orders": "Work orders",
+    "tickets": "Tickets",
+    "reports": "Reports",
+    "whatsapp": "WhatsApp",
+    "multi_company": "Multiple companies or branches"
   }
 }

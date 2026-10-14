@@ -19,6 +19,7 @@ import { WorkOrderDialog } from "@/components/work-orders/work-order-dialog";
 import { WorkOrderDetail } from "@/components/work-orders/work-order-detail";
 import { ClipboardList, Search, Plus, RefreshCw, Trash2 } from "lucide-react";
 import type { WorkOrder } from "@/types";
+import { ModuleLocked, useModuleLocked } from "@/components/subscription/module-locked";
 import { format } from "date-fns";
 import { es, enUS } from "date-fns/locale";
 import { useLocale } from "next-intl";
@@ -61,7 +62,10 @@ export default function OrdenesPage() {
   if (statusFilter !== "all") filters.status = statusFilter;
   if (debouncedSearch) filters.search = debouncedSearch;
 
-  const { data: orders = [], isLoading, isFetching, refetch } = useWorkOrders(filters);
+  const { data: orders = [], isLoading, isFetching, refetch, error } = useWorkOrders(filters);
+
+  const locked = useModuleLocked("work_orders", error);
+  if (locked) return <ModuleLocked module="work_orders" />;
 
   return (
     <div>

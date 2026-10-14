@@ -36,7 +36,7 @@ type DisplaySubStatus =
 
 function getSubStatus(sub: Subscription | null): DisplaySubStatus {
   if (!sub) return "none";
-  const isTrial = sub.status === "trial" || sub.status === "trialing";
+  const isTrial = sub.status === "trialing";
   const raw = sub.current_period_end ?? sub.trial_ends_at;
   const daysLeft = raw ? differenceInDays(new Date(raw), new Date()) : null;
   if (
@@ -71,11 +71,12 @@ export function getCompanyColumns(
       id: "plan",
       header: t("plan"),
       cell: ({ row }) => {
-        const plan = row.original.company.plan;
+        const plan = row.original.subscription?.plan;
+        if (!plan) return <span className="text-zinc-400">—</span>;
         const variant =
           plan === "enterprise"
             ? "default"
-            : plan === "business"
+            : plan === "pro"
               ? "secondary"
               : "outline";
         return <Badge variant={variant}>{t(`plans.${plan}`)}</Badge>;

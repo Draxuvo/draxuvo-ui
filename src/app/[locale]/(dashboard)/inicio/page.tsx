@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useAuthStore } from "@/store/auth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
+import { getSubscription } from "@/services/subscription";
 import {
   Users,
   Package,
@@ -17,6 +18,8 @@ import {
 export default function InicioPage() {
   const t = useTranslations("home");
   const user = useAuthStore((s) => s.user);
+  const selectedCompanyId = useAuthStore((s) => s.selectedCompanyId);
+  const canSeeSubscription = user?.role === "owner" || user?.role === "admin";
   const qc = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -29,6 +32,14 @@ export default function InicioPage() {
   const { data: products } = useQuery({
     queryKey: ["products"],
     queryFn: () => apiClient.get("/api/v1/products").then((r) => r.data),
+  });
+
+  // Company ya no trae `plan`; la fuente es GET /subscription (solo owner/admin).
+  const { data: subscription } = useQuery({
+    queryKey: ["subscription", selectedCompanyId],
+    queryFn: getSubscription,
+    enabled: canSeeSubscription,
+    retry: false,
   });
 
   const employeeList = employees?.results ?? employees ?? [];
@@ -72,7 +83,7 @@ export default function InicioPage() {
     },
     {
       label: t("activePlan"),
-      value: user?.companies?.[0]?.plan ?? "—",
+      value: subscription?.plan ?? "—",
       icon: TrendingUp,
       color: "text-purple-600",
       bg: "bg-purple-50",
