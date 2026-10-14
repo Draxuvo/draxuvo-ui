@@ -102,9 +102,9 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-md flex flex-col gap-0 p-0">
 
-        <SheetHeader className="px-6 py-5 border-b border-zinc-100">
+        <SheetHeader className="px-6 py-5 border-b border-border/60">
           <SheetTitle className="text-base">{isEdit ? t("editTitle") : t("createTitle")}</SheetTitle>
-          <p className="text-xs text-zinc-400 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             {isEdit ? t("editSubtitle") : t("createSubtitle")}
           </p>
         </SheetHeader>
@@ -116,27 +116,27 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
           <div className="flex-1 px-6 py-6 space-y-5 overflow-y-auto">
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-zinc-700">{t("name")}</Label>
+              <Label className="text-xs font-medium text-foreground">{t("name")}</Label>
               <Input placeholder={t("namePlaceholder")} {...register("name")} />
               {errors.name && (
-                <p className="text-xs text-red-500">{errors.name.message}</p>
+                <p className="text-xs text-destructive">{errors.name.message}</p>
               )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-700">{t("position")}</Label>
+                <Label className="text-xs font-medium text-foreground">{t("position")}</Label>
                 <Input placeholder={t("positionPlaceholder")} {...register("position")} />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-700">{t("department")}</Label>
+                <Label className="text-xs font-medium text-foreground">{t("department")}</Label>
                 <Input placeholder={t("departmentPlaceholder")} {...register("department")} />
               </div>
             </div>
 
             <div className={`grid gap-4 ${isEdit ? "grid-cols-2" : "grid-cols-1"}`}>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-700">{t("salary")}</Label>
+                <Label className="text-xs font-medium text-foreground">{t("salary")}</Label>
                 <Input
                   type="number"
                   min="0"
@@ -147,7 +147,7 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
               </div>
               {isEdit && (
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-zinc-700">{t("status")}</Label>
+                  <Label className="text-xs font-medium text-foreground">{t("status")}</Label>
                   <select
                     {...register("status")}
                     className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -161,25 +161,25 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-700">{t("email")}</Label>
+                <Label className="text-xs font-medium text-foreground">{t("email")}</Label>
                 <Input
                   type="email"
                   placeholder={t("emailPlaceholder")}
                   {...register("email")}
                 />
                 {errors.email && (
-                  <p className="text-xs text-red-500">{errors.email.message}</p>
+                  <p className="text-xs text-destructive">{errors.email.message}</p>
                 )}
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-700">{t("phone")}</Label>
+                <Label className="text-xs font-medium text-foreground">{t("phone")}</Label>
                 <Input placeholder={t("phonePlaceholder")} {...register("phone")} />
               </div>
             </div>
 
           </div>
 
-          <div className="px-6 py-4 border-t border-zinc-100 flex justify-end gap-2">
+          <div className="px-6 py-4 border-t border-border/60 flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t("cancel")}
             </Button>

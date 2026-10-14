@@ -99,7 +99,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-md flex flex-col gap-0 p-0">
 
-        <SheetHeader className="px-6 py-5 border-b border-zinc-100">
+        <SheetHeader className="px-6 py-5 border-b border-border/60">
           <SheetTitle className="text-base">
             {isEdit ? t("editTitle") : t("createTitle")}
           </SheetTitle>
@@ -113,14 +113,14 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-700">{t("sku")}</Label>
+                <Label className="text-xs font-medium text-foreground">{t("sku")}</Label>
                 <Input placeholder={t("skuPlaceholder")} {...register("sku")} />
                 {errors.sku && (
-                  <p className="text-xs text-red-500">{errors.sku.message}</p>
+                  <p className="text-xs text-destructive">{errors.sku.message}</p>
                 )}
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-700">{t("unitCost")}</Label>
+                <Label className="text-xs font-medium text-foreground">{t("unitCost")}</Label>
                 <Input
                   type="number"
                   min="0"
@@ -132,37 +132,37 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-zinc-700">{t("name")}</Label>
+              <Label className="text-xs font-medium text-foreground">{t("name")}</Label>
               <Input placeholder={t("namePlaceholder")} {...register("name")} />
               {errors.name && (
-                <p className="text-xs text-red-500">{errors.name.message}</p>
+                <p className="text-xs text-destructive">{errors.name.message}</p>
               )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-700">{t("stock")}</Label>
+                <Label className="text-xs font-medium text-foreground">{t("stock")}</Label>
                 <Input type="number" min="0" placeholder="0" {...register("stock")} />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-700">{t("minStock")}</Label>
+                <Label className="text-xs font-medium text-foreground">{t("minStock")}</Label>
                 <Input type="number" min="0" placeholder="0" {...register("min_stock")} />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-700">{t("price")}</Label>
+                <Label className="text-xs font-medium text-foreground">{t("price")}</Label>
                 <Input type="number" min="0" step="0.01" placeholder={t("pricePlaceholder")} {...register("price")} />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-700">{t("category")}</Label>
+                <Label className="text-xs font-medium text-foreground">{t("category")}</Label>
                 <Input placeholder={t("categoryPlaceholder")} {...register("category")} />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-zinc-700">{t("description")}</Label>
+              <Label className="text-xs font-medium text-foreground">{t("description")}</Label>
               <textarea
                 {...register("description")}
                 rows={2}
@@ -172,13 +172,13 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
             </div>
 
             <div className="flex items-center gap-2">
-              <input type="checkbox" id="available" {...register("available")} className="h-4 w-4 rounded border-zinc-300" />
-              <Label htmlFor="available" className="text-xs font-medium text-zinc-700 cursor-pointer">{t("available")}</Label>
+              <input type="checkbox" id="available" {...register("available")} className="h-4 w-4 rounded border-border" />
+              <Label htmlFor="available" className="text-xs font-medium text-foreground cursor-pointer">{t("available")}</Label>
             </div>
 
           </div>
 
-          <div className="px-6 py-4 border-t border-zinc-100 flex justify-end gap-2">
+          <div className="px-6 py-4 border-t border-border/60 flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {tc("cancel")}
             </Button>

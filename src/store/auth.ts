@@ -2,6 +2,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { apiClient } from "@/lib/api";
+import { applyAppearance, fromPreferences } from "@/lib/appearance";
 import { queryClient } from "@/lib/query";
 import type { AuthResponse, Role, User } from "@/types";
 
@@ -87,6 +88,8 @@ export const useAuthStore = create<AuthState>()(
         document.cookie = `auth_token=${token}; path=/; max-age=${COOKIE_MAX_AGE}`;
         writeRoleCookie(role);
         queryClient.clear();
+        // La preferencia de la cuenta manda sobre la del dispositivo (FR-008).
+        applyAppearance(fromPreferences(user.preferences));
         set({ token, user, selectedCompanyId, role, isLoading: false });
       },
 
@@ -110,6 +113,7 @@ export const useAuthStore = create<AuthState>()(
         const role = roleFor(user, selectedCompanyId);
         writeCompany(selectedCompanyId);
         writeRoleCookie(role);
+        if (user.preferences) applyAppearance(fromPreferences(user.preferences));
         set({ user, selectedCompanyId, role });
       },
 

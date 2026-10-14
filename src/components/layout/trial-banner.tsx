@@ -61,7 +61,7 @@ export function TrialBanner() {
             type="button"
             onClick={handleUpdateCard}
             disabled={openingPortal}
-            className="flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition-colors duration-[120ms] hover:bg-oferta-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60"
+            className="flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition-colors duration-[120ms] hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60"
           >
             <CreditCard size={12} />
             {openingPortal ? t("openingPortal") : t("pastDueAction")}
@@ -128,7 +128,7 @@ export function TrialBanner() {
         <Link
           href={`/${locale}/suscripcion`}
           className={cn(
-            "flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition-colors duration-[120ms] hover:bg-oferta-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+            "flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition-colors duration-[120ms] hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
           )}
         >
           <CreditCard size={12} />

@@ -16,7 +16,7 @@ export function Pagination({ info, onPageChange, className }: PaginationProps) {
 
   return (
     <div className={cn("flex items-center justify-between gap-2", className)}>
-      <p className="text-xs text-zinc-400">
+      <p className="text-xs text-muted-foreground">
         {page_start}–{page_end} de {total}
       </p>
 
@@ -31,7 +31,7 @@ export function Pagination({ info, onPageChange, className }: PaginationProps) {
 
         {pages.map((p, i) =>
           p === "..." ? (
-            <span key={`ellipsis-${i}`} className="px-1.5 text-xs text-zinc-400">
+            <span key={`ellipsis-${i}`} className="px-1.5 text-xs text-muted-foreground">
               …
             </span>
           ) : (
@@ -71,8 +71,8 @@ function PageButton({
       className={cn(
         "min-w-7 h-7 px-1.5 rounded text-xs font-medium transition-colors",
         active
-          ? "bg-zinc-900 text-white"
-          : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800",
+          ? "bg-primary text-primary-foreground"
+          : "text-muted-foreground hover:bg-muted hover:text-foreground",
         disabled && "opacity-40 pointer-events-none",
       )}
       {...props}

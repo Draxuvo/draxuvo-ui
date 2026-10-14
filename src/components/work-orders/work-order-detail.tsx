@@ -40,10 +40,10 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
 };
 
 const STATUS_STYLE: Record<OrderStatus, { circle: string; label: string; sublabel: string }> = {
-  pending:     { circle: "bg-zinc-700",    label: "text-zinc-900",   sublabel: "text-zinc-400" },
-  in_progress: { circle: "bg-blue-500",    label: "text-blue-700",   sublabel: "text-blue-400" },
-  in_review:   { circle: "bg-purple-500",  label: "text-purple-700", sublabel: "text-purple-400" },
-  completed:   { circle: "bg-teal-500",    label: "text-teal-700",   sublabel: "text-teal-400" },
+  pending:     { circle: "bg-muted-foreground",    label: "text-foreground",   sublabel: "text-muted-foreground" },
+  in_progress: { circle: "bg-estado-progreso-border",    label: "text-estado-progreso-foreground",   sublabel: "text-estado-progreso-foreground" },
+  in_review:   { circle: "bg-estado-revision-border",  label: "text-estado-revision-foreground", sublabel: "text-estado-revision-foreground" },
+  completed:   { circle: "bg-estado-completada-border",    label: "text-estado-completada-foreground",   sublabel: "text-estado-completada-foreground" },
 };
 
 const selectCls =
@@ -118,14 +118,14 @@ function ItemForm({
     <div className="space-y-3">
       {/* Product picker */}
       <div className="space-y-1">
-        <div className="flex items-center gap-1.5 text-zinc-400">
+        <div className="flex items-center gap-1.5 text-muted-foreground">
           <Package size={12} />
           <span className="text-[11px] font-medium">Seleccionar producto (opcional)</span>
         </div>
         <select
           value={draft.product_id ?? ""}
           onChange={(e) => handleProductChange(e.target.value)}
-          className="w-full h-9 rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-700 focus:outline-none focus:ring-1 focus:ring-ring"
+          className="w-full h-9 rounded-lg border border-border bg-card px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
         >
           <option value="">Sin producto</option>
           {Object.entries(productsByCategory).map(([cat, prods]) => (
@@ -150,7 +150,7 @@ function ItemForm({
 
       {/* Qty + unit + price */}
       <div className="grid grid-cols-[auto_1fr_1fr_1fr] items-center gap-2">
-        <span className="text-xs text-zinc-400 shrink-0">Cant.</span>
+        <span className="text-xs text-muted-foreground shrink-0">Cant.</span>
         <Input
           type="number"
           min={1}
@@ -177,7 +177,7 @@ function ItemForm({
           ))}
         </select>
         <div className="relative">
-          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-zinc-400 pointer-events-none">
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
             $
           </span>
           <Input
@@ -408,10 +408,10 @@ export function WorkOrderDetail({
         className="p-0 flex flex-col gap-0"
       >
         {/* Header */}
-        <SheetHeader className="px-6 py-4 border-b border-zinc-100 shrink-0">
+        <SheetHeader className="px-6 py-4 border-b border-border/60 shrink-0">
           <div className="flex items-center gap-3">
             <SheetTitle className="text-base flex-1">{current.title}</SheetTitle>
-            <span className="text-[11px] text-zinc-400 flex items-center gap-1 shrink-0">
+            <span className="text-[11px] text-muted-foreground flex items-center gap-1 shrink-0">
               <Hash size={11} />
               {current.id}
             </span>
@@ -423,11 +423,11 @@ export function WorkOrderDetail({
         </SheetHeader>
 
         {/* Two-column body */}
-        <div className="flex-1 grid grid-cols-[1fr_1.4fr] divide-x divide-zinc-100 overflow-hidden">
+        <div className="flex-1 grid grid-cols-[1fr_1.4fr] divide-x divide-border overflow-hidden">
 
           {/* ── Left: order info ── */}
           <div className="overflow-y-auto px-6 py-6 space-y-5">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
               Detalles de la orden
             </p>
 
@@ -436,14 +436,14 @@ export function WorkOrderDetail({
               <div className="grid grid-cols-1 gap-3">
                 {current.employee && (
                   <div className="space-y-1">
-                    <p className="text-xs font-medium text-zinc-500">{t("employee")}</p>
-                    <p className="text-sm text-zinc-800">{current.employee.name}</p>
+                    <p className="text-xs font-medium text-muted-foreground">{t("employee")}</p>
+                    <p className="text-sm text-foreground">{current.employee.name}</p>
                   </div>
                 )}
                 {current.due_date && (
                   <div className="space-y-1">
-                    <p className="text-xs font-medium text-zinc-500">{t("dueDate")}</p>
-                    <p className="text-sm text-zinc-800">
+                    <p className="text-xs font-medium text-muted-foreground">{t("dueDate")}</p>
+                    <p className="text-sm text-foreground">
                       {format(new Date(current.due_date), "dd MMM yyyy HH:mm")}
                     </p>
                   </div>
@@ -454,9 +454,9 @@ export function WorkOrderDetail({
             {/* Progress */}
             {current.items_count > 0 && (
               <div className="space-y-1.5">
-                <div className="flex justify-between text-xs text-zinc-500">
+                <div className="flex justify-between text-xs text-muted-foreground">
                   <span>{t("progress")}</span>
-                  <span className="font-medium text-zinc-600">
+                  <span className="font-medium text-muted-foreground">
                     {current.items_done}/{current.items_count} · {current.progress}%
                   </span>
                 </div>
@@ -467,16 +467,16 @@ export function WorkOrderDetail({
             {/* Description */}
             {current.description && (
               <div className="space-y-1.5">
-                <p className="text-xs font-medium text-zinc-500">{t("description")}</p>
-                <p className="text-sm leading-relaxed text-zinc-700">{current.description}</p>
+                <p className="text-xs font-medium text-muted-foreground">{t("description")}</p>
+                <p className="text-sm leading-relaxed text-foreground">{current.description}</p>
               </div>
             )}
 
             {/* Notes */}
             {current.notes && (
               <div className="space-y-1.5">
-                <p className="text-xs font-medium text-zinc-500">{t("notes")}</p>
-                <p className="text-sm leading-relaxed bg-zinc-50 rounded-xl p-3 text-zinc-700 border border-zinc-100">
+                <p className="text-xs font-medium text-muted-foreground">{t("notes")}</p>
+                <p className="text-sm leading-relaxed bg-muted/50 rounded-xl p-3 text-foreground border border-border/60">
                   {current.notes}
                 </p>
               </div>
@@ -484,8 +484,8 @@ export function WorkOrderDetail({
 
             {/* View ticket (auto-generated on completion) */}
             {current.status === "completed" && (
-              <div className="pt-2 border-t border-zinc-100 space-y-2">
-                <p className="text-[11px] text-zinc-400">{tt("autoGenerated")}</p>
+              <div className="pt-2 border-t border-border/60 space-y-2">
+                <p className="text-[11px] text-muted-foreground">{tt("autoGenerated")}</p>
                 <Button
                   type="button"
                   variant="outline"
@@ -503,9 +503,9 @@ export function WorkOrderDetail({
           {/* ── Right: tasks ── */}
           <div className="overflow-y-auto px-6 py-6 flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                 {t("items")}
-                <span className="text-zinc-300 font-normal ml-1.5 normal-case tracking-normal">
+                <span className="text-muted-foreground/50 font-normal ml-1.5 normal-case tracking-normal">
                   ({current.items?.length ?? initialOrder.items_count})
                 </span>
               </p>
@@ -527,7 +527,7 @@ export function WorkOrderDetail({
               {/* Skeleton */}
               {isLoading && !current.items &&
                 Array.from({ length: initialOrder.items_count || 2 }).map((_, i) => (
-                  <div key={i} className="h-16 rounded-xl bg-zinc-100 animate-pulse" />
+                  <div key={i} className="h-16 rounded-xl bg-muted animate-pulse" />
                 ))
               }
 
@@ -544,7 +544,7 @@ export function WorkOrderDetail({
                 return (
                   <div
                     key={item.id}
-                    className="group rounded-xl border border-zinc-200 bg-zinc-50/50 p-4 space-y-3"
+                    className="group rounded-xl border border-border bg-muted/30 p-4 space-y-3"
                   >
                     {editingId === item.id ? (
                       <ItemForm
@@ -569,18 +569,18 @@ export function WorkOrderDetail({
                             <div
                               className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
                                 item.status === "completed"
-                                  ? "bg-teal-500 border-teal-500"
-                                  : "border-zinc-300 hover:border-zinc-400"
+                                  ? "bg-estado-completada-border border-estado-completada-border"
+                                  : "border-border hover:border-border"
                               }`}
                             >
                               {item.status === "completed" && (
-                                <Check size={11} className="text-white" />
+                                <Check size={11} className="text-background" />
                               )}
                             </div>
                           </button>
 
                           {/* Task label */}
-                          <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wide shrink-0">
+                          <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide shrink-0">
                             Tarea {idx + 1}
                           </span>
 
@@ -591,14 +591,14 @@ export function WorkOrderDetail({
                             <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button
                                 onClick={() => startEdit(item)}
-                                className="p-1 rounded text-zinc-300 hover:text-zinc-600 hover:bg-zinc-100 transition-colors"
+                                className="p-1 rounded text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted transition-colors"
                               >
                                 <Pencil size={13} />
                               </button>
                               <button
                                 onClick={() => handleDelete(item.id)}
                                 disabled={deleteItem.isPending}
-                                className="p-1 rounded text-zinc-300 hover:text-red-400 hover:bg-red-50 transition-colors disabled:opacity-50"
+                                className="p-1 rounded text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
                               >
                                 <Trash2 size={13} />
                               </button>
@@ -610,8 +610,8 @@ export function WorkOrderDetail({
                         <p
                           className={`text-sm ${
                             item.status === "completed"
-                              ? "line-through text-zinc-400"
-                              : "text-zinc-800"
+                              ? "line-through text-muted-foreground"
+                              : "text-foreground"
                           }`}
                         >
                           {item.description}
@@ -620,7 +620,7 @@ export function WorkOrderDetail({
                         {/* Qty / unit / price row */}
                         {(item.quantity > 1 || item.unit || hasPricing) && (
                           <div className="flex items-center justify-between">
-                            <span className="text-xs text-zinc-400">
+                            <span className="text-xs text-muted-foreground">
                               {item.quantity}
                               {item.unit ? ` ${item.unit}` : ""}
                               {hasPricing
@@ -628,9 +628,9 @@ export function WorkOrderDetail({
                                 : ""}
                             </span>
                             {subtotal != null && subtotal > 0 && (
-                              <span className="text-xs text-zinc-400">
+                              <span className="text-xs text-muted-foreground">
                                 Subtotal:{" "}
-                                <span className="font-semibold text-zinc-700">
+                                <span className="font-semibold text-foreground">
                                   ${subtotal.toFixed(2)}
                                 </span>
                               </span>
@@ -645,9 +645,9 @@ export function WorkOrderDetail({
 
               {/* New item card */}
               {isAdding && (
-                <div className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50/50 p-4">
+                <div className="rounded-xl border border-dashed border-border bg-muted/30 p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wide">
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
                       Nueva tarea
                     </span>
                   </div>
@@ -667,11 +667,11 @@ export function WorkOrderDetail({
 
             {/* Order total */}
             {orderTotal > 0 && (
-              <div className="flex justify-between items-center rounded-xl border border-zinc-200 bg-white px-4 py-3 mt-1">
-                <span className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
+              <div className="flex justify-between items-center rounded-xl border border-border bg-card px-4 py-3 mt-1">
+                <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                   Total
                 </span>
-                <span className="text-base font-bold text-zinc-800 tabular-nums">
+                <span className="text-base font-bold text-foreground tabular-nums">
                   ${orderTotal.toFixed(2)}
                 </span>
               </div>
@@ -680,22 +680,22 @@ export function WorkOrderDetail({
         </div>
 
         {/* Horizontal status stepper */}
-        <div className="shrink-0 border-t border-zinc-100 px-6 pt-4 pb-5 space-y-4">
+        <div className="shrink-0 border-t border-border/60 px-6 pt-4 pb-5 space-y-4">
           {/* Cancelled banner */}
           {isCancelled && (
-            <div className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 px-4 py-3">
-              <XCircle size={15} className="text-red-400 shrink-0" />
-              <p className="text-sm font-medium text-red-700">{t("statuses.cancelled")}</p>
-              <p className="text-xs text-red-400 ml-auto">{t("cancelledNote")}</p>
+            <div className="flex items-center gap-2 rounded-xl bg-destructive/10 border border-destructive/30 px-4 py-3">
+              <XCircle size={15} className="text-destructive shrink-0" />
+              <p className="text-sm font-medium text-destructive">{t("statuses.cancelled")}</p>
+              <p className="text-xs text-destructive ml-auto">{t("cancelledNote")}</p>
             </div>
           )}
 
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 mb-3">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-3">
               {t("status")}
             </p>
             <div className="relative flex items-start">
-              <div className="absolute top-[15px] left-[12.5%] right-[12.5%] h-px bg-zinc-100" />
+              <div className="absolute top-[15px] left-[12.5%] right-[12.5%] h-px bg-muted" />
 
               {STATUSES.map((s, idx) => {
                 const isActive = current.status === s;
@@ -718,20 +718,20 @@ export function WorkOrderDetail({
                         isActive
                           ? style.circle
                           : isBlocked
-                            ? "bg-zinc-100 border border-zinc-200"
-                            : "bg-white border border-zinc-300 group-hover:border-zinc-400 group-hover:bg-zinc-50"
+                            ? "bg-muted border border-border"
+                            : "bg-card border border-border group-hover:border-border group-hover:bg-muted/50"
                       }`}
                     >
                       {isActive ? (
                         updateStatus.isPending ? (
-                          <Loader2 size={13} className="text-white animate-spin" />
+                          <Loader2 size={13} className="text-background animate-spin" />
                         ) : (
-                          <Check size={13} className="text-white" strokeWidth={2.5} />
+                          <Check size={13} className="text-background" strokeWidth={2.5} />
                         )
                       ) : isBlocked ? (
-                        <Lock size={11} className="text-zinc-300" />
+                        <Lock size={11} className="text-muted-foreground/50" />
                       ) : (
-                        <span className="text-[11px] font-bold text-zinc-400 group-hover:text-zinc-600">
+                        <span className="text-[11px] font-bold text-muted-foreground group-hover:text-muted-foreground">
                           {idx + 1}
                         </span>
                       )}
@@ -742,15 +742,15 @@ export function WorkOrderDetail({
                         isActive
                           ? style.label
                           : isBlocked
-                            ? "text-zinc-300"
-                            : "text-zinc-400 group-hover:text-zinc-600"
+                            ? "text-muted-foreground/50"
+                            : "text-muted-foreground group-hover:text-muted-foreground"
                       }`}
                     >
                       {STATUS_LABEL[s]}
                     </span>
 
                     {s === "completed" && isBlocked && hasItems && !isCancelled && (
-                      <span className="text-[10px] text-zinc-300 leading-none">
+                      <span className="text-[10px] text-muted-foreground/50 leading-none">
                         {current.items_done}/{current.items_count}
                       </span>
                     )}
@@ -762,12 +762,12 @@ export function WorkOrderDetail({
 
           {/* Cancel button — only when not completed or already cancelled */}
           {!isCancelled && current.status !== "completed" && (
-            <div className="flex justify-end pt-1 border-t border-zinc-100">
+            <div className="flex justify-end pt-1 border-t border-border/60">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="gap-1.5 text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+                className="gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
                 onClick={handleCancel}
                 disabled={updateStatus.isPending}
               >

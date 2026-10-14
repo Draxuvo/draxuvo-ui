@@ -28,28 +28,28 @@ export function getEmployeeColumns(
       accessorKey: "name",
       header: t("name"),
       cell: ({ row }) => (
-        <span className="font-medium text-zinc-800">{row.original.name}</span>
+        <span className="font-medium text-foreground">{row.original.name}</span>
       ),
     },
     {
       accessorKey: "email",
       header: t("email"),
       cell: ({ row }) => (
-        <span className="text-zinc-500">{row.original.email ?? "—"}</span>
+        <span className="text-muted-foreground">{row.original.email ?? "—"}</span>
       ),
     },
     {
       accessorKey: "phone",
       header: t("phone"),
       cell: ({ row }) => (
-        <span className="text-zinc-500">{row.original.phone ?? "—"}</span>
+        <span className="text-muted-foreground">{row.original.phone ?? "—"}</span>
       ),
     },
     {
       accessorKey: "position",
       header: t("position"),
       cell: ({ row }) => (
-        <span className="text-zinc-500">{row.original.position ?? "—"}</span>
+        <span className="text-muted-foreground">{row.original.position ?? "—"}</span>
       ),
     },
     {
@@ -62,7 +62,7 @@ export function getEmployeeColumns(
             onCheckedChange={() => actions.onToggleStatus(row.original)}
           />
           <span
-            className={`text-xs ${row.original.status === "active" ? "text-zinc-700" : "text-zinc-400"}`}
+            className={`text-xs ${row.original.status === "active" ? "text-foreground" : "text-muted-foreground"}`}
           >
             {row.original.status === "active" ? t("active") : t("inactive")}
           </span>
@@ -80,7 +80,7 @@ export function getEmployeeColumns(
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0 text-zinc-400 hover:text-zinc-800"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                   onClick={() => actions.onEdit(row.original)}
                 >
                   <Pencil size={14} />
@@ -94,7 +94,7 @@ export function getEmployeeColumns(
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0 text-zinc-400 hover:text-red-600"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
                   onClick={() => actions.onDelete(row.original)}
                 >
                   <Trash2 size={14} />

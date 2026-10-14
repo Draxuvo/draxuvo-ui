@@ -1,12 +1,15 @@
 // src/components/work-orders/priority-badge.tsx
 
+import { ArrowDown, ArrowRight, ArrowUp, AlertTriangle } from "lucide-react";
 import type { WorkOrder } from "@/types";
 
+const ICONS = { low: ArrowDown, medium: ArrowRight, high: ArrowUp, urgent: AlertTriangle };
+
 const STYLES = {
-  low: "bg-zinc-100 text-zinc-600 border-zinc-200",
-  medium: "bg-blue-50 text-blue-700 border-blue-200",
-  high: "bg-amber-50 text-amber-700 border-amber-200",
-  urgent: "bg-red-50 text-red-700 border-red-200",
+  low: "bg-muted text-muted-foreground border-border",
+  medium: "bg-estado-progreso text-estado-progreso-foreground border-estado-progreso-border",
+  high: "bg-estado-pendiente text-estado-pendiente-foreground border-estado-pendiente-border",
+  urgent: "bg-destructive/10 text-destructive border-destructive/30",
 };
 
 const LABELS = {
@@ -21,10 +24,12 @@ export function PriorityBadge({
 }: {
   priority: WorkOrder["priority"];
 }) {
+  const Icon = ICONS[priority];
   return (
     <span
-      className={`text-xs font-medium px-2 py-0.5 rounded-full border ${STYLES[priority]}`}
+      className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border ${STYLES[priority]}`}
     >
+      <Icon size={11} aria-hidden="true" />
       {LABELS[priority]}
     </span>
   );

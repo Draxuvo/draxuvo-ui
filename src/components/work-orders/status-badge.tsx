@@ -1,10 +1,20 @@
 // src/components/work-orders/status-badge.tsx
+import { Circle, CircleDashed, Eye, CheckCircle2, XCircle, type LucideIcon } from "lucide-react";
+
+const ICONS: Record<string, LucideIcon> = {
+  pending: CircleDashed,
+  in_progress: Circle,
+  in_review: Eye,
+  completed: CheckCircle2,
+  cancelled: XCircle,
+};
+
 const STYLES: Record<string, string> = {
-  pending:     "bg-zinc-100 text-zinc-600",
-  in_progress: "bg-blue-50 text-blue-700",
-  in_review:   "bg-purple-50 text-purple-700",
-  completed:   "bg-teal-50 text-teal-700",
-  cancelled:   "bg-red-50 text-red-600",
+  pending:     "bg-estado-pendiente text-estado-pendiente-foreground",
+  in_progress: "bg-estado-progreso text-estado-progreso-foreground",
+  in_review:   "bg-estado-revision text-estado-revision-foreground",
+  completed:   "bg-estado-completada text-estado-completada-foreground",
+  cancelled:   "bg-estado-cancelada text-estado-cancelada-foreground",
 };
 
 const LABELS: Record<string, string> = {
@@ -16,10 +26,12 @@ const LABELS: Record<string, string> = {
 };
 
 export function StatusBadge({ status }: { status: string }) {
+  const Icon = ICONS[status] ?? CircleDashed;
   return (
     <span
-      className={`text-xs font-medium px-2.5 py-1 rounded-full ${STYLES[status] ?? "bg-zinc-100 text-zinc-500"}`}
+      className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full ${STYLES[status] ?? "bg-muted text-muted-foreground"}`}
     >
+      <Icon size={12} aria-hidden="true" />
       {LABELS[status] ?? status}
     </span>
   );

@@ -127,11 +127,11 @@ export function UserForm({ open, onOpenChange, user }: UserFormProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-md flex flex-col gap-0 p-0">
-        <SheetHeader className="px-6 py-5 border-b border-zinc-100">
+        <SheetHeader className="px-6 py-5 border-b border-border/60">
           <SheetTitle className="text-base">
             {isEdit ? t("editTitle") : t("createTitle")}
           </SheetTitle>
-          <p className="text-xs text-zinc-400 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             {isEdit ? t("editSubtitle") : t("createSubtitle")}
           </p>
         </SheetHeader>
@@ -145,22 +145,22 @@ export function UserForm({ open, onOpenChange, user }: UserFormProps) {
             {/* Nombre + Apellido paterno */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-700">
+                <Label className="text-xs font-medium text-foreground">
                   {t("firstName")}
                 </Label>
                 <Input placeholder={t("firstNamePlaceholder")} {...register("first_name")} />
                 {errors.first_name && (
-                  <p className="text-xs text-red-500">{errors.first_name.message}</p>
+                  <p className="text-xs text-destructive">{errors.first_name.message}</p>
                 )}
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-700">
+                <Label className="text-xs font-medium text-foreground">
                   {t("lastName")}
                 </Label>
                 <Input placeholder={t("lastNamePlaceholder")} {...register("last_name")} />
                 {errors.last_name && (
-                  <p className="text-xs text-red-500">{errors.last_name.message}</p>
+                  <p className="text-xs text-destructive">{errors.last_name.message}</p>
                 )}
               </div>
             </div>
@@ -168,42 +168,42 @@ export function UserForm({ open, onOpenChange, user }: UserFormProps) {
             {/* Apellido materno + Teléfono */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-700">
+                <Label className="text-xs font-medium text-foreground">
                   {t("secondLastName")}
                 </Label>
                 <Input placeholder={t("secondLastNamePlaceholder")} {...register("second_last_name")} />
                 {errors.second_last_name && (
-                  <p className="text-xs text-red-500">{errors.second_last_name.message}</p>
+                  <p className="text-xs text-destructive">{errors.second_last_name.message}</p>
                 )}
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-700">
+                <Label className="text-xs font-medium text-foreground">
                   {t("phone")}
                 </Label>
                 <Input type="tel" placeholder={t("phonePlaceholder")} {...register("phone")} />
                 {errors.phone && (
-                  <p className="text-xs text-red-500">{errors.phone.message}</p>
+                  <p className="text-xs text-destructive">{errors.phone.message}</p>
                 )}
               </div>
             </div>
 
             {/* Email */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-zinc-700">
+              <Label className="text-xs font-medium text-foreground">
                 {t("email")}
               </Label>
               <Input type="email" placeholder={t("emailPlaceholder")} {...register("email")} />
               {errors.email && (
-                <p className="text-xs text-red-500">{errors.email.message}</p>
+                <p className="text-xs text-destructive">{errors.email.message}</p>
               )}
             </div>
 
             {/* Email notice (only on create) */}
             {!isEdit && (
-              <div className="flex items-start gap-2.5 rounded-lg bg-blue-50 border border-blue-100 px-3.5 py-3">
-                <Mail size={14} className="text-blue-500 mt-0.5 shrink-0" />
-                <p className="text-xs text-blue-700 leading-relaxed">
+              <div className="flex items-start gap-2.5 rounded-lg bg-estado-progreso border border-estado-progreso-border px-3.5 py-3">
+                <Mail size={14} className="text-estado-progreso-foreground mt-0.5 shrink-0" />
+                <p className="text-xs text-estado-progreso-foreground leading-relaxed">
                   {t("createEmailNotice")}
                 </p>
               </div>
@@ -212,7 +212,7 @@ export function UserForm({ open, onOpenChange, user }: UserFormProps) {
             {/* Rol + Estado */}
             <div className={`grid gap-4 ${isEdit ? "grid-cols-2" : "grid-cols-1"}`}>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-700">
+                <Label className="text-xs font-medium text-foreground">
                   {t("role")}
                 </Label>
                 <select
@@ -228,7 +228,7 @@ export function UserForm({ open, onOpenChange, user }: UserFormProps) {
 
               {isEdit && (
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-zinc-700">
+                  <Label className="text-xs font-medium text-foreground">
                     {t("status")}
                   </Label>
                   <select
@@ -244,19 +244,19 @@ export function UserForm({ open, onOpenChange, user }: UserFormProps) {
 
             {/* Empresas */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-zinc-700">
+              <Label className="text-xs font-medium text-foreground">
                 {t("company")}
               </Label>
-              <div className="rounded-md border border-input bg-background overflow-y-auto max-h-40 divide-y divide-zinc-100">
+              <div className="rounded-md border border-input bg-background overflow-y-auto max-h-40 divide-y divide-border">
                 {companies.length === 0 ? (
-                  <p className="px-3 py-2 text-sm text-zinc-400 italic">{t("noCompany")}</p>
+                  <p className="px-3 py-2 text-sm text-muted-foreground italic">{t("noCompany")}</p>
                 ) : (
                   companies.map((c) => {
                     const checked = selectedCompanyIds.includes(c.id);
                     return (
                       <label
                         key={c.id}
-                        className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-zinc-50 transition-colors"
+                        className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
                       >
                         <span
                           className={`flex items-center justify-center w-4 h-4 rounded border transition-colors shrink-0 ${
@@ -273,7 +273,7 @@ export function UserForm({ open, onOpenChange, user }: UserFormProps) {
                           checked={checked}
                           onChange={(e) => toggleCompany(c.id, e.target.checked)}
                         />
-                        <span className="text-sm text-zinc-700">{c.name}</span>
+                        <span className="text-sm text-foreground">{c.name}</span>
                       </label>
                     );
                   })
@@ -283,7 +283,7 @@ export function UserForm({ open, onOpenChange, user }: UserFormProps) {
 
           </div>
 
-          <div className="px-6 py-4 border-t border-zinc-100 flex justify-end gap-2">
+          <div className="px-6 py-4 border-t border-border/60 flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t("cancel")}
             </Button>

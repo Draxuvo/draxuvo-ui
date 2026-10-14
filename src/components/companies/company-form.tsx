@@ -77,11 +77,11 @@ export function CompanyForm({ open, onOpenChange, company }: CompanyFormProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-md flex flex-col gap-0 p-0">
-        <SheetHeader className="px-6 py-5 border-b border-zinc-100">
+        <SheetHeader className="px-6 py-5 border-b border-border/60">
           <SheetTitle className="text-base">
             {isEdit ? t("editTitle") : t("createTitle")}
           </SheetTitle>
-          <p className="text-xs text-zinc-400 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             {isEdit ? t("editSubtitle") : t("createSubtitle")}
           </p>
         </SheetHeader>
@@ -92,18 +92,18 @@ export function CompanyForm({ open, onOpenChange, company }: CompanyFormProps) {
         >
           <div className="flex-1 px-6 py-6 space-y-5 overflow-y-auto">
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-zinc-700">
+              <Label className="text-xs font-medium text-foreground">
                 {t("name")}
               </Label>
               <Input placeholder={t("namePlaceholder")} {...register("name")} />
               {errors.name && (
-                <p className="text-xs text-red-500">{errors.name.message}</p>
+                <p className="text-xs text-destructive">{errors.name.message}</p>
               )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-700">
+                <Label className="text-xs font-medium text-foreground">
                   {t("status")}
                 </Label>
                 <select
@@ -117,7 +117,7 @@ export function CompanyForm({ open, onOpenChange, company }: CompanyFormProps) {
             </div>
           </div>
 
-          <div className="px-6 py-4 border-t border-zinc-100 flex justify-end gap-2">
+          <div className="px-6 py-4 border-t border-border/60 flex justify-end gap-2">
             <Button
               type="button"
               variant="outline"

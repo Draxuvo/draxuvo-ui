@@ -41,12 +41,12 @@ export default function SuscripcionExitoPage() {
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 text-center">
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100">
-        <Loader2 size={32} className={timedOut ? "text-zinc-500" : "animate-spin text-zinc-500"} />
+      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+        <Loader2 size={32} className={timedOut ? "text-muted-foreground" : "animate-spin text-muted-foreground"} />
       </div>
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold text-zinc-900">{t("processingTitle")}</h1>
-        <p className="max-w-sm text-sm text-zinc-500">
+        <h1 className="text-2xl font-semibold text-foreground">{t("processingTitle")}</h1>
+        <p className="max-w-sm text-sm text-muted-foreground">
           {timedOut ? t("processingSlow") : t("processingDesc")}
         </p>
       </div>

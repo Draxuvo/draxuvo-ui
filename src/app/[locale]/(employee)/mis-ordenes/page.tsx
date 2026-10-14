@@ -30,8 +30,8 @@ export default function MisOrdenesPage() {
     <div className="max-w-xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-medium text-zinc-900">{t("myOrders")}</h1>
-          <p className="text-sm text-zinc-500 mt-0.5">
+          <h1 className="text-xl font-medium text-foreground">{t("myOrders")}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
             {active.length} activas · {completed.length} completadas
             {cancelled.length > 0 && ` · ${cancelled.length} canceladas`}
           </p>
@@ -43,13 +43,13 @@ export default function MisOrdenesPage() {
       </div>
 
       {isLoading ? (
-        <div className="py-12 text-center text-sm text-zinc-400">
+        <div className="py-12 text-center text-sm text-muted-foreground">
           {t("noOrders")}
         </div>
       ) : orders.length === 0 ? (
         <div className="py-16 text-center">
-          <ClipboardList size={36} className="mx-auto mb-3 text-zinc-300" />
-          <p className="text-sm text-zinc-400">{t("noOrders")}</p>
+          <ClipboardList size={36} className="mx-auto mb-3 text-muted-foreground/50" />
+          <p className="text-sm text-muted-foreground">{t("noOrders")}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -63,9 +63,9 @@ export default function MisOrdenesPage() {
             <>
               {active.length > 0 && (
                 <div className="flex items-center gap-3 py-2">
-                  <div className="flex-1 h-px bg-zinc-100" />
-                  <span className="text-xs text-zinc-400">Completadas</span>
-                  <div className="flex-1 h-px bg-zinc-100" />
+                  <div className="flex-1 h-px bg-muted" />
+                  <span className="text-xs text-muted-foreground">Completadas</span>
+                  <div className="flex-1 h-px bg-muted" />
                 </div>
               )}
               {completed.map((order) => (
@@ -78,9 +78,9 @@ export default function MisOrdenesPage() {
           {cancelled.length > 0 && (
             <>
               <div className="flex items-center gap-3 py-2">
-                <div className="flex-1 h-px bg-zinc-100" />
-                <span className="text-xs text-red-300">Canceladas</span>
-                <div className="flex-1 h-px bg-zinc-100" />
+                <div className="flex-1 h-px bg-muted" />
+                <span className="text-xs text-destructive">Canceladas</span>
+                <div className="flex-1 h-px bg-muted" />
               </div>
               {cancelled.map((order) => (
                 <OrderCard key={order.id} order={order} onClick={() => setSelected(order)} dimmed />
@@ -115,8 +115,8 @@ function OrderCard({
   return (
     <div
       onClick={onClick}
-      className={`bg-white border rounded-xl p-4 cursor-pointer transition-colors hover:border-zinc-300 ${
-        dimmed ? "opacity-60 border-zinc-100" : "border-zinc-200"
+      className={`bg-card border rounded-xl p-4 cursor-pointer transition-colors hover:border-border ${
+        dimmed ? "opacity-60 border-border/60" : "border-border"
       }`}
     >
       <div className="flex items-start justify-between gap-3 mb-2">
@@ -125,15 +125,15 @@ function OrderCard({
             <PriorityBadge priority={order.priority} />
             <StatusBadge status={order.status} />
           </div>
-          <p className="font-medium text-zinc-900">{order.title}</p>
+          <p className="font-medium text-foreground">{order.title}</p>
           {order.description && (
-            <p className="text-sm text-zinc-400 mt-0.5 line-clamp-1">
+            <p className="text-sm text-muted-foreground mt-0.5 line-clamp-1">
               {order.description}
             </p>
           )}
         </div>
         {order.due_date && (
-          <span className="text-xs text-zinc-400 flex-shrink-0">
+          <span className="text-xs text-muted-foreground flex-shrink-0">
             {format(new Date(order.due_date), "dd MMM")}
           </span>
         )}
@@ -141,7 +141,7 @@ function OrderCard({
 
       {order.items_count > 0 && (
         <div className="mt-3">
-          <div className="flex justify-between text-xs text-zinc-400 mb-1">
+          <div className="flex justify-between text-xs text-muted-foreground mb-1">
             <span>
               {order.items_done}/{order.items_count} tareas
             </span>

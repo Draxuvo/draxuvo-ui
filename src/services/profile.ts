@@ -3,8 +3,10 @@ import { apiClient } from "@/lib/api";
 import type { User } from "@/types";
 
 export interface UpdateProfilePayload {
-  first_name: string;
-  last_name: string;
+  first_name?: string;
+  last_name?: string;
+  theme?: string;
+  color_mode?: string;
   phone?: string;
   description?: string;
 }
@@ -20,6 +22,10 @@ export const profileService = {
 
   update: (data: UpdateProfilePayload): Promise<User> =>
     apiClient.patch("/api/v1/profile", { profile: data }).then((r) => r.data),
+
+  /** Guarda tema y modo; la tarjeta Apariencia avisa por su cuenta si falla (FR-009). */
+  saveAppearance: (data: Pick<UpdateProfilePayload, "theme" | "color_mode">): Promise<User> =>
+    apiClient.patch("/api/v1/profile", { profile: data }, { skipErrorToast: true }).then((r) => r.data),
 
   uploadAvatar: (file: File): Promise<AvatarResponse> => {
     const form = new FormData();

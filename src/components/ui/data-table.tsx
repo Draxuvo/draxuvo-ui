@@ -46,15 +46,15 @@ export function DataTable<TData>({
   const rows = table.getRowModel().rows.slice(0, pageSize);
 
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white overflow-hidden">
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="bg-zinc-50 hover:bg-zinc-50">
+            <TableRow key={headerGroup.id} className="bg-muted/50 hover:bg-muted/50">
               {headerGroup.headers.map((header) => (
                 <TableHead
                   key={header.id}
-                  className="text-xs font-medium text-zinc-500 h-10 px-4"
+                  className="text-xs font-medium text-muted-foreground h-10 px-4"
                 >
                   {header.isPlaceholder
                     ? null
@@ -69,7 +69,7 @@ export function DataTable<TData>({
             <TableRow>
               <TableCell
                 colSpan={columns.length}
-                className="h-32 text-center text-sm text-zinc-400"
+                className="h-32 text-center text-sm text-muted-foreground"
               >
                 {loadingMessage}
               </TableCell>
@@ -78,7 +78,7 @@ export function DataTable<TData>({
             <TableRow>
               <TableCell
                 colSpan={columns.length}
-                className="h-32 text-center text-sm text-zinc-400"
+                className="h-32 text-center text-sm text-muted-foreground"
               >
                 {emptyMessage}
               </TableCell>

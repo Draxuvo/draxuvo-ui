@@ -73,13 +73,13 @@ export default function SetPasswordPage() {
   /* ── No token in URL ── */
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-6">
+      <div className="min-h-screen flex items-center justify-center bg-muted/50 px-6">
         <div className="text-center max-w-sm">
-          <ShieldAlert size={40} className="text-red-400 mx-auto mb-4" />
-          <h2 className="text-lg font-semibold text-slate-800 mb-1">
+          <ShieldAlert size={40} className="text-destructive mx-auto mb-4" />
+          <h2 className="text-lg font-semibold text-foreground mb-1">
             {t("invalidLinkTitle")}
           </h2>
-          <p className="text-sm text-slate-500 mb-6">{t("invalidLinkDesc")}</p>
+          <p className="text-sm text-muted-foreground mb-6">{t("invalidLinkDesc")}</p>
           <Button variant="outline" onClick={() => router.push(`/${locale}/login`)}>
             {t("backToLogin")}
           </Button>
@@ -91,38 +91,38 @@ export default function SetPasswordPage() {
   /* ── Password set successfully ── */
   if (done) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-6">
+      <div className="min-h-screen flex items-center justify-center bg-muted/50 px-6">
         <div className="text-center max-w-sm">
-          <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
-            <KeyRound size={24} className="text-emerald-600" />
+          <div className="w-14 h-14 rounded-full bg-estado-completada flex items-center justify-center mx-auto mb-4">
+            <KeyRound size={24} className="text-estado-completada-foreground" />
           </div>
-          <h2 className="text-lg font-semibold text-slate-800 mb-1">
+          <h2 className="text-lg font-semibold text-foreground mb-1">
             {t("successTitle")}
           </h2>
-          <p className="text-sm text-slate-500">{t("successDesc")}</p>
+          <p className="text-sm text-muted-foreground">{t("successDesc")}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-6 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-muted/50 px-6 py-12">
       <div className="w-full max-w-sm">
         {/* Brand */}
         <div className="flex items-center gap-3 mb-8 justify-center">
           <BrandMark />
           <div>
-            <p className="font-semibold text-slate-900 leading-tight">{tc("brandName")}</p>
-            <p className="text-[11px] text-slate-400 uppercase tracking-widest">{tc("brandTagline")}</p>
+            <p className="font-semibold text-foreground leading-tight">{tc("brandName")}</p>
+            <p className="text-[11px] text-muted-foreground uppercase tracking-widest">{tc("brandTagline")}</p>
           </div>
         </div>
 
         <div className="mb-7 text-center">
-          <h2 className="text-2xl font-semibold text-slate-900">{t("title")}</h2>
-          <p className="text-sm text-slate-500 mt-1">{t("subtitle")}</p>
+          <h2 className="text-2xl font-semibold text-foreground">{t("title")}</h2>
+          <p className="text-sm text-muted-foreground mt-1">{t("subtitle")}</p>
         </div>
 
-        <Card className="shadow-sm border-slate-200 bg-white">
+        <Card className="shadow-sm border-border bg-card">
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* New password */}
@@ -139,13 +139,13 @@ export default function SetPasswordPage() {
                     type="button"
                     tabIndex={-1}
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-slate-600"
+                    className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-muted-foreground"
                   >
                     {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-xs text-red-500">{errors.password.message}</p>
+                  <p className="text-xs text-destructive">{errors.password.message}</p>
                 )}
               </div>
 
@@ -163,13 +163,13 @@ export default function SetPasswordPage() {
                     type="button"
                     tabIndex={-1}
                     onClick={() => setShowConfirm((v) => !v)}
-                    className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-slate-600"
+                    className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-muted-foreground"
                   >
                     {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </div>
                 {errors.confirm && (
-                  <p className="text-xs text-red-500">{errors.confirm.message}</p>
+                  <p className="text-xs text-destructive">{errors.confirm.message}</p>
                 )}
               </div>
 
@@ -183,7 +183,7 @@ export default function SetPasswordPage() {
         <p className="text-center mt-5">
           <button
             type="button"
-            className="text-sm text-slate-500 hover:text-slate-700 underline-offset-2 hover:underline"
+            className="text-sm text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
             onClick={() => router.push(`/${locale}/login`)}
           >
             {t("backToLogin")}

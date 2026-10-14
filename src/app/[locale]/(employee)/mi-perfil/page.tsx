@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AppearanceCard } from "@/components/appearance/appearance-card";
 
 const schema = z.object({
   first_name: z.string().min(1),
@@ -96,7 +97,7 @@ export default function MiPerfilPage() {
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-zinc-900">{t("pageTitle")}</h1>
+        <h1 className="text-2xl font-semibold text-foreground">{t("pageTitle")}</h1>
       </div>
 
       <div className="space-y-4">
@@ -111,7 +112,7 @@ export default function MiPerfilPage() {
                 {profile?.avatar_url && (
                   <AvatarImage src={profile.avatar_url} alt={initials} />
                 )}
-                <AvatarFallback className="text-xl font-semibold bg-zinc-100 text-zinc-700">
+                <AvatarFallback className="text-xl font-semibold bg-muted text-muted-foreground">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -139,7 +140,7 @@ export default function MiPerfilPage() {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="gap-2 text-red-500 hover:text-red-600 hover:bg-red-50"
+                    className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
                     disabled={avatarDeleteMutation.isPending}
                     onClick={() => avatarDeleteMutation.mutate()}
                   >
@@ -172,7 +173,7 @@ export default function MiPerfilPage() {
               >
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-zinc-700">
+                    <Label className="text-xs font-medium text-foreground">
                       {t("firstName")}
                     </Label>
                     <Input
@@ -180,11 +181,11 @@ export default function MiPerfilPage() {
                       {...register("first_name")}
                     />
                     {errors.first_name && (
-                      <p className="text-xs text-red-500">{errors.first_name.message}</p>
+                      <p className="text-xs text-destructive">{errors.first_name.message}</p>
                     )}
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-zinc-700">
+                    <Label className="text-xs font-medium text-foreground">
                       {t("lastName")}
                     </Label>
                     <Input
@@ -192,18 +193,18 @@ export default function MiPerfilPage() {
                       {...register("last_name")}
                     />
                     {errors.last_name && (
-                      <p className="text-xs text-red-500">{errors.last_name.message}</p>
+                      <p className="text-xs text-destructive">{errors.last_name.message}</p>
                     )}
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-zinc-700">{t("phone")}</Label>
+                  <Label className="text-xs font-medium text-foreground">{t("phone")}</Label>
                   <Input placeholder={t("phonePlaceholder")} {...register("phone")} />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-zinc-700">
+                  <Label className="text-xs font-medium text-foreground">
                     {t("description")}
                   </Label>
                   <textarea
@@ -241,17 +242,19 @@ export default function MiPerfilPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-[130px_1fr] gap-y-3 text-sm">
-              <span className="text-zinc-500 font-medium">{t("email")}</span>
-              <span className="text-zinc-900">{profile?.email ?? user?.email}</span>
-              <span className="text-zinc-500 font-medium">{t("role")}</span>
-              <span className="text-zinc-900 capitalize">{roleLabel}</span>
-              <span className="text-zinc-500 font-medium">{t("status")}</span>
-              <span className="text-zinc-900">
+              <span className="text-muted-foreground font-medium">{t("email")}</span>
+              <span className="text-foreground">{profile?.email ?? user?.email}</span>
+              <span className="text-muted-foreground font-medium">{t("role")}</span>
+              <span className="text-foreground capitalize">{roleLabel}</span>
+              <span className="text-muted-foreground font-medium">{t("status")}</span>
+              <span className="text-foreground">
                 {(profile?.active ?? user?.active) ? t("active") : t("inactive")}
               </span>
             </div>
           </CardContent>
         </Card>
+
+        <AppearanceCard />
       </div>
     </div>
   );
