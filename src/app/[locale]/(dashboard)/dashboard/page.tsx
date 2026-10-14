@@ -522,7 +522,7 @@ export default function DashboardPage() {
           {role && BILLING_ROLES.includes(role) && (
             <Link
               href={href("/suscripcion")}
-              className="mt-4 inline-flex h-9 items-center rounded-etiqueta bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors duration-[120ms] hover:bg-oferta-hover foco-etiqueta"
+              className="mt-4 inline-flex h-9 items-center rounded-etiqueta bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors duration-[120ms] hover:bg-primary-hover foco-etiqueta"
             >
               {t("empty.viewPlans")}
             </Link>

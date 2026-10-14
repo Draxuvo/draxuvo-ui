@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { useQuery, useQueries, useQueryClient } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
 import { differenceInDays, format } from "date-fns";
-import { Search, RefreshCw, CreditCard, X } from "lucide-react";
+import { Search, RefreshCw, CreditCard, X, CheckCircle2, Clock, CircleDot, XCircle, Ban, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -141,14 +141,25 @@ export default function SuscripcionesPage() {
   });
 
   const STATUS_CONFIG: Record<DisplayStatus, { label: string; className: string }> = {
-    active: { label: t("statusActive"), className: "bg-green-100 text-green-800 border-green-200" },
-    cancel_scheduled: { label: t("statusCancelScheduled", { date: "" }).trim(), className: "bg-amber-100 text-amber-800 border-amber-200" },
-    past_due: { label: t("statusPastDue"), className: "bg-red-100 text-red-800 border-red-200" },
-    expiring_soon: { label: t("statusExpiringSoon"), className: "bg-amber-100 text-amber-800 border-amber-200" },
-    trial: { label: t("statusTrial"), className: "bg-blue-100 text-blue-800 border-blue-200" },
-    expired: { label: t("statusExpired"), className: "bg-red-100 text-red-800 border-red-200" },
-    cancelled: { label: t("statusCancelled"), className: "bg-zinc-100 text-zinc-600 border-zinc-200" },
-    none: { label: t("statusNone"), className: "bg-red-100 text-red-800 border-red-200" },
+    active: { label: t("statusActive"), className: "bg-estado-completada text-estado-completada-foreground border-estado-completada-border" },
+    cancel_scheduled: { label: t("statusCancelScheduled", { date: "" }).trim(), className: "bg-estado-pendiente text-estado-pendiente-foreground border-estado-pendiente-border" },
+    past_due: { label: t("statusPastDue"), className: "bg-destructive/10 text-destructive border-destructive/30" },
+    expiring_soon: { label: t("statusExpiringSoon"), className: "bg-estado-pendiente text-estado-pendiente-foreground border-estado-pendiente-border" },
+    trial: { label: t("statusTrial"), className: "bg-estado-progreso text-estado-progreso-foreground border-estado-progreso-border" },
+    expired: { label: t("statusExpired"), className: "bg-destructive/10 text-destructive border-destructive/30" },
+    cancelled: { label: t("statusCancelled"), className: "bg-muted text-muted-foreground border-border" },
+    none: { label: t("statusNone"), className: "bg-destructive/10 text-destructive border-destructive/30" },
+  };
+
+  const STATUS_ICON: Record<DisplayStatus, typeof Clock> = {
+    active: CheckCircle2,
+    cancel_scheduled: Clock,
+    past_due: AlertTriangle,
+    expiring_soon: Clock,
+    trial: CircleDot,
+    expired: XCircle,
+    cancelled: Ban,
+    none: XCircle,
   };
 
   const columns = useMemo<ColumnDef<RowData>[]>(
@@ -157,7 +168,7 @@ export default function SuscripcionesPage() {
         id: "company",
         header: t("colCompany"),
         cell: ({ row }) => (
-          <span className="font-medium text-zinc-900">{row.original.company.name}</span>
+          <span className="font-medium text-foreground">{row.original.company.name}</span>
         ),
       },
       {
@@ -166,9 +177,9 @@ export default function SuscripcionesPage() {
         cell: ({ row }) => {
           const { subscription, isLoadingSub } = row.original;
           if (isLoadingSub)
-            return <span className="text-zinc-300 text-xs animate-pulse">{t("loadingSub")}</span>;
+            return <span className="text-muted-foreground/50 text-xs animate-pulse">{t("loadingSub")}</span>;
           if (!subscription?.plan)
-            return <span className="text-zinc-400 text-sm">{t("noPlan")}</span>;
+            return <span className="text-muted-foreground text-sm">{t("noPlan")}</span>;
           return (
             <Badge variant="outline" className="capitalize text-xs">
               {subscription.plan}
@@ -182,7 +193,7 @@ export default function SuscripcionesPage() {
         cell: ({ row }) => {
           const { subscription, isLoadingSub } = row.original;
           if (isLoadingSub)
-            return <div className="h-5 w-20 bg-zinc-100 animate-pulse rounded-full" />;
+            return <div className="h-5 w-20 bg-muted animate-pulse rounded-full" />;
           const status = getDisplayStatus(subscription);
           const { label, className } = STATUS_CONFIG[status];
           const text =
@@ -191,7 +202,13 @@ export default function SuscripcionesPage() {
                   date: format(new Date(subscription.current_period_end), "dd MMM yyyy"),
                 })
               : label;
-          return <Badge className={cn("text-xs", className)}>{text}</Badge>;
+          const StatusIcon = STATUS_ICON[status];
+          return (
+            <Badge className={cn("text-xs gap-1", className)}>
+              <StatusIcon size={11} aria-hidden="true" />
+              {text}
+            </Badge>
+          );
         },
       },
       {
@@ -199,12 +216,12 @@ export default function SuscripcionesPage() {
         header: t("colExpiry"),
         cell: ({ row }) => {
           const { subscription, isLoadingSub } = row.original;
-          if (isLoadingSub) return <div className="h-4 w-24 bg-zinc-100 animate-pulse rounded" />;
-          if (!subscription) return <span className="text-zinc-400 text-sm">—</span>;
+          if (isLoadingSub) return <div className="h-4 w-24 bg-muted animate-pulse rounded" />;
+          if (!subscription) return <span className="text-muted-foreground text-sm">—</span>;
           const date = getExpiryDate(subscription);
-          if (!date) return <span className="text-zinc-400 text-sm">—</span>;
+          if (!date) return <span className="text-muted-foreground text-sm">—</span>;
           return (
-            <span className="text-sm text-zinc-600 tabular-nums">
+            <span className="text-sm text-muted-foreground tabular-nums">
               {format(date, "dd MMM yyyy")}
             </span>
           );
@@ -215,23 +232,23 @@ export default function SuscripcionesPage() {
         header: t("colDaysLeft"),
         cell: ({ row }) => {
           const { subscription, isLoadingSub } = row.original;
-          if (isLoadingSub) return <div className="h-4 w-16 bg-zinc-100 animate-pulse rounded" />;
-          if (!subscription) return <span className="text-zinc-400 text-sm">—</span>;
+          if (isLoadingSub) return <div className="h-4 w-16 bg-muted animate-pulse rounded" />;
+          if (!subscription) return <span className="text-muted-foreground text-sm">—</span>;
           const days = getDaysLeft(subscription);
-          if (days === null) return <span className="text-zinc-400 text-sm">—</span>;
+          if (days === null) return <span className="text-muted-foreground text-sm">—</span>;
           if (days < 0)
             return (
-              <span className="text-sm font-medium text-red-600">
+              <span className="text-sm font-medium text-destructive">
                 {t("expiredDays", { days: Math.abs(days) })}
               </span>
             );
           if (days === 0)
-            return <span className="text-sm font-medium text-red-600">{t("today")}</span>;
+            return <span className="text-sm font-medium text-destructive">{t("today")}</span>;
           return (
             <span
               className={cn(
                 "text-sm font-medium tabular-nums",
-                days <= EXPIRING_SOON_DAYS ? "text-amber-600" : "text-zinc-700",
+                days <= EXPIRING_SOON_DAYS ? "text-estado-pendiente-foreground" : "text-foreground",
               )}
             >
               {t("daysLeft", { days })}
@@ -262,7 +279,7 @@ export default function SuscripcionesPage() {
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="gap-1.5 h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                  className="gap-1.5 h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
                   disabled={isLoadingSub}
                   onClick={() => setCancelCompany(company)}
                 >
@@ -292,8 +309,8 @@ export default function SuscripcionesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-medium text-zinc-900">{t("pageTitle")}</h1>
-          <p className="text-sm text-zinc-500 mt-0.5">
+          <h1 className="text-xl font-medium text-foreground">{t("pageTitle")}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
             {t("pageSubtitle", { count: companiesData?.info?.total ?? 0 })}
           </p>
         </div>
@@ -304,7 +321,7 @@ export default function SuscripcionesPage() {
 
       <div className="flex items-center gap-3 flex-wrap">
         <div className="relative max-w-xs w-full">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             className="pl-8"
             placeholder={t("searchPlaceholder")}
@@ -313,7 +330,7 @@ export default function SuscripcionesPage() {
           />
         </div>
 
-        <div className="flex items-center gap-1 border border-zinc-200 rounded-md p-0.5 bg-white">
+        <div className="flex items-center gap-1 border border-border rounded-md p-0.5 bg-card">
           {FILTERS.map(({ id, label }) => (
             <button
               key={id}
@@ -321,8 +338,8 @@ export default function SuscripcionesPage() {
               className={cn(
                 "px-3 py-1 text-sm rounded font-medium transition-colors",
                 filter === id
-                  ? "bg-zinc-900 text-white"
-                  : "text-zinc-500 hover:text-zinc-800",
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               {label}

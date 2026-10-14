@@ -1,7 +1,7 @@
 // src/components/companies/columns.tsx
 "use client";
 import { type ColumnDef } from "@tanstack/react-table";
-import { Pencil, Trash2, ExternalLink } from "lucide-react";
+import { Pencil, Trash2, ExternalLink, CheckCircle2, Clock, CircleDot, XCircle, Ban } from "lucide-react";
 import { differenceInDays } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -62,7 +62,7 @@ export function getCompanyColumns(
       id: "name",
       header: t("name"),
       cell: ({ row }) => (
-        <span className="font-medium text-zinc-800">
+        <span className="font-medium text-foreground">
           {row.original.company.name}
         </span>
       ),
@@ -72,7 +72,7 @@ export function getCompanyColumns(
       header: t("plan"),
       cell: ({ row }) => {
         const plan = row.original.subscription?.plan;
-        if (!plan) return <span className="text-zinc-400">—</span>;
+        if (!plan) return <span className="text-muted-foreground">—</span>;
         const variant =
           plan === "enterprise"
             ? "default"
@@ -89,7 +89,7 @@ export function getCompanyColumns(
         const { subscription, isLoadingSub } = row.original;
         if (isLoadingSub)
           return (
-            <span className="text-xs text-zinc-400 animate-pulse">
+            <span className="text-xs text-muted-foreground animate-pulse">
               {t("subLoading")}
             </span>
           );
@@ -103,40 +103,52 @@ export function getCompanyColumns(
         > = {
           active: {
             label: t("subActive"),
-            className: "bg-green-100 text-green-800 border-green-200",
+            className: "bg-estado-completada text-estado-completada-foreground border-estado-completada-border",
           },
           expiring_soon: {
             label: t("subExpiringSoon"),
-            className: "bg-amber-100 text-amber-800 border-amber-200",
+            className: "bg-estado-pendiente text-estado-pendiente-foreground border-estado-pendiente-border",
           },
           trial: {
             label: t("subTrial"),
-            className: "bg-blue-100 text-blue-800 border-blue-200",
+            className: "bg-estado-progreso text-estado-progreso-foreground border-estado-progreso-border",
           },
           expired: {
             label: t("subExpired"),
-            className: "bg-red-100 text-red-800 border-red-200",
+            className: "bg-destructive/10 text-destructive border-destructive/30",
           },
           cancelled: {
             label: t("subCancelled"),
-            className: "bg-zinc-100 text-zinc-600 border-zinc-200",
+            className: "bg-muted text-muted-foreground border-border",
           },
           none: {
             label: t("subNone"),
-            className: "bg-red-100 text-red-800 border-red-200",
+            className: "bg-destructive/10 text-destructive border-destructive/30",
           },
         };
 
+        const BADGE_ICON = {
+          active: CheckCircle2,
+          expiring_soon: Clock,
+          trial: CircleDot,
+          expired: XCircle,
+          cancelled: Ban,
+          none: XCircle,
+        } as const;
         const { label, className } = BADGE_CONFIG[status];
+        const BadgeIcon = BADGE_ICON[status];
 
         return (
           <div className="flex items-center gap-2">
-            <Badge className={cn("text-xs", className)}>{label}</Badge>
+            <Badge className={cn("text-xs gap-1", className)}>
+              <BadgeIcon size={11} aria-hidden="true" />
+              {label}
+            </Badge>
             {isExpiredOrNone && (
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-6 px-2 text-xs text-zinc-500 hover:text-zinc-900 gap-1"
+                className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground gap-1"
                 onClick={actions.onViewSubscription}
               >
                 <ExternalLink size={11} />
@@ -151,7 +163,7 @@ export function getCompanyColumns(
       id: "users_count",
       header: t("users"),
       cell: ({ row }) => (
-        <span className="text-zinc-500">
+        <span className="text-muted-foreground">
           {row.original.company.users_count ?? 0}
         </span>
       ),
@@ -167,7 +179,7 @@ export function getCompanyColumns(
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0 text-zinc-400 hover:text-zinc-800"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                   onClick={() => actions.onEdit(row.original.company)}
                 >
                   <Pencil size={14} />
@@ -181,7 +193,7 @@ export function getCompanyColumns(
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0 text-zinc-400 hover:text-red-600"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
                   onClick={() => actions.onDelete(row.original.company)}
                 >
                   <Trash2 size={14} />

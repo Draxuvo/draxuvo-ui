@@ -85,10 +85,10 @@ export function ProductImportDialog({ open, onOpenChange }: ProductImportDialogP
 
         <div className="space-y-4">
           {/* Download template */}
-          <div className="flex items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3">
+          <div className="flex items-center justify-between rounded-lg border border-border bg-muted/50 px-4 py-3">
             <div>
-              <p className="text-sm font-medium text-zinc-800">{t("importTemplateLabel")}</p>
-              <p className="text-xs text-zinc-500 mt-0.5">{t("importTemplateHint")}</p>
+              <p className="text-sm font-medium text-foreground">{t("importTemplateLabel")}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{t("importTemplateHint")}</p>
             </div>
             <Button
               variant="outline"
@@ -104,12 +104,12 @@ export function ProductImportDialog({ open, onOpenChange }: ProductImportDialogP
 
           {/* Drop zone */}
           {file ? (
-            <div className="flex items-center gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-3">
-              <FileSpreadsheet size={20} className="text-emerald-500 flex-shrink-0" />
-              <p className="flex-1 text-sm text-zinc-700 truncate">{file.name}</p>
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3">
+              <FileSpreadsheet size={20} className="text-estado-completada-foreground flex-shrink-0" />
+              <p className="flex-1 text-sm text-foreground truncate">{file.name}</p>
               <button
                 onClick={() => setFile(null)}
-                className="text-zinc-400 hover:text-zinc-600 transition-colors"
+                className="text-muted-foreground hover:text-muted-foreground transition-colors"
               >
                 <X size={15} />
               </button>
@@ -122,15 +122,15 @@ export function ProductImportDialog({ open, onOpenChange }: ProductImportDialogP
               onClick={() => inputRef.current?.click()}
               className={`flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-6 py-8 cursor-pointer transition-colors ${
                 dragging
-                  ? "border-zinc-400 bg-zinc-50"
-                  : "border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50"
+                  ? "border-border bg-muted/50"
+                  : "border-border hover:border-border hover:bg-muted/50"
               }`}
             >
-              <Upload size={22} className="text-zinc-400" />
-              <p className="text-sm text-zinc-600 text-center">
+              <Upload size={22} className="text-muted-foreground" />
+              <p className="text-sm text-muted-foreground text-center">
                 {t("importDropHint")}
               </p>
-              <p className="text-xs text-zinc-400">{ACCEPTED.join(", ")}</p>
+              <p className="text-xs text-muted-foreground">{ACCEPTED.join(", ")}</p>
               <input
                 ref={inputRef}
                 type="file"

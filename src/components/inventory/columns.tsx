@@ -1,7 +1,7 @@
 // src/components/inventory/columns.tsx
 "use client";
 import { type ColumnDef } from "@tanstack/react-table";
-import { ArrowDownToLine, ArrowUpFromLine, Pencil, Trash2 } from "lucide-react";
+import { AlertTriangle, ArrowDownToLine, ArrowUpFromLine, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,7 +29,7 @@ export function getProductColumns(
       accessorKey: "sku",
       header: t("sku"),
       cell: ({ row }) => (
-        <span className="font-mono text-xs text-zinc-500">{row.original.sku}</span>
+        <span className="font-mono text-xs text-muted-foreground">{row.original.sku}</span>
       ),
     },
     {
@@ -37,12 +37,13 @@ export function getProductColumns(
       header: t("name"),
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <span className="font-medium text-zinc-800">{row.original.name}</span>
+          <span className="font-medium text-foreground">{row.original.name}</span>
           {row.original.low_stock && (
             <Badge
               variant="secondary"
-              className="text-amber-600 bg-amber-50 border-amber-200 text-xs"
+              className="text-estado-pendiente-foreground bg-estado-pendiente border-estado-pendiente-border text-xs"
             >
+              <AlertTriangle size={11} className="mr-1" aria-hidden="true" />
               {t("lowStockBadge")}
             </Badge>
           )}
@@ -53,14 +54,14 @@ export function getProductColumns(
       accessorKey: "stock",
       header: t("stock"),
       cell: ({ row }) => (
-        <span className="text-zinc-700">{row.original.stock}</span>
+        <span className="text-foreground">{row.original.stock}</span>
       ),
     },
     {
       accessorKey: "unit_cost",
       header: t("unitCost"),
       cell: ({ row }) => (
-        <span className="text-zinc-500">
+        <span className="text-muted-foreground">
           ${Number(row.original.unit_cost).toFixed(2)}
         </span>
       ),
@@ -76,7 +77,7 @@ export function getProductColumns(
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0 text-zinc-400 hover:text-emerald-600"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-estado-completada-foreground"
                   onClick={() => actions.onEntry(row.original)}
                 >
                   <ArrowDownToLine size={14} />
@@ -90,7 +91,7 @@ export function getProductColumns(
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0 text-zinc-400 hover:text-amber-600"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-estado-pendiente-foreground"
                   onClick={() => actions.onExit(row.original)}
                 >
                   <ArrowUpFromLine size={14} />
@@ -104,7 +105,7 @@ export function getProductColumns(
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0 text-zinc-400 hover:text-zinc-800"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                   onClick={() => actions.onEdit(row.original)}
                 >
                   <Pencil size={14} />
@@ -118,7 +119,7 @@ export function getProductColumns(
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0 text-zinc-400 hover:text-red-600"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
                   onClick={() => actions.onDelete(row.original)}
                 >
                   <Trash2 size={14} />

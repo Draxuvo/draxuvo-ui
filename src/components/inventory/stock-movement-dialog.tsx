@@ -80,7 +80,7 @@ export function StockMovementDialog({
         <DialogHeader>
           <DialogTitle className="text-base">{title}</DialogTitle>
           {product && (
-            <p className="text-xs text-zinc-400 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               {t("currentStock", { stock: product.stock })}
             </p>
           )}
@@ -88,19 +88,19 @@ export function StockMovementDialog({
 
         <form onSubmit={handleSubmit((v) => mutation.mutate(v))} className="space-y-4">
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium text-zinc-700">{t("quantity")}</Label>
+            <Label className="text-xs font-medium text-foreground">{t("quantity")}</Label>
             <Input
               type="number"
               min="1"
               {...register("qty")}
             />
             {errors.qty && (
-              <p className="text-xs text-red-500">{errors.qty.message}</p>
+              <p className="text-xs text-destructive">{errors.qty.message}</p>
             )}
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium text-zinc-700">{t("note")}</Label>
+            <Label className="text-xs font-medium text-foreground">{t("note")}</Label>
             <Input placeholder={t("notePlaceholder")} {...register("note")} />
           </div>
 

@@ -1035,5 +1035,43 @@
       "not_a_main_company": "Las sucursales se agregan desde la empresa principal.",
       "generic": "No se pudo agregar la sucursal. Inténtalo de nuevo."
     }
+  },
+  "appearance": {
+    "title": "Apariencia",
+    "description": "Elige el modo y el color del panel. Se guarda en tu cuenta y te sigue en cualquier dispositivo.",
+    "modeLabel": "Modo",
+    "modes": {
+      "light": "Claro",
+      "dark": "Oscuro",
+      "system": "Igual que mi dispositivo"
+    },
+    "themeLabel": "Tema de color",
+    "themes": {
+      "anaquel": {
+        "name": "Anaquel",
+        "desc": "El de Draxuvo: naranja de oferta y ceja amarilla."
+      },
+      "mercado": {
+        "name": "Mercado",
+        "desc": "Verde hoja con acento limón."
+      },
+      "talavera": {
+        "name": "Talavera",
+        "desc": "Azul cobalto sobre blanco loza."
+      },
+      "rosa_mexicano": {
+        "name": "Rosa mexicano",
+        "desc": "Magenta con un toque de amarillo."
+      },
+      "grafito": {
+        "name": "Grafito",
+        "desc": "Tinta neutra con acento lima."
+      }
+    },
+    "active": "En uso",
+    "preview": "Vista previa del tema {name}",
+    "previewLight": "Claro",
+    "previewDark": "Oscuro",
+    "saveFailed": "Se aplicó en este dispositivo, pero no se guardó en tu cuenta."
   }
 }

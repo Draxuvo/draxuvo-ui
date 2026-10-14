@@ -1035,5 +1035,43 @@
       "not_a_main_company": "Branches are added from the main company.",
       "generic": "The branch could not be added. Try again."
     }
+  },
+  "appearance": {
+    "title": "Appearance",
+    "description": "Choose the mode and color of the panel. It is saved to your account and follows you on any device.",
+    "modeLabel": "Mode",
+    "modes": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "Same as my device"
+    },
+    "themeLabel": "Color theme",
+    "themes": {
+      "anaquel": {
+        "name": "Anaquel",
+        "desc": "Draxuvo's own: sale orange and a yellow brow."
+      },
+      "mercado": {
+        "name": "Mercado",
+        "desc": "Leaf green with a lime accent."
+      },
+      "talavera": {
+        "name": "Talavera",
+        "desc": "Cobalt blue on tile white."
+      },
+      "rosa_mexicano": {
+        "name": "Rosa mexicano",
+        "desc": "Magenta with a touch of yellow."
+      },
+      "grafito": {
+        "name": "Grafito",
+        "desc": "Neutral ink with a lime accent."
+      }
+    },
+    "active": "In use",
+    "preview": "Preview of the {name} theme",
+    "previewLight": "Light",
+    "previewDark": "Dark",
+    "saveFailed": "Applied on this device, but it was not saved to your account."
   }
 }

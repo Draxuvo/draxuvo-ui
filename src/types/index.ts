@@ -12,6 +12,8 @@ export interface User {
   role: Role;
   active: boolean;
   companies: UserCompany[];
+  /** Apariencia del panel de esta persona (spec 006). */
+  preferences?: { theme: string; color_mode: string };
 }
 
 export type CompanyRole = "staff" | "manager" | "admin" | "owner";

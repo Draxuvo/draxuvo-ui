@@ -8,7 +8,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/** Colores de gráfica de DESIGN.md: tinta, oferta, sello, ceja y gris. */
+/** Colores de gráfica de DESIGN.md (`--chart-1..5`): cambian con el tema y el modo. */
 export type ChartColor = 1 | 2 | 3 | 4 | 5;
 
 const SWATCH: Record<ChartColor, string> = {
@@ -20,7 +20,7 @@ const SWATCH: Record<ChartColor, string> = {
 };
 
 // Respaldo para el render del servidor; en el cliente se leen las variables de globals.css.
-const FALLBACK = "#141414|#ff5a1f|#0b7a4b|#ffd23f|#6b7280";
+const FALLBACK = "#141414|#ff5a1f|#0b7a4b|#b88400|#6b7280";
 
 function readChartColors() {
   const style = getComputedStyle(document.documentElement);
@@ -28,14 +28,24 @@ function readChartColors() {
   return values.every(Boolean) ? values.join("|") : FALLBACK;
 }
 
-const noopSubscribe = () => () => {};
+// Los colores cambian con el tema, el modo o prefers-color-scheme: se vuelven a leer en cada cambio.
+function subscribeChartColors(onChange: () => void) {
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-mode"] });
+  const query = window.matchMedia("(prefers-color-scheme: dark)");
+  query.addEventListener("change", onChange);
+  return () => {
+    observer.disconnect();
+    query.removeEventListener("change", onChange);
+  };
+}
 
 /**
  * Colores `--chart-1..5` resueltos para nivo (que pinta SVG y anima colores, así que
  * necesita valores, no `var()`).
  */
 export function useChartColors(): Record<ChartColor, string> {
-  const joined = useSyncExternalStore(noopSubscribe, readChartColors, () => FALLBACK);
+  const joined = useSyncExternalStore(subscribeChartColors, readChartColors, () => FALLBACK);
   const [c1, c2, c3, c4, c5] = joined.split("|");
   return { 1: c1, 2: c2, 3: c3, 4: c4, 5: c5 };
 }

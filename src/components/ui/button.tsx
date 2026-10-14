@@ -9,8 +9,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // DESIGN.md: hover y pressed de oferta aclaran a oferta-hover; el texto sigue en tinta.
-        default: "bg-primary text-primary-foreground hover:bg-oferta-hover active:bg-oferta-hover",
+        // DESIGN.md: hover y pressed de oferta aclaran a primary-hover; el texto sigue en tinta.
+        default: "bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-hover",
         outline:
           "border-border bg-card hover:border-foreground/40 hover:text-foreground aria-expanded:border-foreground/40 aria-expanded:text-foreground",
         secondary:

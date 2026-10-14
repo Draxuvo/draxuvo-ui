@@ -48,10 +48,10 @@ interface ItemInput {
 }
 
 const PRIORITY_DOT: Record<string, string> = {
-  low: "bg-blue-400",
-  medium: "bg-yellow-400",
-  high: "bg-orange-500",
-  urgent: "bg-red-500",
+  low: "bg-estado-progreso-border",
+  medium: "bg-estado-pendiente-border",
+  high: "bg-estado-pendiente-border",
+  urgent: "bg-destructive",
 };
 
 const selectCls =
@@ -178,9 +178,10 @@ export function WorkOrderDialog({
       });
       toast.success(t("createSuccess"));
       onClose();
-    } catch (err: any) {
+    } catch (err) {
+      const apiError = err as { response?: { data?: { details?: string[] } } };
       toast.error(tc("error"), {
-        description: err.response?.data?.details?.[0],
+        description: apiError.response?.data?.details?.[0],
       });
     }
   }
@@ -192,7 +193,7 @@ export function WorkOrderDialog({
         style={{ width: "min(92vw, 960px)", maxWidth: "none" }}
         className="p-0 flex flex-col gap-0"
       >
-        <SheetHeader className="px-6 py-4 border-b border-zinc-100 shrink-0">
+        <SheetHeader className="px-6 py-4 border-b border-border/60 shrink-0">
           <SheetTitle className="text-base">{t("new")}</SheetTitle>
         </SheetHeader>
 
@@ -201,16 +202,16 @@ export function WorkOrderDialog({
           className="flex flex-col flex-1 overflow-hidden"
         >
           {/* Two-column body */}
-          <div className="flex-1 grid grid-cols-[1fr_1.4fr] divide-x divide-zinc-100 overflow-hidden">
+          <div className="flex-1 grid grid-cols-[1fr_1.4fr] divide-x divide-border overflow-hidden">
             {/* ── Left: order details ── */}
             <div className="overflow-y-auto px-6 py-6 space-y-5">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                 Detalles de la orden
               </p>
 
               {/* Title */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-600">
+                <Label className="text-xs font-medium text-muted-foreground">
                   {t("titleLabel")}
                 </Label>
                 <Input
@@ -218,7 +219,7 @@ export function WorkOrderDialog({
                   placeholder={t("titlePlaceholder")}
                 />
                 {errors.title && (
-                  <p className="text-xs text-red-500 flex items-center gap-1">
+                  <p className="text-xs text-destructive flex items-center gap-1">
                     <AlertCircle size={11} />
                     {errors.title.message}
                   </p>
@@ -227,7 +228,7 @@ export function WorkOrderDialog({
 
               {/* Description */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-600">
+                <Label className="text-xs font-medium text-muted-foreground">
                   {t("description")}
                 </Label>
                 <textarea
@@ -241,9 +242,9 @@ export function WorkOrderDialog({
               {/* Priority + Assignee */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-zinc-600 flex items-center gap-1.5">
+                  <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
                     <span
-                      className={`inline-block w-2 h-2 rounded-full shrink-0 ${PRIORITY_DOT[selectedPriority] ?? "bg-yellow-400"}`}
+                      className={`inline-block w-2 h-2 rounded-full shrink-0 ${PRIORITY_DOT[selectedPriority] ?? "bg-estado-pendiente-border"}`}
                     />
                     {t("priority")}
                   </Label>
@@ -256,7 +257,7 @@ export function WorkOrderDialog({
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-zinc-600">
+                  <Label className="text-xs font-medium text-muted-foreground">
                     {t("assignTo")}
                   </Label>
                   <select {...register("employee_id")} className={selectCls}>
@@ -272,7 +273,7 @@ export function WorkOrderDialog({
 
               {/* Due date */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-600">
+                <Label className="text-xs font-medium text-muted-foreground">
                   {t("dueDate")}
                 </Label>
                 <Input {...register("due_date")} type="datetime-local" />
@@ -280,7 +281,7 @@ export function WorkOrderDialog({
 
               {/* Notes */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-600">
+                <Label className="text-xs font-medium text-muted-foreground">
                   {t("notes")}
                 </Label>
                 <textarea
@@ -295,9 +296,9 @@ export function WorkOrderDialog({
             {/* ── Right: tasks ── */}
             <div className="overflow-y-auto px-6 py-6 flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                   {t("items")}
-                  <span className="text-zinc-300 font-normal ml-1.5 normal-case tracking-normal">
+                  <span className="text-muted-foreground/50 font-normal ml-1.5 normal-case tracking-normal">
                     ({items.length})
                   </span>
                 </p>
@@ -319,18 +320,18 @@ export function WorkOrderDialog({
                   return (
                     <div
                       key={idx}
-                      className="rounded-xl border border-zinc-200 bg-zinc-50/50 p-4 space-y-3"
+                      className="rounded-xl border border-border bg-muted/30 p-4 space-y-3"
                     >
                       {/* Task number + delete */}
                       <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wide">
+                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
                           Tarea {idx + 1}
                         </span>
                         {items.length > 1 && (
                           <button
                             type="button"
                             onClick={() => removeItem(idx)}
-                            className="text-zinc-300 hover:text-red-400 transition-colors p-1 -mr-1"
+                            className="text-muted-foreground/50 hover:text-destructive transition-colors p-1 -mr-1"
                           >
                             <Trash2 size={14} />
                           </button>
@@ -339,7 +340,7 @@ export function WorkOrderDialog({
 
                       {/* Product picker */}
                       <div className="space-y-1">
-                        <div className="flex items-center gap-1.5 text-zinc-400">
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
                           <Package size={12} />
                           <span className="text-[11px] font-medium">
                             {t("selectProduct")}
@@ -348,7 +349,7 @@ export function WorkOrderDialog({
                         <select
                           value={item.product_id ?? ""}
                           onChange={(e) => selectProduct(idx, e.target.value)}
-                          className="w-full h-9 rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-700 focus:outline-none focus:ring-1 focus:ring-ring"
+                          className="w-full h-9 rounded-lg border border-border bg-card px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                         >
                           <option value="">Sin producto</option>
                           {Object.entries(productsByCategory).map(
@@ -379,7 +380,7 @@ export function WorkOrderDialog({
 
                       {/* Qty + unit + unit_price */}
                       <div className="grid grid-cols-[auto_1fr_1fr_1fr] items-center gap-2">
-                        <span className="text-xs text-zinc-400 shrink-0">
+                        <span className="text-xs text-muted-foreground shrink-0">
                           {t("quantity")}
                         </span>
                         <Input
@@ -410,7 +411,7 @@ export function WorkOrderDialog({
                           ))}
                         </select>
                         <div className="relative">
-                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-zinc-400 pointer-events-none">
+                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
                             $
                           </span>
                           <Input
@@ -434,9 +435,9 @@ export function WorkOrderDialog({
                       {/* Subtotal row */}
                       {subtotal > 0 && (
                         <div className="flex justify-end">
-                          <span className="text-xs text-zinc-400">
+                          <span className="text-xs text-muted-foreground">
                             Subtotal:{" "}
-                            <span className="font-semibold text-zinc-700">
+                            <span className="font-semibold text-foreground">
                               ${subtotal.toFixed(2)}
                             </span>
                           </span>
@@ -449,11 +450,11 @@ export function WorkOrderDialog({
 
               {/* Order total */}
               {orderTotal > 0 && (
-                <div className="flex justify-between items-center rounded-xl border border-zinc-200 bg-white px-4 py-3 mt-1">
-                  <span className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
+                <div className="flex justify-between items-center rounded-xl border border-border bg-card px-4 py-3 mt-1">
+                  <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                     Total
                   </span>
-                  <span className="text-base font-bold text-zinc-800">
+                  <span className="text-base font-bold text-foreground">
                     ${orderTotal.toFixed(2)}
                   </span>
                 </div>
@@ -462,7 +463,7 @@ export function WorkOrderDialog({
           </div>
 
           {/* Footer */}
-          <div className="shrink-0 px-6 py-4 border-t border-zinc-100 flex justify-end gap-2">
+          <div className="shrink-0 px-6 py-4 border-t border-border/60 flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={onClose}>
               {tc("cancel")}
             </Button>

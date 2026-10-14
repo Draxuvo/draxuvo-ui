@@ -80,8 +80,8 @@ export default function UsuariosPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-medium text-zinc-900">{t("title")}</h1>
-          <p className="text-sm text-zinc-500 mt-0.5">
+          <h1 className="text-xl font-medium text-foreground">{t("title")}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
             {t("subtitle", { count: data?.info?.total ?? 0 })}
           </p>
         </div>
@@ -100,7 +100,7 @@ export default function UsuariosPage() {
       <div className="relative max-w-sm">
         <Search
           size={14}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
         />
         <Input
           className="pl-8"

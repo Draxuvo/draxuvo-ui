@@ -2,8 +2,19 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* Tema claro único: `dark:` de las primitivas solo aplicaría bajo .dark, que nunca se pone. */
-@custom-variant dark (&:is(.dark *));
+/* Modo oscuro (spec 006): lo fija data-mode="dark" en <html>; con data-mode="system" lo decide
+   prefers-color-scheme, sin JavaScript. */
+@custom-variant dark {
+  &:where([data-mode="dark"], [data-mode="dark"] *) {
+    @slot;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    &:where([data-mode="system"], [data-mode="system"] *) {
+      @slot;
+    }
+  }
+}
 
 @theme inline {
   --color-background: var(--background);
@@ -26,6 +37,24 @@
   --color-oferta-hover: var(--oferta-hover);
   --color-sello: var(--sello);
   --color-alerta: var(--alerta);
+  --color-primary-hover: var(--primary-hover);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-estado-pendiente: var(--estado-pendiente);
+  --color-estado-pendiente-foreground: var(--estado-pendiente-foreground);
+  --color-estado-pendiente-border: var(--estado-pendiente-border);
+  --color-estado-progreso: var(--estado-progreso);
+  --color-estado-progreso-foreground: var(--estado-progreso-foreground);
+  --color-estado-progreso-border: var(--estado-progreso-border);
+  --color-estado-revision: var(--estado-revision);
+  --color-estado-revision-foreground: var(--estado-revision-foreground);
+  --color-estado-revision-border: var(--estado-revision-border);
+  --color-estado-completada: var(--estado-completada);
+  --color-estado-completada-foreground: var(--estado-completada-foreground);
+  --color-estado-completada-border: var(--estado-completada-border);
+  --color-estado-cancelada: var(--estado-cancelada);
+  --color-estado-cancelada-foreground: var(--estado-cancelada-foreground);
+  --color-estado-cancelada-border: var(--estado-cancelada-border);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-destructive-foreground: var(--destructive-foreground);
@@ -75,7 +104,13 @@
   --radius-interior: 4px;
 }
 
-:root {
+:root,
+[data-theme="anaquel"],
+[data-mode="light"] {
+  /* anaquel claro es la base. Los selectores de atributo permiten previsualizar un tema o un modo
+     dentro de otro (galería de la tarjeta Apariencia): se declaran antes que los demás bloques. */
+  color-scheme: light;
+
   /* Tokens de DESIGN.md */
   --tinta: #141414;
   --etiqueta: #ffffff;
@@ -96,35 +131,346 @@
   --popover: var(--etiqueta);
   --popover-foreground: var(--tinta);
   /* Texto sobre oferta siempre tinta (blanco da 3.1). */
-  --primary: var(--oferta);
-  --primary-foreground: var(--tinta);
+  --primary: #ff5a1f;
+  --primary-foreground: #141414;
+  --primary-hover: #ff7a45;
   --secondary: var(--anaquel);
   --secondary-foreground: var(--tinta);
   --muted: var(--anaquel);
   --muted-foreground: var(--gris-texto);
-  --accent: var(--ceja);
-  --accent-foreground: var(--tinta);
+  --accent: #ffd23f;
+  --accent-foreground: #141414;
   --destructive: var(--alerta);
-  --destructive-foreground: var(--etiqueta);
+  --destructive-foreground: #ffffff;
   --success: var(--sello);
-  --success-foreground: var(--etiqueta);
+  --success-foreground: #ffffff;
+  --warning: #ffd23f;
+  --warning-foreground: #141414;
   --border: var(--anaquel-borde);
   --input: var(--anaquel-borde);
-  --ring: var(--tinta);
-  --chart-1: var(--tinta);
-  --chart-2: var(--oferta);
-  --chart-3: var(--sello);
-  --chart-4: var(--ceja);
+  --ring: #141414;
+  --chart-1: #141414;
+  --chart-2: #ff5a1f;
+  --chart-3: #0b7a4b;
+  --chart-4: #b88400;
   --chart-5: #6b7280;
   --radius: 0.375rem;
   --sidebar: var(--etiqueta);
   --sidebar-foreground: var(--tinta);
-  --sidebar-primary: var(--oferta);
-  --sidebar-primary-foreground: var(--tinta);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
   --sidebar-accent: var(--anaquel);
   --sidebar-accent-foreground: var(--tinta);
   --sidebar-border: var(--anaquel-borde);
-  --sidebar-ring: var(--tinta);
+  --sidebar-ring: var(--ring);
+
+  /* Estados de orden de trabajo: cambian por modo, no por tema (siempre texto + icono, FR-007). */
+  --estado-pendiente: #fff3c4;
+  --estado-pendiente-foreground: #5c4400;
+  --estado-pendiente-border: #d9ac00;
+  --estado-progreso: #dbeafe;
+  --estado-progreso-foreground: #1e3a8a;
+  --estado-progreso-border: #7aa2f0;
+  --estado-revision: #ede2fb;
+  --estado-revision-foreground: #4b2a8a;
+  --estado-revision-border: #a98ae6;
+  --estado-completada: #d8f2e4;
+  --estado-completada-foreground: #0b5a37;
+  --estado-completada-border: #4fb582;
+  --estado-cancelada: #e8eaed;
+  --estado-cancelada-foreground: #3d4349;
+  --estado-cancelada-border: #8f979f;
+}
+
+/* Temas de color (spec 006). anaquel es el valor base de :root; cada tema redefine solo acento,
+   resaltado y gráficas. El modo oscuro redefine los neutros y el acento de cada tema. */
+[data-theme="mercado"] {
+  --primary: #17743a;
+  --primary-foreground: #ffffff;
+  --primary-hover: #0f5f2d;
+  --accent: #d7f27a;
+  --accent-foreground: #141414;
+  --chart-1: #17743a;
+  --chart-2: #6b8f00;
+  --chart-3: #0369a1;
+  --chart-4: #b45309;
+  --chart-5: #6b7280;
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+}
+
+[data-theme="talavera"] {
+  --primary: #1e50c8;
+  --primary-foreground: #ffffff;
+  --primary-hover: #173fa0;
+  --accent: #dbe7ff;
+  --accent-foreground: #0b1f55;
+  --chart-1: #1e50c8;
+  --chart-2: #c2410c;
+  --chart-3: #0b7a4b;
+  --chart-4: #a16207;
+  --chart-5: #6b7280;
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+}
+
+[data-theme="rosa_mexicano"] {
+  --primary: #c0136b;
+  --primary-foreground: #ffffff;
+  --primary-hover: #9b0f56;
+  --accent: #ffd23f;
+  --accent-foreground: #141414;
+  --chart-1: #c0136b;
+  --chart-2: #1d4ed8;
+  --chart-3: #0b7a4b;
+  --chart-4: #a16207;
+  --chart-5: #6b7280;
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+}
+
+[data-theme="grafito"] {
+  --primary: #1f2328;
+  --primary-foreground: #ffffff;
+  --primary-hover: #3a4048;
+  --accent: #c6f432;
+  --accent-foreground: #141414;
+  --chart-1: #1f2328;
+  --chart-2: #4d7c0f;
+  --chart-3: #0369a1;
+  --chart-4: #a16207;
+  --chart-5: #6b7280;
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+}
+
+[data-mode="dark"] {
+  --tinta: #f2f3f4;
+  --etiqueta: #1c1f23;
+  --anaquel: #121416;
+  --anaquel-borde: #343a41;
+  --gris-texto: #aeb4bb;
+  --sello: #3ec77a;
+  --alerta: #ff6b6b;
+  /* La ceja en oscuro es un ámbar apagado: el texto claro (tinta) sigue legible encima. */
+  --ceja: #5a4600;
+  --muted: #23272c;
+  --secondary: #23272c;
+  --input: #3a4047;
+  --ring: #f2f3f4;
+  --success: #2fa56a;
+  --success-foreground: #04170d;
+  --destructive: #ff6b6b;
+  --destructive-foreground: #1a0505;
+  --sidebar: #181b1e;
+  --sidebar-accent: #23272c;
+  --sidebar-border: #343a41;
+  --estado-pendiente: #3a3000;
+  --estado-pendiente-foreground: #ffe27a;
+  --estado-pendiente-border: #8a6d00;
+  --estado-progreso: #14284d;
+  --estado-progreso-foreground: #b3cffc;
+  --estado-progreso-border: #2f5aa8;
+  --estado-revision: #2c1f4d;
+  --estado-revision-foreground: #d6c4fa;
+  --estado-revision-border: #5a43a0;
+  --estado-completada: #0f3322;
+  --estado-completada-foreground: #a8e8c6;
+  --estado-completada-border: #1f7a4b;
+  --estado-cancelada: #2a2e33;
+  --estado-cancelada-foreground: #c7ccd2;
+  --estado-cancelada-border: #4a5159;
+  color-scheme: dark;
+}
+
+[data-mode="dark"][data-theme="anaquel"] {
+  --primary: #ff5a1f;
+  --primary-foreground: #141414;
+  --primary-hover: #ff7a45;
+  --accent: #ffd23f;
+  --accent-foreground: #141414;
+  --chart-1: #f2f3f4;
+  --chart-2: #ff5a1f;
+  --chart-3: #3ec77a;
+  --chart-4: #ffd23f;
+  --chart-5: #9ca3af;
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+}
+
+[data-mode="dark"][data-theme="mercado"] {
+  --primary: #3ec77a;
+  --primary-foreground: #0b1f12;
+  --primary-hover: #5ad78f;
+  --accent: #d7f27a;
+  --accent-foreground: #141414;
+  --chart-1: #3ec77a;
+  --chart-2: #d7f27a;
+  --chart-3: #5aa9ff;
+  --chart-4: #ffb347;
+  --chart-5: #9ca3af;
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+}
+
+[data-mode="dark"][data-theme="talavera"] {
+  --primary: #7aa5ff;
+  --primary-foreground: #0a1a45;
+  --primary-hover: #9bbaff;
+  --accent: #2b3f7a;
+  --accent-foreground: #e6eeff;
+  --chart-1: #7aa5ff;
+  --chart-2: #ff8a4c;
+  --chart-3: #3ec77a;
+  --chart-4: #ffd23f;
+  --chart-5: #9ca3af;
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+}
+
+[data-mode="dark"][data-theme="rosa_mexicano"] {
+  --primary: #ff6aa8;
+  --primary-foreground: #2a0516;
+  --primary-hover: #ff8ab9;
+  --accent: #ffd23f;
+  --accent-foreground: #141414;
+  --chart-1: #ff6aa8;
+  --chart-2: #5aa9ff;
+  --chart-3: #3ec77a;
+  --chart-4: #ffd23f;
+  --chart-5: #9ca3af;
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+}
+
+[data-mode="dark"][data-theme="grafito"] {
+  --primary: #e9ecef;
+  --primary-foreground: #141414;
+  --primary-hover: #ffffff;
+  --accent: #c6f432;
+  --accent-foreground: #141414;
+  --chart-1: #e9ecef;
+  --chart-2: #c6f432;
+  --chart-3: #5aa9ff;
+  --chart-4: #ffb347;
+  --chart-5: #9ca3af;
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-mode="system"] {
+    --tinta: #f2f3f4;
+    --etiqueta: #1c1f23;
+    --anaquel: #121416;
+    --anaquel-borde: #343a41;
+    --gris-texto: #aeb4bb;
+    --sello: #3ec77a;
+    --alerta: #ff6b6b;
+    --ceja: #5a4600;
+    --muted: #23272c;
+    --secondary: #23272c;
+    --input: #3a4047;
+    --ring: #f2f3f4;
+    --success: #2fa56a;
+    --success-foreground: #04170d;
+    --destructive: #ff6b6b;
+    --destructive-foreground: #1a0505;
+    --sidebar: #181b1e;
+    --sidebar-accent: #23272c;
+    --sidebar-border: #343a41;
+    --estado-pendiente: #3a3000;
+    --estado-pendiente-foreground: #ffe27a;
+    --estado-pendiente-border: #8a6d00;
+    --estado-progreso: #14284d;
+    --estado-progreso-foreground: #b3cffc;
+    --estado-progreso-border: #2f5aa8;
+    --estado-revision: #2c1f4d;
+    --estado-revision-foreground: #d6c4fa;
+    --estado-revision-border: #5a43a0;
+    --estado-completada: #0f3322;
+    --estado-completada-foreground: #a8e8c6;
+    --estado-completada-border: #1f7a4b;
+    --estado-cancelada: #2a2e33;
+    --estado-cancelada-foreground: #c7ccd2;
+    --estado-cancelada-border: #4a5159;
+    color-scheme: dark;
+  }
+
+  [data-mode="system"][data-theme="anaquel"] {
+    --primary: #ff5a1f;
+    --primary-foreground: #141414;
+    --primary-hover: #ff7a45;
+    --accent: #ffd23f;
+    --accent-foreground: #141414;
+    --chart-1: #f2f3f4;
+    --chart-2: #ff5a1f;
+    --chart-3: #3ec77a;
+    --chart-4: #ffd23f;
+    --chart-5: #9ca3af;
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+  }
+
+  [data-mode="system"][data-theme="mercado"] {
+    --primary: #3ec77a;
+    --primary-foreground: #0b1f12;
+    --primary-hover: #5ad78f;
+    --accent: #d7f27a;
+    --accent-foreground: #141414;
+    --chart-1: #3ec77a;
+    --chart-2: #d7f27a;
+    --chart-3: #5aa9ff;
+    --chart-4: #ffb347;
+    --chart-5: #9ca3af;
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+  }
+
+  [data-mode="system"][data-theme="talavera"] {
+    --primary: #7aa5ff;
+    --primary-foreground: #0a1a45;
+    --primary-hover: #9bbaff;
+    --accent: #2b3f7a;
+    --accent-foreground: #e6eeff;
+    --chart-1: #7aa5ff;
+    --chart-2: #ff8a4c;
+    --chart-3: #3ec77a;
+    --chart-4: #ffd23f;
+    --chart-5: #9ca3af;
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+  }
+
+  [data-mode="system"][data-theme="rosa_mexicano"] {
+    --primary: #ff6aa8;
+    --primary-foreground: #2a0516;
+    --primary-hover: #ff8ab9;
+    --accent: #ffd23f;
+    --accent-foreground: #141414;
+    --chart-1: #ff6aa8;
+    --chart-2: #5aa9ff;
+    --chart-3: #3ec77a;
+    --chart-4: #ffd23f;
+    --chart-5: #9ca3af;
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+  }
+
+  [data-mode="system"][data-theme="grafito"] {
+    --primary: #e9ecef;
+    --primary-foreground: #141414;
+    --primary-hover: #ffffff;
+    --accent: #c6f432;
+    --accent-foreground: #141414;
+    --chart-1: #e9ecef;
+    --chart-2: #c6f432;
+    --chart-3: #5aa9ff;
+    --chart-4: #ffb347;
+    --chart-5: #9ca3af;
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+  }
 }
 
 @layer base {
@@ -137,8 +483,8 @@
     outline-offset: 2px;
   }
   ::selection {
-    background: var(--ceja);
-    color: var(--tinta);
+    background: var(--accent);
+    color: var(--accent-foreground);
   }
   body {
     @apply bg-background text-foreground;

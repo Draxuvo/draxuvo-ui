@@ -38,7 +38,7 @@ export function EmployeeDeleteDialog({ employee, onOpenChange }: EmployeeDeleteD
         <DialogHeader>
           <DialogTitle>{t("deleteTitle")}</DialogTitle>
         </DialogHeader>
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-muted-foreground">
           {t("deleteConfirm", { name: employee?.name ?? "" })}
         </p>
         <DialogFooter>

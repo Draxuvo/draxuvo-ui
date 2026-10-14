@@ -20,42 +20,43 @@ import {
   Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useChartColors, type ChartColor } from "@/components/dashboard/chart-legend-links";
 import type { Company } from "@/types";
 
 const NIVO_THEME = {
   axis: {
     ticks: {
-      text: { fontSize: 11, fill: "#71717a" },
+      text: { fontSize: 11, fill: "var(--muted-foreground)" },
       line: { strokeWidth: 0 },
     },
     domain: { line: { strokeWidth: 0 } },
   },
-  grid: { line: { stroke: "#f4f4f5" } },
+  grid: { line: { stroke: "var(--border)" } },
 } as const;
 
 const tooltipStyle: React.CSSProperties = {
   padding: "6px 10px",
-  background: "white",
-  border: "1px solid #e4e4e7",
+  background: "var(--card)",
+  border: "1px solid var(--border)",
   borderRadius: 8,
   fontSize: 12,
-  color: "#3f3f46",
+  color: "var(--foreground)",
   boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
 };
 
-const STATUS_COLORS: Record<string, string> = {
-  pending: "#f59e0b",
-  in_progress: "#3b82f6",
-  in_review: "#8b5cf6",
-  completed: "#10b981",
-  cancelled: "#ef4444",
+const STATUS_COLORS: Record<string, ChartColor> = {
+  pending: 4,
+  in_progress: 2,
+  in_review: 5,
+  completed: 3,
+  cancelled: 1,
 };
 
-const PRIORITY_COLORS: Record<string, string> = {
-  low: "#6ee7b7",
-  medium: "#3b82f6",
-  high: "#f59e0b",
-  urgent: "#ef4444",
+const PRIORITY_COLORS: Record<string, ChartColor> = {
+  low: 3,
+  medium: 2,
+  high: 4,
+  urgent: 1,
 };
 
 function StatCard({
@@ -74,7 +75,7 @@ function StatCard({
   iconBg: string;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-zinc-200 p-5">
+    <div className="bg-card rounded-xl border border-border p-5">
       <div
         className={cn(
           "w-9 h-9 rounded-lg flex items-center justify-center mb-3",
@@ -83,9 +84,9 @@ function StatCard({
       >
         <Icon size={16} className={iconColor} />
       </div>
-      <p className="text-2xl font-semibold text-zinc-900">{value}</p>
-      <p className="text-xs text-zinc-500 mt-0.5">{label}</p>
-      {sub && <p className="text-xs text-zinc-400 mt-0.5">{sub}</p>}
+      <p className="text-2xl font-semibold text-foreground">{value}</p>
+      <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
+      {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
     </div>
   );
 }
@@ -98,8 +99,8 @@ function ChartCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-zinc-200 p-5">
-      <p className="text-sm font-medium text-zinc-700 mb-4">{title}</p>
+    <div className="bg-card rounded-xl border border-border p-5">
+      <p className="text-sm font-medium text-foreground mb-4">{title}</p>
       {children}
     </div>
   );
@@ -107,17 +108,17 @@ function ChartCard({
 
 function SkeletonCard() {
   return (
-    <div className="bg-white rounded-xl border border-zinc-200 p-5 animate-pulse">
-      <div className="w-9 h-9 rounded-lg bg-zinc-100 mb-3" />
-      <div className="h-7 w-16 bg-zinc-100 rounded mb-1" />
-      <div className="h-3 w-24 bg-zinc-100 rounded" />
+    <div className="bg-card rounded-xl border border-border p-5 animate-pulse">
+      <div className="w-9 h-9 rounded-lg bg-muted mb-3" />
+      <div className="h-7 w-16 bg-muted rounded mb-1" />
+      <div className="h-3 w-24 bg-muted rounded" />
     </div>
   );
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-sm font-medium text-zinc-700 mb-4">{children}</h2>
+    <h2 className="text-sm font-medium text-foreground mb-4">{children}</h2>
   );
 }
 
@@ -131,6 +132,7 @@ function formatCurrency(value: number) {
 
 export default function EstadisticasPage() {
   const t = useTranslations("analyticsBoard");
+  const chartColors = useChartColors();
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
 
   const { data: companiesData } = useQuery({
@@ -151,7 +153,7 @@ export default function EstadisticasPage() {
     ? Object.entries(data.work_orders.by_status).map(([key, val]) => ({
         name: t(`workOrderStatuses.${key}`),
         value: val,
-        fill: STATUS_COLORS[key] ?? "#94a3b8",
+        fill: chartColors[STATUS_COLORS[key] ?? 5],
       }))
     : [];
 
@@ -159,22 +161,22 @@ export default function EstadisticasPage() {
     ? Object.entries(data.work_orders.by_priority).map(([key, val]) => ({
         name: t(`priorities.${key}`),
         value: val,
-        fill: PRIORITY_COLORS[key] ?? "#94a3b8",
+        fill: chartColors[PRIORITY_COLORS[key] ?? 5],
       }))
     : [];
 
   const ticketData = data
     ? [
-        { name: t("ticketPaid"), value: data.tickets.paid, fill: "#10b981" },
-        { name: t("ticketPending"), value: data.tickets.pending, fill: "#f59e0b" },
+        { name: t("ticketPaid"), value: data.tickets.paid, fill: chartColors[3] },
+        { name: t("ticketPending"), value: data.tickets.pending, fill: chartColors[4] },
       ]
     : [];
 
   const attendanceTodayData = data
     ? [
-        { name: t("attendanceNormal"), value: data.attendance.today.normal, fill: "#10b981" },
-        { name: t("attendanceLate"), value: data.attendance.today.late, fill: "#f59e0b" },
-        { name: t("attendanceAbsent"), value: data.attendance.today.absent, fill: "#ef4444" },
+        { name: t("attendanceNormal"), value: data.attendance.today.normal, fill: chartColors[3] },
+        { name: t("attendanceLate"), value: data.attendance.today.late, fill: chartColors[4] },
+        { name: t("attendanceAbsent"), value: data.attendance.today.absent, fill: chartColors[1] },
       ]
     : [];
 
@@ -183,14 +185,14 @@ export default function EstadisticasPage() {
       {/* Header + company selector */}
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-medium text-zinc-900">{t("title")}</h1>
-          <p className="text-sm text-zinc-500 mt-1">{t("subtitleAdmin")}</p>
+          <h1 className="text-xl font-medium text-foreground">{t("title")}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t("subtitleAdmin")}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <div className="relative">
             <Building2
               size={14}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
             />
             <select
               value={selectedCompany?.id ?? ""}
@@ -199,7 +201,7 @@ export default function EstadisticasPage() {
                 const company = companies.find((c) => c.id === id) ?? null;
                 setSelectedCompany(company);
               }}
-              className="pl-8 pr-3 py-1.5 text-sm border border-zinc-200 rounded-lg bg-white text-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-300"
+              className="pl-8 pr-3 py-1.5 text-sm border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="">{t("selectCompany")}</option>
               {companies.map((c) => (
@@ -213,7 +215,7 @@ export default function EstadisticasPage() {
             <button
               onClick={() => refetch()}
               disabled={isFetching}
-              className="p-2 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors disabled:pointer-events-none"
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:pointer-events-none"
             >
               <RefreshCw size={16} className={isFetching ? "animate-spin" : ""} />
             </button>
@@ -224,8 +226,8 @@ export default function EstadisticasPage() {
       {/* Empty state */}
       {!selectedCompany && (
         <div className="flex flex-col items-center justify-center py-24 text-center">
-          <Building2 size={40} className="text-zinc-300 mb-4" />
-          <p className="text-sm text-zinc-500">{t("selectCompanyHint")}</p>
+          <Building2 size={40} className="text-muted-foreground/50 mb-4" />
+          <p className="text-sm text-muted-foreground">{t("selectCompanyHint")}</p>
         </div>
       )}
 
@@ -245,8 +247,8 @@ export default function EstadisticasPage() {
                     inactive: data?.employees.inactive ?? 0,
                   })}
                   icon={Users}
-                  iconColor="text-blue-600"
-                  iconBg="bg-blue-50"
+                  iconColor="text-estado-progreso-foreground"
+                  iconBg="bg-estado-progreso"
                 />
                 <StatCard
                   label={t("totalWorkOrders")}
@@ -255,16 +257,16 @@ export default function EstadisticasPage() {
                     completed: data?.work_orders.by_status.completed ?? 0,
                   })}
                   icon={ClipboardList}
-                  iconColor="text-indigo-600"
-                  iconBg="bg-indigo-50"
+                  iconColor="text-estado-revision-foreground"
+                  iconBg="bg-estado-revision"
                 />
                 <StatCard
                   label={t("totalTickets")}
                   value={data?.tickets.total ?? 0}
                   sub={t("ticketsPending", { count: data?.tickets.pending ?? 0 })}
                   icon={Receipt}
-                  iconColor="text-amber-600"
-                  iconBg="bg-amber-50"
+                  iconColor="text-estado-pendiente-foreground"
+                  iconBg="bg-estado-pendiente"
                 />
                 <StatCard
                   label={t("totalRevenue")}
@@ -273,39 +275,39 @@ export default function EstadisticasPage() {
                     amount: formatCurrency(data?.tickets.pending_revenue ?? 0),
                   })}
                   icon={DollarSign}
-                  iconColor="text-emerald-600"
-                  iconBg="bg-emerald-50"
+                  iconColor="text-estado-completada-foreground"
+                  iconBg="bg-estado-completada"
                 />
                 <StatCard
                   label={t("totalInventory")}
                   value={data?.inventory.total ?? 0}
                   sub={t("inventorySub", { available: data?.inventory.available ?? 0 })}
                   icon={Package}
-                  iconColor="text-teal-600"
-                  iconBg="bg-teal-50"
+                  iconColor="text-estado-completada-foreground"
+                  iconBg="bg-estado-completada"
                 />
                 <StatCard
                   label={t("lowStock")}
                   value={data?.inventory.low_stock ?? 0}
                   sub={t("outOfStock", { count: data?.inventory.out_of_stock ?? 0 })}
                   icon={AlertTriangle}
-                  iconColor="text-orange-600"
-                  iconBg="bg-orange-50"
+                  iconColor="text-estado-pendiente-foreground"
+                  iconBg="bg-estado-pendiente"
                 />
                 <StatCard
                   label={t("attendanceToday")}
                   value={data?.attendance.today.total ?? 0}
                   sub={t("attendanceMonth", { count: data?.attendance.this_month ?? 0 })}
                   icon={UserCheck}
-                  iconColor="text-purple-600"
-                  iconBg="bg-purple-50"
+                  iconColor="text-estado-revision-foreground"
+                  iconBg="bg-estado-revision"
                 />
                 <StatCard
                   label={t("totalUsers")}
                   value={data?.users.total ?? 0}
                   icon={TrendingUp}
-                  iconColor="text-pink-600"
-                  iconBg="bg-pink-50"
+                  iconColor="text-estado-revision-foreground"
+                  iconBg="bg-estado-revision"
                 />
               </>
             )}
@@ -364,7 +366,7 @@ export default function EstadisticasPage() {
                       itemsSpacing: 8,
                       symbolSize: 8,
                       symbolShape: "circle",
-                      itemTextColor: "#52525b",
+                      itemTextColor: "var(--muted-foreground)",
                     },
                   ]}
                   tooltip={({ datum }) => (
@@ -403,7 +405,7 @@ export default function EstadisticasPage() {
                       itemsSpacing: 8,
                       symbolSize: 8,
                       symbolShape: "circle",
-                      itemTextColor: "#52525b",
+                      itemTextColor: "var(--muted-foreground)",
                     },
                   ]}
                   tooltip={({ datum }) => (
@@ -415,30 +417,30 @@ export default function EstadisticasPage() {
               </div>
             </ChartCard>
 
-            <div className="bg-white rounded-xl border border-zinc-200 p-5 flex flex-col gap-4 justify-center">
-              <p className="text-sm font-medium text-zinc-700">{t("revenueBreakdown")}</p>
+            <div className="bg-card rounded-xl border border-border p-5 flex flex-col gap-4 justify-center">
+              <p className="text-sm font-medium text-foreground">{t("revenueBreakdown")}</p>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
-                    <span className="text-sm text-zinc-600">{t("collectedRevenue")}</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-estado-completada-border shrink-0" />
+                    <span className="text-sm text-muted-foreground">{t("collectedRevenue")}</span>
                   </div>
-                  <span className="text-sm font-medium text-zinc-900">
+                  <span className="text-sm font-medium text-foreground">
                     {formatCurrency((data?.tickets.total_revenue ?? 0) - (data?.tickets.pending_revenue ?? 0))}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0" />
-                    <span className="text-sm text-zinc-600">{t("pendingRevenueLabel")}</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-estado-pendiente-border shrink-0" />
+                    <span className="text-sm text-muted-foreground">{t("pendingRevenueLabel")}</span>
                   </div>
-                  <span className="text-sm font-medium text-zinc-900">
+                  <span className="text-sm font-medium text-foreground">
                     {formatCurrency(data?.tickets.pending_revenue ?? 0)}
                   </span>
                 </div>
-                <div className="border-t border-zinc-100 pt-3 flex items-center justify-between">
-                  <span className="text-sm font-medium text-zinc-700">{t("totalRevenue")}</span>
-                  <span className="text-base font-semibold text-zinc-900">
+                <div className="border-t border-border/60 pt-3 flex items-center justify-between">
+                  <span className="text-sm font-medium text-foreground">{t("totalRevenue")}</span>
+                  <span className="text-base font-semibold text-foreground">
                     {formatCurrency(data?.tickets.total_revenue ?? 0)}
                   </span>
                 </div>
@@ -475,14 +477,14 @@ export default function EstadisticasPage() {
               </div>
             </ChartCard>
 
-            <div className="bg-white rounded-xl border border-zinc-200 p-5 flex flex-col gap-4 justify-center">
-              <p className="text-sm font-medium text-zinc-700">{t("inventoryBreakdown")}</p>
+            <div className="bg-card rounded-xl border border-border p-5 flex flex-col gap-4 justify-center">
+              <p className="text-sm font-medium text-foreground">{t("inventoryBreakdown")}</p>
               <div className="space-y-3">
                 {[
-                  { label: t("inventoryAvailable"), value: data?.inventory.available ?? 0, color: "bg-emerald-500" },
-                  { label: t("inventoryUnavailable"), value: data?.inventory.unavailable ?? 0, color: "bg-zinc-300" },
-                  { label: t("inventoryLowStock"), value: data?.inventory.low_stock ?? 0, color: "bg-amber-400" },
-                  { label: t("inventoryOutOfStock"), value: data?.inventory.out_of_stock ?? 0, color: "bg-red-400" },
+                  { label: t("inventoryAvailable"), value: data?.inventory.available ?? 0, color: "bg-estado-completada-border" },
+                  { label: t("inventoryUnavailable"), value: data?.inventory.unavailable ?? 0, color: "bg-muted-foreground/30" },
+                  { label: t("inventoryLowStock"), value: data?.inventory.low_stock ?? 0, color: "bg-estado-pendiente-border" },
+                  { label: t("inventoryOutOfStock"), value: data?.inventory.out_of_stock ?? 0, color: "bg-destructive" },
                 ].map(({ label, value, color }) => {
                   const total = data?.inventory.total || 1;
                   const pct = Math.round((value / total) * 100);
@@ -491,13 +493,13 @@ export default function EstadisticasPage() {
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
                           <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${color}`} />
-                          <span className="text-sm text-zinc-600">{label}</span>
+                          <span className="text-sm text-muted-foreground">{label}</span>
                         </div>
-                        <span className="text-sm font-medium text-zinc-900">
-                          {value} <span className="text-zinc-400 font-normal">({pct}%)</span>
+                        <span className="text-sm font-medium text-foreground">
+                          {value} <span className="text-muted-foreground font-normal">({pct}%)</span>
                         </span>
                       </div>
-                      <div className="h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                         <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
                       </div>
                     </div>

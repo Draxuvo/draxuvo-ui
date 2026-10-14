@@ -41,7 +41,7 @@ export function CompanyDeleteDialog({
         <DialogHeader>
           <DialogTitle>{t("deleteTitle")}</DialogTitle>
         </DialogHeader>
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-muted-foreground">
           {t("deleteConfirm", { name: company?.name ?? "" })}
         </p>
         <DialogFooter>
