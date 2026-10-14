@@ -31,8 +31,7 @@ export function SubscriptionDetail() {
     retry: false,
   });
 
-  const isTrial =
-    subscription?.status === "trial" || subscription?.status === "trialing";
+  const isTrial = subscription?.status === "trialing";
 
   const daysLeft =
     isTrial && subscription?.trial_ends_at
@@ -66,7 +65,8 @@ export function SubscriptionDetail() {
     try {
       const origin = window.location.origin;
       const { checkout_url } = await createCheckout(
-        "business",
+        subscription?.plan ?? "pro",
+        subscription?.billing_cycle ?? "monthly",
         `${origin}/${locale}/suscripcion/exito`,
         `${origin}/${locale}/suscripcion/cancelado`,
       );
@@ -79,7 +79,6 @@ export function SubscriptionDetail() {
 
   const planLabel = () => {
     if (!subscription?.plan) return t("noPlan");
-    if (subscription.plan === "business") return t("planBusiness");
     if (subscription.plan === "enterprise") return t("planEnterprise");
     return subscription.plan;
   };

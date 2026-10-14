@@ -14,20 +14,20 @@ import {
 } from "@/components/ui/dialog";
 import { createCompanyCheckout } from "@/services/subscription";
 import { cn } from "@/lib/utils";
-import type { Company } from "@/types";
+import type { Company, PlanKey } from "@/types";
 
 interface Props {
   company: Company | null;
   onOpenChange: (open: boolean) => void;
 }
 
-const PLANS = ["business", "enterprise"] as const;
+const PLANS = ["basic", "pro", "enterprise"] as const satisfies readonly PlanKey[];
 type Plan = (typeof PLANS)[number];
 
 export function CompanyCheckoutDialog({ company, onOpenChange }: Props) {
   const t = useTranslations("adminSubscriptions");
   const locale = useLocale();
-  const [plan, setPlan] = useState<Plan>("business");
+  const [plan, setPlan] = useState<Plan>("pro");
   const [loading, setLoading] = useState(false);
 
   async function handleConfirm() {
@@ -38,6 +38,7 @@ export function CompanyCheckoutDialog({ company, onOpenChange }: Props) {
       const { checkout_url } = await createCompanyCheckout(
         company.id,
         plan,
+        "monthly",
         `${origin}/${locale}/suscripciones`,
         `${origin}/${locale}/suscripciones`,
       );
@@ -63,7 +64,7 @@ export function CompanyCheckoutDialog({ company, onOpenChange }: Props) {
 
         <div className="space-y-2">
           <p className="text-sm font-medium text-zinc-700">{t("checkoutPlan")}</p>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {PLANS.map((p) => (
               <button
                 key={p}
@@ -75,7 +76,7 @@ export function CompanyCheckoutDialog({ company, onOpenChange }: Props) {
                     : "border-zinc-200 text-zinc-600 hover:border-zinc-400 hover:text-zinc-900",
                 )}
               >
-                {p === "business" ? t("planBusiness") : t("planEnterprise")}
+                {p === "enterprise" ? t("planEnterprise") : p}
               </button>
             ))}
           </div>

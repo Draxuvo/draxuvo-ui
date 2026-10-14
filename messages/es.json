@@ -1,7 +1,7 @@
 {
   "common": {
-    "brandName": "Bothi Soluciones",
-    "brandTagline": "",
+    "brandName": "Draxuvo",
+    "brandTagline": "Tecnología y automatización",
     "save": "Guardar cambios",
     "cancel": "Cancelar",
     "edit": "Editar",
@@ -16,7 +16,7 @@
     "actions": "Acciones"
   },
   "auth": {
-    "title": "Bothi Soluciones",
+    "title": "Draxuvo",
     "subtitle": "Ingresa a tu cuenta",
     "email": "Email",
     "password": "Contraseña",
@@ -31,14 +31,16 @@
     "heroTitle": "Tu negocio,",
     "heroTitleHighlight": "bajo control.",
     "heroSubtitle": "Gestión integral para tu negocio. Inventario, personal, órdenes y reportes en un solo lugar.",
-    "copyright": "© {year} Bothi Soluciones · Sistema ERP",
+    "copyright": "© {year} Draxuvo · Tecnología y automatización",
     "feature1Label": "Control de inventario",
     "feature1Desc": "Stock en tiempo real para cocina y almacén",
     "feature2Label": "Órdenes de trabajo",
     "feature2Desc": "Flujo digitalizado de pedidos y producción",
     "feature3Label": "Reportes y analítica",
     "feature3Desc": "Métricas para tomar decisiones rápidas",
-    "forgotPassword": "¿Olvidaste tu contraseña?"
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "noAccount": "¿No tienes cuenta?",
+    "register": "Prueba 30 días gratis"
   },
   "nav": {
     "home": "Inicio",
@@ -178,7 +180,10 @@
     "unauthorized": "Credenciales incorrectas",
     "unexpected": "Ocurrió un error inesperado",
     "noConnection": "Sin conexión con el servidor",
-    "subscriptionExpired": "El plan de tu empresa ha vencido. Contacta a tu administrador para renovar la suscripción."
+    "subscriptionExpired": "El plan de tu empresa ha vencido. Contacta a tu administrador para renovar la suscripción.",
+    "moduleNotInPlan": "El módulo {module} no está en tu plan",
+    "moduleNotInPlanAction": "Mejorar plan",
+    "rateLimited": "Demasiados intentos. Espera un momento e inténtalo de nuevo."
   },
   "inventory": {
     "title": "Inventario",
@@ -270,9 +275,9 @@
     "save": "Guardar",
     "saving": "Guardando...",
     "plans": {
-      "starter": "Starter",
-      "business": "Business",
-      "enterprise": "Enterprise"
+      "basic": "Básico",
+      "pro": "Pro",
+      "enterprise": "Empresa"
     },
     "subscription": "Suscripción",
     "subActive": "Activa",
@@ -448,7 +453,45 @@
     "activeBannerAction": "Ver suscripción",
     "expiredModalTitle": "Plan vencido",
     "expiredModalDesc": "El plan de tu empresa ha vencido. Contacta a tu administrador para renovar la suscripción y continuar usando la plataforma.",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "trialing": "En prueba",
+    "pastDue": "Pago pendiente",
+    "statusCancelScheduled": "Cancelación programada",
+    "billingCycle": "Periodicidad",
+    "amount": "Monto",
+    "totalWithIva": "Total con IVA",
+    "nextRenewal": "Siguiente renovación: {date}",
+    "choosePlan": "Elige tu plan",
+    "changePlan": "Cambiar plan",
+    "planChanged": "Plan actualizado",
+    "planChangeError": "No se pudo cambiar el plan",
+    "pay": "Pagar",
+    "manage": "Administrar suscripción",
+    "manageDesc": "Cambia de plan o de tarjeta, descarga tus comprobantes o cancela.",
+    "openingPortal": "Abriendo el portal...",
+    "portalError": "No se pudo abrir el portal de pagos",
+    "cancelScheduled": "Se cancela el {date}",
+    "cancelScheduledDesc": "Conservas el acceso hasta esa fecha. Puedes reactivarla desde Administrar suscripción.",
+    "processingTitle": "Procesando tu pago",
+    "processingDesc": "Estamos confirmando tu pago. Esto puede tardar unos segundos.",
+    "processingSlow": "Tu pago sigue en proceso. Te avisaremos en cuanto se confirme.",
+    "pastDueBanner": "No pudimos cobrar tu suscripción. Actualiza tu tarjeta para no perder el acceso.",
+    "pastDueAction": "Actualizar tarjeta",
+    "blockedTitle": "Tu prueba terminó",
+    "blockedTitleExpired": "Tu suscripción venció",
+    "blockedDescOwner": "Elige un plan y paga para seguir usando Draxuvo.",
+    "blockedAction": "Ir a suscripción",
+    "blockedDescMember": "Pide al dueño de la cuenta que renueve la suscripción.",
+    "modulesTitle": "Módulos",
+    "modulesDesc": "Activa los módulos de tu plan que usa tu empresa. Desactivar un módulo no borra sus datos.",
+    "moduleOn": "Activo",
+    "moduleOff": "Desactivado",
+    "modulesSaved": "Módulos actualizados",
+    "modulesError": "No se pudieron actualizar los módulos",
+    "moduleLocked": "Este módulo no está en tu plan",
+    "moduleLockedDesc": "Mejora tu plan para usar {module}.",
+    "upgradePlan": "Mejorar plan",
+    "availableIn": "Disponible en {plans}"
   },
   "profile": {
     "pageTitle": "Mi perfil",
@@ -520,7 +563,15 @@
     "cancelSuccess": "Suscripción cancelada",
     "cancelError": "No se pudo cancelar la suscripción",
     "planBusiness": "Business",
-    "planEnterprise": "Enterprise"
+    "planEnterprise": "Enterprise",
+    "statusPastDue": "Pago pendiente",
+    "statusCancelScheduled": "Se cancela el {date}",
+    "filterPastDue": "Pago pendiente",
+    "checkoutCycle": "Periodicidad",
+    "cancelScheduledDesc": "La suscripción de {company} se cancelará al final del periodo pagado. La empresa conserva el acceso hasta entonces.",
+    "cancelScheduledSuccess": "Cancelación programada",
+    "planBasic": "Básico",
+    "planPro": "Pro"
   },
   "reports": {
     "title": "Reportes",
@@ -652,5 +703,82 @@
     "deleteSuccess": "Orden eliminada",
     "delete": "Eliminar",
     "deleting": "Eliminando..."
+  },
+  "registration": {
+    "title": "Crea tu cuenta",
+    "subtitle": "Prueba Draxuvo 30 días gratis, sin tarjeta",
+    "fields": {
+      "first_name": "Nombre",
+      "last_name": "Apellido",
+      "phone": "Teléfono",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "company_name": "Nombre de la empresa"
+    },
+    "placeholders": {
+      "first_name": "Juan",
+      "last_name": "Pérez",
+      "phone": "55 1234 5678",
+      "email": "tu@empresa.com",
+      "password": "Mínimo 8 caracteres",
+      "company_name": "Mi empresa"
+    },
+    "errors": {
+      "first_nameRequired": "El nombre es obligatorio",
+      "last_nameRequired": "El apellido es obligatorio",
+      "phoneRequired": "El teléfono es obligatorio",
+      "emailInvalid": "Ingresa un correo válido",
+      "passwordMin": "La contraseña debe tener al menos 8 caracteres",
+      "company_nameRequired": "El nombre de la empresa es obligatorio",
+      "generic": "No se pudo crear la cuenta. Inténtalo de nuevo."
+    },
+    "plan": "Plan",
+    "cycle": "Periodicidad",
+    "submit": "Crear cuenta",
+    "submitting": "Creando cuenta...",
+    "emailTaken": "Ya existe una cuenta con este correo",
+    "rateLimited": "Demasiados intentos. Espera un momento e inténtalo de nuevo.",
+    "haveAccount": "¿Ya tienes cuenta?",
+    "login": "Inicia sesión",
+    "trialNote": "Tu prueba de 30 días empieza hoy. No te cobramos nada hasta que elijas pagar.",
+    "success": "¡Bienvenido a Draxuvo!"
+  },
+  "plans": {
+    "basic": "Básico",
+    "pro": "Pro",
+    "enterprise": "Empresa",
+    "basicDesc": "Personal, asistencia e inventario",
+    "proDesc": "Todo Básico más órdenes de trabajo, tickets y reportes",
+    "enterpriseDesc": "Todo Pro más WhatsApp y varias empresas o sucursales",
+    "monthly": "Mensual",
+    "annual": "Anual",
+    "perMonth": "/mes",
+    "perYear": "/año",
+    "price": "Precio",
+    "subtotal": "Subtotal",
+    "iva": "IVA",
+    "ivaRate": "IVA ({rate}%)",
+    "total": "Total",
+    "totalWithIva": "Total con IVA",
+    "pricesWithoutIva": "Precios sin IVA",
+    "annualNote": "2 meses gratis",
+    "includes": "Incluye",
+    "current": "Plan actual",
+    "recommended": "Recomendado",
+    "choose": "Elegir plan",
+    "pay": "Pagar",
+    "payPlan": "Pagar plan {plan}",
+    "loading": "Cargando planes...",
+    "loadError": "No se pudieron cargar los planes"
+  },
+  "modules": {
+    "employees": "Personal",
+    "attendance": "Asistencia",
+    "inventory": "Inventario",
+    "work_orders": "Órdenes de trabajo",
+    "tickets": "Tickets",
+    "reports": "Reportes",
+    "whatsapp": "WhatsApp",
+    "multi_company": "Varias empresas o sucursales"
   }
 }

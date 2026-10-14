@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
+import { useQuery } from "@tanstack/react-query";
 import {
   Users,
   Package,
@@ -12,23 +13,41 @@ import {
   Home,
   BarChart2,
   FileBarChart2,
+  CreditCard,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
+import { getSubscription } from "@/services/subscription";
+import type { ModuleKey } from "@/types";
 import { useSidebar } from "./sidebar-context";
 import { cn } from "@/lib/utils";
 
 const ANALYTICS_ROLES = new Set(["admin", "owner", "manager"]);
 const REPORTS_ROLES = new Set(["admin", "owner"]);
+const SUBSCRIPTION_ROLES = new Set(["admin", "owner"]);
 
 export function Sidebar() {
   const pathname = usePathname();
   const t = useTranslations("nav");
+  const tSub = useTranslations("subscription");
   const locale = useLocale();
-  const { user } = useAuthStore();
+  const { user, selectedCompanyId } = useAuthStore();
   const { open } = useSidebar();
 
   const showAnalytics = !!user && ANALYTICS_ROLES.has(user.role);
   const showReports = !!user && REPORTS_ROLES.has(user.role);
+  const showSubscription = !!user && SUBSCRIPTION_ROLES.has(user.role);
+
+  const { data: subscription } = useQuery({
+    queryKey: ["subscription", selectedCompanyId],
+    queryFn: getSubscription,
+    retry: false,
+    enabled: !!user && user.role !== "super_admin" && !!selectedCompanyId,
+  });
+
+  // Mientras carga (o si falla) se muestra el menú por rol, sin filtrar módulos.
+  const activeModules = subscription?.active_modules;
+  const hasModule = (module: ModuleKey) =>
+    !activeModules || activeModules.includes(module);
 
   const NAV = [
     {
@@ -45,24 +64,45 @@ export function Sidebar() {
           },
         ]
       : []),
-    { href: `/${locale}/empleados`, label: t("employees"), icon: Users },
-    { href: `/${locale}/inventario`, label: t("inventory"), icon: Package },
-    {
-      href: `/${locale}/ordenes`,
-      label: t("orders"),
-      icon: ClipboardList,
-    },
-    {
-      href: `/${locale}/tickets`,
-      label: t("tickets"),
-      icon: Receipt,
-    },
-    ...(showReports
+    ...(hasModule("employees")
+      ? [{ href: `/${locale}/empleados`, label: t("employees"), icon: Users }]
+      : []),
+    ...(hasModule("inventory")
+      ? [{ href: `/${locale}/inventario`, label: t("inventory"), icon: Package }]
+      : []),
+    ...(hasModule("work_orders")
+      ? [
+          {
+            href: `/${locale}/ordenes`,
+            label: t("orders"),
+            icon: ClipboardList,
+          },
+        ]
+      : []),
+    ...(hasModule("tickets")
+      ? [
+          {
+            href: `/${locale}/tickets`,
+            label: t("tickets"),
+            icon: Receipt,
+          },
+        ]
+      : []),
+    ...(showReports && hasModule("reports")
       ? [
           {
             href: `/${locale}/reportes`,
             label: t("reports"),
             icon: FileBarChart2,
+          },
+        ]
+      : []),
+    ...(showSubscription
+      ? [
+          {
+            href: `/${locale}/suscripcion`,
+            label: tSub("nav"),
+            icon: CreditCard,
           },
         ]
       : []),

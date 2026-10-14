@@ -56,7 +56,7 @@ function getExpiryDate(sub: Subscription): Date | null {
 
 function getDisplayStatus(sub: Subscription | null): DisplayStatus {
   if (!sub) return "none";
-  const isTrial = sub.status === "trial" || sub.status === "trialing";
+  const isTrial = sub.status === "trialing";
   const daysLeft = getDaysLeft(sub);
   if (sub.status === "expired" || (isTrial && daysLeft !== null && daysLeft <= 0))
     return "expired";

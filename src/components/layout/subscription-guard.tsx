@@ -28,8 +28,7 @@ export function SubscriptionGuard() {
 
   if (!subscription) return null;
 
-  const isTrial =
-    subscription.status === "trial" || subscription.status === "trialing";
+  const isTrial = subscription.status === "trialing";
   const daysLeft =
     isTrial && subscription.trial_ends_at
       ? Math.max(

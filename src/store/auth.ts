@@ -2,7 +2,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { apiClient } from "@/lib/api";
-import type { User } from "@/types";
+import type { AuthResponse, User } from "@/types";
 
 const COMPANY_KEY = "selected_company_id";
 
@@ -12,6 +12,7 @@ interface AuthState {
   selectedCompanyId: number | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  setSession: (session: AuthResponse) => void;
   logout: () => void;
   fetchMe: () => Promise<void>;
   setSelectedCompany: (id: number) => void;
@@ -19,7 +20,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       token: null,
       selectedCompanyId: null,
@@ -27,16 +28,24 @@ export const useAuthStore = create<AuthState>()(
 
       login: async (email, password) => {
         set({ isLoading: true });
-        const res = await apiClient.post("/api/v1/auth/login", {
-          email,
-          password,
-        });
-        const { token, user } = res.data;
+        try {
+          const res = await apiClient.post<AuthResponse>("/api/v1/auth/login", {
+            email,
+            password,
+          });
+          get().setSession(res.data);
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      // Persiste una sesión ya emitida por la API (login o registro).
+      setSession: ({ token, user }) => {
         const selectedCompanyId: number | null = user.companies?.[0]?.id ?? null;
         localStorage.setItem("auth_token", token);
         if (selectedCompanyId) localStorage.setItem(COMPANY_KEY, String(selectedCompanyId));
         document.cookie = `auth_token=${token}; path=/; max-age=${60 * 60 * 24}`;
-        document.cookie = `user_role=${res.data.user.role}; path=/; max-age=${60 * 60 * 24}`;
+        document.cookie = `user_role=${user.role}; path=/; max-age=${60 * 60 * 24}`;
         set({ token, user, selectedCompanyId, isLoading: false });
       },
 

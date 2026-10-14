@@ -1,20 +1,49 @@
 import { apiClient } from "@/lib/api";
-import type { Subscription, CheckoutResponse } from "@/types";
+import type {
+  BillingCycle,
+  CheckoutResponse,
+  ModuleKey,
+  ModulesResponse,
+  PlanKey,
+  PortalResponse,
+  Subscription,
+} from "@/types";
 
 export const getSubscription = (): Promise<Subscription> =>
   apiClient.get("/api/v1/subscription").then((r) => r.data);
 
+// Solo en `trialing`: cambia el plan sin mover `trial_ends_at`.
+export const updateTrialPlan = (plan: PlanKey): Promise<Subscription> =>
+  apiClient.patch("/api/v1/subscription", { plan }).then((r) => r.data);
+
 export const createCheckout = (
-  plan: "business",
+  plan: PlanKey,
+  billingCycle: BillingCycle,
   successUrl: string,
   cancelUrl: string,
 ): Promise<CheckoutResponse> =>
   apiClient
     .post("/api/v1/subscription/checkout", {
       plan,
+      billing_cycle: billingCycle,
       success_url: successUrl,
       cancel_url: cancelUrl,
     })
+    .then((r) => r.data);
+
+export const createPortal = (returnUrl: string): Promise<PortalResponse> =>
+  apiClient
+    .post("/api/v1/subscription/portal", { return_url: returnUrl })
+    .then((r) => r.data);
+
+// Programa la cancelación al fin del periodo (`cancel_at_period_end: true`).
+export const cancelSubscription = (): Promise<Subscription> =>
+  apiClient.delete("/api/v1/subscription").then((r) => r.data);
+
+// Lista completa de módulos desactivados (reemplaza). `[]` activa todos los del plan.
+export const updateModules = (disabledModules: ModuleKey[]): Promise<ModulesResponse> =>
+  apiClient
+    .patch("/api/v1/company/modules", { disabled_modules: disabledModules })
     .then((r) => r.data);
 
 // ── Super admin: opera sobre cualquier empresa pasando X-Company-Id explícito ──
@@ -34,19 +63,25 @@ export const getCompanySubscription = async (
 
 export const createCompanyCheckout = (
   companyId: number,
-  plan: "business" | "enterprise",
+  plan: PlanKey,
+  billingCycle: BillingCycle,
   successUrl: string,
   cancelUrl: string,
 ): Promise<CheckoutResponse> =>
   apiClient
     .post(
       "/api/v1/subscription/checkout",
-      { plan, success_url: successUrl, cancel_url: cancelUrl },
+      {
+        plan,
+        billing_cycle: billingCycle,
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+      },
       { headers: { "X-Company-Id": String(companyId) } },
     )
     .then((r) => r.data);
 
-export const cancelCompanySubscription = (companyId: number): Promise<void> =>
+export const cancelCompanySubscription = (companyId: number): Promise<Subscription> =>
   apiClient
     .delete("/api/v1/subscription", {
       headers: { "X-Company-Id": String(companyId) },

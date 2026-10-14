@@ -38,7 +38,6 @@ export function CompanyForm({ open, onOpenChange, company }: CompanyFormProps) {
 
   const schema = z.object({
     name: z.string().min(1, t("nameRequired")),
-    plan: z.enum(["starter", "business", "enterprise"]),
     active: z.boolean(),
   });
 
@@ -51,7 +50,7 @@ export function CompanyForm({ open, onOpenChange, company }: CompanyFormProps) {
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { plan: "starter", active: true },
+    defaultValues: { active: true },
   });
 
   useEffect(() => {
@@ -59,7 +58,6 @@ export function CompanyForm({ open, onOpenChange, company }: CompanyFormProps) {
     const src = isEdit ? companyData : null;
     reset({
       name: src?.name ?? "",
-      plan: src?.plan ?? "starter",
       active: src?.active ?? true,
     });
   }, [open, companyData, isEdit, reset]);
@@ -104,20 +102,6 @@ export function CompanyForm({ open, onOpenChange, company }: CompanyFormProps) {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-700">
-                  {t("plan")}
-                </Label>
-                <select
-                  {...register("plan")}
-                  className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                >
-                  <option value="starter">{t("plans.starter")}</option>
-                  <option value="business">{t("plans.business")}</option>
-                  <option value="enterprise">{t("plans.enterprise")}</option>
-                </select>
-              </div>
-
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium text-zinc-700">
                   {t("status")}

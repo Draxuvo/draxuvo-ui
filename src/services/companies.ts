@@ -4,7 +4,6 @@ import type { Company, PaginatedResponse } from "@/types";
 
 export interface CompanyPayload {
   name: string;
-  plan: "starter" | "business" | "enterprise";
   active?: boolean;
 }
 

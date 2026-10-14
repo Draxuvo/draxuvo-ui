@@ -17,7 +17,6 @@ export interface Company {
   id: number;
   name: string;
   slug: string;
-  plan: "starter" | "business" | "enterprise";
   active: boolean;
   users_count?: number;
   created_at: string;
@@ -102,19 +101,88 @@ export interface PaginatedResponse<T> {
 
 export interface ApiError {
   message: string;
-  details?: string | string[];
+  details?: string | string[] | { code: string; module?: ModuleKey };
+}
+
+export type PlanKey = "basic" | "pro" | "enterprise";
+export type BillingCycle = "monthly" | "annual";
+export type ModuleKey =
+  | "employees"
+  | "attendance"
+  | "inventory"
+  | "work_orders"
+  | "tickets"
+  | "reports"
+  | "whatsapp"
+  | "multi_company";
+export type SubscriptionStatus = "trialing" | "active" | "past_due" | "cancelled" | "expired";
+
+export interface PlanPrice {
+  amount_cents: number;
+  iva_cents: number;
+  total_cents: number;
+}
+
+export interface Plan {
+  key: PlanKey;
+  modules: ModuleKey[];
+  prices: Record<BillingCycle, PlanPrice>;
+}
+
+export interface PlansResponse {
+  iva_rate: number;
+  plans: Plan[];
+  modules: ModuleKey[];
 }
 
 export interface Subscription {
-  id: number;
-  status: "trial" | "trialing" | "active" | "expired" | "cancelled";
-  plan: "business" | "enterprise" | null;
-  trial_ends_at?: string;
-  current_period_end?: string;
+  id?: number;
+  plan: PlanKey;
+  billing_cycle: BillingCycle | null;
+  status: SubscriptionStatus;
+  cancel_at_period_end: boolean;
+  amount_cents: number;
+  iva_cents: number;
+  total_cents: number;
+  trial_ends_at?: string | null;
+  current_period_end?: string | null;
+  active_modules: ModuleKey[];
+  available_modules: ModuleKey[];
+  active_access: boolean;
+  trial_days_remaining?: number;
 }
 
 export interface CheckoutResponse {
   checkout_url: string;
+}
+
+export interface PortalResponse {
+  portal_url: string;
+}
+
+export interface ModulesResponse {
+  active_modules: ModuleKey[];
+  available_modules: ModuleKey[];
+  disabled_modules: ModuleKey[];
+}
+
+export interface RegistrationPayload {
+  first_name: string;
+  last_name: string;
+  phone: string;
+  email: string;
+  password: string;
+  company_name: string;
+  plan: PlanKey;
+  billing_cycle: BillingCycle;
+}
+
+/** Alias usado en tasks.md (T045). */
+export type RegistrationRequest = RegistrationPayload;
+
+export interface AuthResponse {
+  token: string;
+  user: User;
 }
 
 export interface WorkOrderItem {
