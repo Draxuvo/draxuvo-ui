@@ -6,6 +6,7 @@ import { Building2, FileBarChart2 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { companiesService } from "@/services/companies";
 import { ReportContent } from "@/components/reports/report-content";
+import { ModuleLocked, useModuleLocked } from "@/components/subscription/module-locked";
 
 export default function ReportesPage() {
   const t = useTranslations("reports");
@@ -22,6 +23,9 @@ export default function ReportesPage() {
   });
 
   const companies = companiesQuery.data?.results ?? [];
+
+  const locked = useModuleLocked("reports");
+  if (locked) return <ModuleLocked module="reports" />;
 
   return (
     <div className="space-y-6">

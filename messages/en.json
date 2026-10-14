@@ -562,7 +562,6 @@
     "cancelClose": "No, go back",
     "cancelSuccess": "Subscription cancelled",
     "cancelError": "Could not cancel the subscription",
-    "planBusiness": "Business",
     "planEnterprise": "Enterprise",
     "statusPastDue": "Payment due",
     "statusCancelScheduled": "Cancels on {date}",

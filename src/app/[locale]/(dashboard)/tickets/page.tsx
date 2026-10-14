@@ -10,6 +10,7 @@ import { TicketDetail } from "@/components/tickets/ticket-detail";
 import { Receipt, Search, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import type { Ticket } from "@/types";
+import { ModuleLocked, useModuleLocked } from "@/components/subscription/module-locked";
 
 const STATUS_TABS = ["all", "pending", "paid"] as const;
 type Tab = (typeof STATUS_TABS)[number];
@@ -36,6 +37,9 @@ export default function TicketsPage() {
 
   const pendingCount = tickets.filter((t) => t.status === "pending").length;
   const paidCount = tickets.filter((t) => t.status === "paid").length;
+
+  const locked = useModuleLocked("tickets", error);
+  if (locked) return <ModuleLocked module="tickets" />;
 
   return (
     <div>

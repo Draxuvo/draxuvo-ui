@@ -16,6 +16,7 @@ import { getProductColumns } from "@/components/inventory/columns";
 import { inventoryService } from "@/services/inventory";
 import { usePagination } from "@/hooks/use-pagination";
 import type { Product } from "@/types";
+import { ModuleLocked, useModuleLocked } from "@/components/subscription/module-locked";
 
 const PAGE_SIZE = 10;
 
@@ -35,7 +36,7 @@ export default function InventarioPage() {
   const [movementType, setMovementType] = useState<"entry" | "exit" | null>(null);
   const [importOpen, setImportOpen] = useState(false);
 
-  const { data, isLoading, isFetching, refetch } = useQuery({
+  const { data, isLoading, isFetching, refetch, error } = useQuery({
     queryKey: ["products", page, PAGE_SIZE, debouncedSearch],
     queryFn: () => inventoryService.list(page, debouncedSearch, PAGE_SIZE),
   });
@@ -68,6 +69,9 @@ export default function InventarioPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
+
+  const locked = useModuleLocked("inventory", error);
+  if (locked) return <ModuleLocked module="inventory" />;
 
   return (
     <div className="space-y-6">

@@ -28,7 +28,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 const EXPIRING_SOON_DAYS = 7;
 const PAGE_SIZE = 50;
 
-type FilterStatus = "all" | "expired" | "expiring_soon" | "trial" | "active";
+type FilterStatus = "all" | "expired" | "expiring_soon" | "trial" | "active" | "past_due";
 
 type RowData = {
   company: Company;
@@ -38,6 +38,8 @@ type RowData = {
 
 type DisplayStatus =
   | "active"
+  | "cancel_scheduled"
+  | "past_due"
   | "expiring_soon"
   | "trial"
   | "expired"
@@ -61,6 +63,8 @@ function getDisplayStatus(sub: Subscription | null): DisplayStatus {
   if (sub.status === "expired" || (isTrial && daysLeft !== null && daysLeft <= 0))
     return "expired";
   if (sub.status === "cancelled") return "cancelled";
+  if (sub.status === "past_due") return "past_due";
+  if (sub.status === "active" && sub.cancel_at_period_end) return "cancel_scheduled";
   if (isTrial) return "trial";
   if (sub.status === "active" && daysLeft !== null && daysLeft <= EXPIRING_SOON_DAYS)
     return "expiring_soon";
@@ -115,6 +119,7 @@ export default function SuscripcionesPage() {
       if (filter === "expiring_soon") return status === "expiring_soon";
       if (filter === "trial") return status === "trial";
       if (filter === "active") return status === "active";
+      if (filter === "past_due") return status === "past_due";
       return true;
     });
   }, [rows, filter]);
@@ -128,7 +133,7 @@ export default function SuscripcionesPage() {
   const { mutate: cancelMutation, isPending: cancelling } = useMutation({
     mutationFn: () => cancelCompanySubscription(cancelCompany!.id),
     onSuccess: () => {
-      toast.success(t("cancelSuccess"));
+      toast.success(t("cancelScheduledSuccess"));
       queryClient.invalidateQueries({ queryKey: ["company-subscription", cancelCompany!.id] });
       setCancelCompany(null);
     },
@@ -137,6 +142,8 @@ export default function SuscripcionesPage() {
 
   const STATUS_CONFIG: Record<DisplayStatus, { label: string; className: string }> = {
     active: { label: t("statusActive"), className: "bg-green-100 text-green-800 border-green-200" },
+    cancel_scheduled: { label: t("statusCancelScheduled", { date: "" }).trim(), className: "bg-amber-100 text-amber-800 border-amber-200" },
+    past_due: { label: t("statusPastDue"), className: "bg-red-100 text-red-800 border-red-200" },
     expiring_soon: { label: t("statusExpiringSoon"), className: "bg-amber-100 text-amber-800 border-amber-200" },
     trial: { label: t("statusTrial"), className: "bg-blue-100 text-blue-800 border-blue-200" },
     expired: { label: t("statusExpired"), className: "bg-red-100 text-red-800 border-red-200" },
@@ -178,7 +185,13 @@ export default function SuscripcionesPage() {
             return <div className="h-5 w-20 bg-zinc-100 animate-pulse rounded-full" />;
           const status = getDisplayStatus(subscription);
           const { label, className } = STATUS_CONFIG[status];
-          return <Badge className={cn("text-xs", className)}>{label}</Badge>;
+          const text =
+            status === "cancel_scheduled" && subscription?.current_period_end
+              ? t("statusCancelScheduled", {
+                  date: format(new Date(subscription.current_period_end), "dd MMM yyyy"),
+                })
+              : label;
+          return <Badge className={cn("text-xs", className)}>{text}</Badge>;
         },
       },
       {
@@ -232,7 +245,7 @@ export default function SuscripcionesPage() {
         cell: ({ row }) => {
           const { company, subscription, isLoadingSub } = row.original;
           const status = getDisplayStatus(subscription);
-          const canCancel = status === "active" || status === "expiring_soon" || status === "trial";
+          const canCancel = status === "active" || status === "expiring_soon";
           return (
             <div className="flex items-center gap-1.5">
               <Button
@@ -272,6 +285,7 @@ export default function SuscripcionesPage() {
     { id: "expiring_soon", label: t("filterExpiringSoon") },
     { id: "trial", label: t("filterTrial") },
     { id: "active", label: t("filterActive") },
+    { id: "past_due", label: t("filterPastDue") },
   ];
 
   return (
@@ -336,7 +350,7 @@ export default function SuscripcionesPage() {
           <DialogHeader>
             <DialogTitle>{t("cancelTitle")}</DialogTitle>
             <DialogDescription>
-              {cancelCompany && t("cancelDesc", { company: cancelCompany.name })}
+              {cancelCompany && t("cancelScheduledDesc", { company: cancelCompany.name })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">

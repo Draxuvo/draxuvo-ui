@@ -2,6 +2,17 @@
 import axios from "axios";
 import { toast } from "sonner";
 import { getApiT, getLocale } from "@/lib/api-i18n";
+import es from "../../messages/es.json";
+import en from "../../messages/en.json";
+
+const MODULE_NAMES = { es: es.modules, en: en.modules } as const;
+
+declare module "axios" {
+  interface AxiosRequestConfig {
+    /** La pantalla muestra el error por su cuenta (p. ej. en el formulario): sin toast global. */
+    skipErrorToast?: boolean;
+  }
+}
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -25,10 +36,18 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (res) => res,
   (error) => {
+    if (error.config?.skipErrorToast) return Promise.reject(error);
     const t = getApiT();
     const status: number | undefined = error.response?.status;
     const err = error.response?.data?.error;
-    const message: string | undefined = err?.details ?? err?.message;
+    // `details` puede ser texto, una lista de textos o un objeto ({ code, module }); el objeto no se muestra.
+    const details: string | undefined =
+      typeof err?.details === "string"
+        ? err.details
+        : Array.isArray(err?.details)
+          ? err.details.join(", ")
+          : undefined;
+    const message: string | undefined = details ?? err?.message;
 
     if (status === 401) {
       const hasToken = !!localStorage.getItem("auth_token");
@@ -43,6 +62,24 @@ apiClient.interceptors.response.use(
 
     if (status === 403 && err?.code === "subscription_expired") {
       toast.error(t.subscriptionExpired);
+      return Promise.reject(error);
+    }
+
+    // Módulo fuera del plan (403, o 422 al activarlo): en vez del toast genérico, invita a subir de
+    // plan nombrando el módulo. La página del módulo muestra además <ModuleLocked />.
+    if ((status === 403 || status === 422) && err?.details?.code === "module_not_in_plan") {
+      const locale = getLocale();
+      const key = err.details.module as keyof (typeof MODULE_NAMES)["es"];
+      const moduleName = MODULE_NAMES[locale][key] ?? String(err.details.module);
+      toast.error(t.moduleNotInPlan.replace("{module}", moduleName), {
+        id: `module-not-in-plan-${key}`,
+        action: {
+          label: t.moduleNotInPlanAction,
+          onClick: () => {
+            window.location.href = `/${locale}/suscripcion`;
+          },
+        },
+      });
       return Promise.reject(error);
     }
 

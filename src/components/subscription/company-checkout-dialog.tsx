@@ -14,20 +14,23 @@ import {
 } from "@/components/ui/dialog";
 import { createCompanyCheckout } from "@/services/subscription";
 import { cn } from "@/lib/utils";
-import type { Company, PlanKey } from "@/types";
+import type { BillingCycle, Company, PlanKey } from "@/types";
 
 interface Props {
   company: Company | null;
   onOpenChange: (open: boolean) => void;
 }
 
-const PLANS = ["basic", "pro", "enterprise"] as const satisfies readonly PlanKey[];
-type Plan = (typeof PLANS)[number];
+const PLANS: PlanKey[] = ["basic", "pro", "enterprise"];
+const CYCLES: BillingCycle[] = ["monthly", "annual"];
+const PLAN_LABEL = { basic: "planBasic", pro: "planPro", enterprise: "planEnterprise" } as const;
 
 export function CompanyCheckoutDialog({ company, onOpenChange }: Props) {
   const t = useTranslations("adminSubscriptions");
+  const tPlans = useTranslations("plans");
   const locale = useLocale();
-  const [plan, setPlan] = useState<Plan>("pro");
+  const [plan, setPlan] = useState<PlanKey>("pro");
+  const [cycle, setCycle] = useState<BillingCycle>("monthly");
   const [loading, setLoading] = useState(false);
 
   async function handleConfirm() {
@@ -38,11 +41,12 @@ export function CompanyCheckoutDialog({ company, onOpenChange }: Props) {
       const { checkout_url } = await createCompanyCheckout(
         company.id,
         plan,
-        "monthly",
+        cycle,
         `${origin}/${locale}/suscripciones`,
         `${origin}/${locale}/suscripciones`,
       );
-      toast.success(t("checkoutSuccess"));
+      // El pago lo confirma el webhook; aquí solo avisamos que se abre Stripe.
+      toast.message(t("checkoutSuccess"));
       window.open(checkout_url, "_blank");
       onOpenChange(false);
     } catch {
@@ -70,13 +74,30 @@ export function CompanyCheckoutDialog({ company, onOpenChange }: Props) {
                 key={p}
                 onClick={() => setPlan(p)}
                 className={cn(
-                  "rounded-md border py-2.5 text-sm font-medium capitalize transition-colors",
+                  "rounded-md border py-2.5 text-sm font-medium transition-colors",
                   plan === p
                     ? "border-zinc-900 bg-zinc-900 text-white"
                     : "border-zinc-200 text-zinc-600 hover:border-zinc-400 hover:text-zinc-900",
                 )}
               >
-                {p === "enterprise" ? t("planEnterprise") : p}
+                {t(PLAN_LABEL[p])}
+              </button>
+            ))}
+          </div>
+          <p className="pt-2 text-sm font-medium text-zinc-700">{t("checkoutCycle")}</p>
+          <div className="grid grid-cols-2 gap-2">
+            {CYCLES.map((c) => (
+              <button
+                key={c}
+                onClick={() => setCycle(c)}
+                className={cn(
+                  "rounded-md border py-2.5 text-sm font-medium transition-colors",
+                  cycle === c
+                    ? "border-zinc-900 bg-zinc-900 text-white"
+                    : "border-zinc-200 text-zinc-600 hover:border-zinc-400 hover:text-zinc-900",
+                )}
+              >
+                {tPlans(c)}
               </button>
             ))}
           </div>

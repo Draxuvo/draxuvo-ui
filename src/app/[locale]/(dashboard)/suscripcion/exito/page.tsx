@@ -1,31 +1,60 @@
 "use client";
-import { useEffect } from "react";
-import { useTranslations, useLocale } from "next-intl";
-import { CheckCircle2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+import { Loader2 } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { useQueryClient } from "@tanstack/react-query";
 import { useAppRouter } from "@/hooks/use-router";
+import { useAuthStore } from "@/store/auth";
+import { getSubscription } from "@/services/subscription";
+
+const POLL_MS = 2000;
+const MAX_WAIT_MS = 60_000;
 
 export default function SuscripcionExitoPage() {
   const t = useTranslations("subscription");
-  const locale = useLocale();
   const router = useAppRouter();
   const queryClient = useQueryClient();
+  const companyId = useAuthStore((s) => s.selectedCompanyId);
+  const [timedOut, setTimedOut] = useState(false);
+
+  // El estado solo cambia por webhook: se descarta la caché y se consulta hasta ver `active`.
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["subscription", companyId] });
+    const timer = setTimeout(() => setTimedOut(true), MAX_WAIT_MS);
+    return () => clearTimeout(timer);
+  }, [queryClient, companyId]);
+
+  const { data, isFetchedAfterMount } = useQuery({
+    queryKey: ["subscription", companyId],
+    queryFn: getSubscription,
+    retry: false,
+    refetchInterval: (query) =>
+      timedOut || query.state.data?.status === "active" ? false : POLL_MS,
+  });
+
+  const confirmed = isFetchedAfterMount && data?.status === "active";
 
   useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ["subscription"] });
-  }, [queryClient]);
+    if (confirmed) router.replace("/suscripcion");
+  }, [confirmed, router]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-6">
-      <div className="flex items-center justify-center w-16 h-16 rounded-full bg-green-100">
-        <CheckCircle2 size={32} className="text-green-600" />
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 text-center">
+      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100">
+        <Loader2 size={32} className={timedOut ? "text-zinc-500" : "animate-spin text-zinc-500"} />
       </div>
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold text-zinc-900">{t("successTitle")}</h1>
-        <p className="text-sm text-zinc-500 max-w-sm">{t("successDesc")}</p>
+        <h1 className="text-2xl font-semibold text-zinc-900">{t("processingTitle")}</h1>
+        <p className="max-w-sm text-sm text-zinc-500">
+          {timedOut ? t("processingSlow") : t("processingDesc")}
+        </p>
       </div>
-      <Button onClick={() => router.push("/dashboard")}>{t("successRedirect")}</Button>
+      {timedOut && (
+        <Button variant="outline" onClick={() => router.push("/suscripcion")}>
+          {t("cancelledBack")}
+        </Button>
+      )}
     </div>
   );
 }

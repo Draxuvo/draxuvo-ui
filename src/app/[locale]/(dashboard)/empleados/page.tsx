@@ -15,6 +15,7 @@ import { getEmployeeColumns } from "@/components/employees/columns";
 import { employeesService } from "@/services/employees";
 import { usePagination } from "@/hooks/use-pagination";
 import type { Employee } from "@/types";
+import { ModuleLocked, useModuleLocked } from "@/components/subscription/module-locked";
 
 const PAGE_SIZE = 10;
 
@@ -40,7 +41,7 @@ export default function EmpleadosPage() {
     onError: () => toast.error(t("toggleError")),
   });
 
-  const { data, isLoading, isFetching, refetch } = useQuery({
+  const { data, isLoading, isFetching, refetch, error } = useQuery({
     queryKey: ["employees", page, PAGE_SIZE, debouncedSearch],
     queryFn: () => employeesService.list(page, debouncedSearch, PAGE_SIZE),
   });
@@ -71,6 +72,9 @@ export default function EmpleadosPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
+
+  const locked = useModuleLocked("employees", error);
+  if (locked) return <ModuleLocked module="employees" />;
 
   return (
     <div className="space-y-6">
