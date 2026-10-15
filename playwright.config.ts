@@ -7,7 +7,7 @@ export default defineConfig({
   testDir: "./e2e/tests",
   globalSetup: "./e2e/global-setup.ts",
   retries: 1,
-  workers: isCI ? 4 : undefined,
+  workers: 4,
   forbidOnly: isCI,
   reporter: [
     ["list"],

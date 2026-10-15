@@ -11,7 +11,7 @@
     "test:watch": "vitest",
     "e2e:pr": "playwright test --grep @pr --grep-invert @flaky",
     "e2e:regresion": "playwright test --grep-invert @flaky",
-    "e2e:map": "tsx e2e/map.ts"
+    "e2e:map": "node --no-warnings --experimental-strip-types e2e/map.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
