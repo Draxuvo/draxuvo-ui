@@ -1,5 +1,5 @@
 // src/hooks/use-tickets.ts
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { ticketsService } from "@/services/tickets";
 import type { Ticket, TicketFilters } from "@/types";
 
@@ -26,19 +26,8 @@ export function useTicket(id: number) {
   });
 }
 
-export function useMarkTicketPaid(id: number) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: () => ticketsService.markAsPaid(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["tickets"] });
-      qc.invalidateQueries({ queryKey: ["tickets", id] });
-    },
-  });
-}
-
 export function useSendTicketWhatsapp(id: number) {
   return useMutation({
-    mutationFn: (phone: string) => ticketsService.sendWhatsapp(id, phone),
+    mutationFn: (phone?: string) => ticketsService.sendWhatsapp(id, phone),
   });
 }

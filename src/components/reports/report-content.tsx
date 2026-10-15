@@ -54,10 +54,10 @@ const tooltipStyle: React.CSSProperties = {
 };
 
 const STATUS_COLORS: Record<string, ChartColor> = {
-  pending: 4,
+  open: 4,
   in_progress: 2,
-  in_review: 5,
-  completed: 3,
+  done: 5,
+  paid: 3,
   cancelled: 1,
 };
 
@@ -163,7 +163,7 @@ interface ReportContentProps {
 export function ReportContent({ companyId }: ReportContentProps) {
   const t = useTranslations("reports");
   const chartColors = useChartColors();
-  const tWO = useTranslations("analyticsBoard");
+  const tWO = useTranslations("workOrders");
   const locale = useLocale();
   const dateLocale = locale === "es" ? es : enUS;
 
@@ -226,7 +226,7 @@ export function ReportContent({ companyId }: ReportContentProps) {
 
   const workOrderStatusData = summary
     ? Object.entries(summary.work_orders?.by_status ?? {}).map(([key, val]) => ({
-        name: tWO(`workOrderStatuses.${key}`),
+        name: tWO(`statuses.${key}`),
         value: val,
         fill: chartColors[STATUS_COLORS[key] ?? 5],
       }))

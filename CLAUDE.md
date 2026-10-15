@@ -103,7 +103,7 @@ TanStack Query hooks either inline in page components or in dedicated hook files
 - Forms open in `<Sheet>` (slide-over). Delete confirmations open in `<Dialog>`.
 - Both are controlled by local boolean state in the parent page.
 - Table column definitions live in `columns.tsx` per feature; consumed by shared `<DataTable>`.
-- **Exception — Work Orders**: uses a custom card-list layout (not `<DataTable>`), with client-side search debounce and status chip filters. Detail opens in a `<Sheet>` via `<WorkOrderDetail>`.
+- **Exception — Work Orders**: custom layout (not `<DataTable>`). `/ordenes` groups by status (Por cobrar, Abiertas, En curso, Sin asignar, Cobradas hoy); the detail is a page (`/ordenes/[id]`, staff `/mis-ordenes/[id]`) rendered by the shared `<OrderView>`, which only draws the actions the API sends in `allowed_actions`. Create/edit is `<OrderForm>` (a one-column `<Sheet>`, fields by the company `order_mode`); charging is `<ChargeDialog>`.
 
 ### Date Formatting
 Use `date-fns` with locale awareness: import `{ es, enUS } from "date-fns/locale"`, pick by `useLocale()`, and pass as `{ locale: dateLocale }` to `format()`.

@@ -46,10 +46,10 @@ const REPORTS_ROLES: Role[] = ["owner", "admin"];
 const BILLING_ROLES: Role[] = ["owner", "admin"];
 
 const STATUS_COLOR: Record<WorkOrderStatus, ChartColor> = {
-  pending: 2,
+  open: 2,
   in_progress: 1,
-  in_review: 5,
-  completed: 3,
+  done: 5,
+  paid: 3,
   cancelled: 4,
 };
 const PRIORITY_COLOR: Record<WorkOrderPriority, ChartColor> = {
@@ -192,6 +192,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 export default function DashboardPage() {
   const t = useTranslations("analyticsBoard");
   const tc = useTranslations("common");
+  const tw = useTranslations("workOrders");
   const locale = useLocale();
   const user = useAuthStore((s) => s.user);
   const selectedCompanyId = useAuthStore((s) => s.selectedCompanyId);
@@ -237,7 +238,8 @@ export default function DashboardPage() {
       });
     }
     if (can("work_orders")) {
-      const pending = work_orders.by_status.pending ?? 0;
+      const open = work_orders.by_status.open ?? 0;
+      const toCharge = work_orders.to_charge ?? 0;
       cards.push({
         id: "work_orders",
         label: t("totalWorkOrders"),
@@ -247,10 +249,27 @@ export default function DashboardPage() {
         icon: ClipboardList,
         subsets: [
           {
-            label: t("subset.pending", { count: pending }),
-            href: href("/ordenes?status=pending"),
-            ariaLabel: t("aria.workOrdersPending", { count: pending }),
-            highlight: pending > 0,
+            label: t("subset.open", { count: open }),
+            href: href("/ordenes?status=open"),
+            ariaLabel: t("aria.workOrdersOpen", { count: open }),
+            highlight: open > 0,
+          },
+        ],
+      });
+      // Por cobrar: órdenes terminadas (done) que aún no se cobran; abre el grupo en /ordenes.
+      cards.push({
+        id: "to_charge",
+        label: t("toCharge"),
+        value: formatCurrency(work_orders.to_charge_total ?? 0),
+        href: href("/ordenes?status=done"),
+        ariaLabel: t("aria.toCharge", { count: toCharge, amount: formatCurrency(work_orders.to_charge_total ?? 0) }),
+        icon: Banknote,
+        subsets: [
+          {
+            label: t("subset.toChargeCount", { count: toCharge }),
+            href: href("/ordenes?status=done"),
+            ariaLabel: t("aria.toCharge", { count: toCharge, amount: formatCurrency(work_orders.to_charge_total ?? 0) }),
+            highlight: toCharge > 0,
           },
         ],
       });
@@ -265,15 +284,14 @@ export default function DashboardPage() {
         icon: Receipt,
         subsets: [
           {
-            label: t("subset.pending", { count: tickets.pending }),
-            href: href("/tickets?status=pending"),
-            ariaLabel: t("aria.ticketsPending", { count: tickets.pending }),
-            highlight: tickets.pending > 0,
-          },
-          {
             label: t("subset.paid", { count: tickets.paid }),
             href: href("/tickets?status=paid"),
             ariaLabel: t("aria.ticketsPaid", { count: tickets.paid }),
+          },
+          {
+            label: t("subset.voided", { count: tickets.voided ?? 0 }),
+            href: href("/tickets?status=voided"),
+            ariaLabel: t("aria.ticketsVoided", { count: tickets.voided ?? 0 }),
           },
         ],
       });
@@ -285,13 +303,6 @@ export default function DashboardPage() {
         href: href("/tickets?status=paid"),
         ariaLabel: t("aria.revenue", { amount: formatCurrency(tickets.total_revenue) }),
         icon: Banknote,
-        subsets: [
-          {
-            label: t("subset.pendingRevenue", { amount: formatCurrency(tickets.pending_revenue) }),
-            href: href("/tickets?status=pending"),
-            ariaLabel: t("aria.ticketsPending", { count: tickets.pending }),
-          },
-        ],
       });
     }
     if (can("inventory")) {
@@ -354,7 +365,7 @@ export default function DashboardPage() {
   const statusParts: ChartPart[] = data
     ? WORK_ORDER_STATUSES.map((s) => {
         const count = data.work_orders.by_status[s] ?? 0;
-        const label = t(`workOrderStatuses.${s}`);
+        const label = tw(`statuses.${s}`);
         const path = `/ordenes?status=${s}`;
         return {
           key: s,
@@ -395,13 +406,13 @@ export default function DashboardPage() {
           ariaLabel: t("aria.ticketsPaid", { count: data.tickets.paid }),
         },
         {
-          key: "pending",
-          label: t("ticketPending"),
-          count: data.tickets.pending,
-          color: 4,
-          path: "/tickets?status=pending",
-          href: href("/tickets?status=pending"),
-          ariaLabel: t("aria.ticketsPending", { count: data.tickets.pending }),
+          key: "voided",
+          label: t("ticketVoided"),
+          count: data.tickets.voided ?? 0,
+          color: 1,
+          path: "/tickets?status=voided",
+          href: href("/tickets?status=voided"),
+          ariaLabel: t("aria.ticketsVoided", { count: data.tickets.voided ?? 0 }),
         },
       ]
     : [];
@@ -417,13 +428,16 @@ export default function DashboardPage() {
           ariaLabel: t("aria.revenue", { amount: formatCurrency(data.tickets.total_revenue) }),
         },
         {
-          key: "pending",
-          label: t("pendingRevenueLabel"),
-          count: data.tickets.pending_revenue,
-          display: formatCurrency(data.tickets.pending_revenue),
+          key: "to_charge",
+          label: t("toChargeLabel"),
+          count: data.work_orders.to_charge_total ?? 0,
+          display: formatCurrency(data.work_orders.to_charge_total ?? 0),
           color: 4,
-          href: href("/tickets?status=pending"),
-          ariaLabel: t("aria.ticketsPending", { count: data.tickets.pending }),
+          href: href("/ordenes?status=done"),
+          ariaLabel: t("aria.toCharge", {
+            count: data.work_orders.to_charge ?? 0,
+            amount: formatCurrency(data.work_orders.to_charge_total ?? 0),
+          }),
         },
       ]
     : [];

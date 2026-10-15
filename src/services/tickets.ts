@@ -20,14 +20,12 @@ export const ticketsService = {
   getById: (id: number): Promise<Ticket> =>
     apiClient.get(`/api/v1/tickets/${id}`).then((r) => r.data),
 
-  markAsPaid: (id: number): Promise<Ticket> =>
-    apiClient.patch(`/api/v1/tickets/${id}/mark_as_paid`).then((r) => r.data),
-
   download: (id: number): Promise<Blob> =>
     apiClient
       .get(`/api/v1/tickets/${id}/download`, { responseType: "blob" })
       .then((r) => r.data),
 
-  sendWhatsapp: (id: number, phone: string): Promise<void> =>
-    apiClient.post(`/api/v1/tickets/${id}/send_whatsapp`, { phone }).then((r) => r.data),
+  sendWhatsapp: (id: number, phone?: string): Promise<void> =>
+    apiClient
+      .post(`/api/v1/tickets/${id}/send_whatsapp`, phone ? { phone } : {}).then((r) => r.data),
 };
