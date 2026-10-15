@@ -6,7 +6,6 @@ import { routing } from "@/i18n/routing";
 const intlMiddleware = createMiddleware(routing);
 
 const PUBLIC_ROUTES = ["/login", "/set-password", "/recuperar-contrasena", "/registro"];
-const EMPLOYEE_ROUTES = ["/mis-ordenes", "/mi-perfil", "/mis-tickets"];
 const ADMIN_ROUTES = [
   "/dashboard",
   "/inicio",

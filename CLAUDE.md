@@ -12,10 +12,12 @@ This project uses **Next.js 16**, which has breaking changes from older versions
 npm run dev      # Dev server on port 4200 (not the default 3000)
 npm run build    # Production build
 npm run start    # Production server
-npm run lint     # ESLint (next/core-web-vitals + typescript)
+npm run lint     # ESLint (next/core-web-vitals + typescript), --max-warnings 0
+npm test         # Vitest + jsdom + Testing Library (vitest run)
+npm run test:watch
 ```
 
-No test runner is configured.
+Tests live next to the code (`*.test.ts(x)`); shared helpers in `src/test/` (`setup.ts` stubs what jsdom lacks, `render.tsx` has `renderWithProviders` with the real `messages/es.json`). Mock only the edges (`@/lib/api`, `sonner`, `next/navigation`). CI: `.github/workflows/ci.yml` (lint, typecheck, test, build).
 
 ## Environment Variables
 
