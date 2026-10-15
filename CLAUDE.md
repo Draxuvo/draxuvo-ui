@@ -15,9 +15,12 @@ npm run start    # Production server
 npm run lint     # ESLint (next/core-web-vitals + typescript), --max-warnings 0
 npm test         # Vitest + jsdom + Testing Library (vitest run)
 npm run test:watch
+npm run e2e:pr         # Playwright, suite de PR (@pr); necesita API :3000 y UI construida :4200
+npm run e2e:regresion  # Playwright, todo menos @flaky
+npm run e2e:map        # regenera 31-cobertura-playwright.md del plan 009
 ```
 
-Tests live next to the code (`*.test.ts(x)`); shared helpers in `src/test/` (`setup.ts` stubs what jsdom lacks, `render.tsx` has `renderWithProviders` with the real `messages/es.json`). Mock only the edges (`@/lib/api`, `sonner`, `next/navigation`). CI: `.github/workflows/ci.yml` (lint, typecheck, test, build).
+Tests live next to the code (`*.test.ts(x)`); shared helpers in `src/test/` (`setup.ts` stubs what jsdom lacks, `render.tsx` has `renderWithProviders` with the real `messages/es.json`). Mock only the edges (`@/lib/api`, `sonner`, `next/navigation`). CI: `.github/workflows/ci.yml` (lint, typecheck, test, build, e2e). Las pruebas de recorrido con Playwright viven en `e2e/` (no en `src/`); ver `e2e/README.md`. Vitest las ignora.
 
 ## Environment Variables
 

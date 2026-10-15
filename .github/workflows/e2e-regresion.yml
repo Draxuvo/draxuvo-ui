@@ -1,10 +1,10 @@
 name: e2e-regresion
 
-# Suite completa (todo menos @flaky) sobre una base reiniciada. Corre de noche y bajo demanda,
+# Suite completa (todo menos @flaky) sobre una base reiniciada. Corre a las 3:00 (hora de Ciudad de México, 09:00 UTC) y bajo demanda,
 # por ejemplo antes de un despliegue: Actions → e2e-regresion → Run workflow.
 on:
   schedule:
-    - cron: "0 8 * * *"
+    - cron: "0 9 * * *"
   workflow_dispatch:
     inputs:
       api_ref:

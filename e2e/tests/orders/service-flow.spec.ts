@@ -4,7 +4,7 @@ import { createOrderViaUI, orderIdFrom } from "../../support/orders";
 import { storageStatePath } from "../../support/session";
 import { uniquePrefix } from "../../support/data";
 
-test("[FLU-04] orden de servicio de Volta: de crear a cobrar, con ticket @pr", async ({ browser }, testInfo) => {
+test("[FLU-04][ORD-021][ORD-022] orden de servicio de Volta: de crear a cobrar, con ticket @pr", async ({ browser }, testInfo) => {
   test.setTimeout(120_000);
   const prefix = uniquePrefix(testInfo.workerIndex);
   const title = `${prefix} cambio de apagadores`;

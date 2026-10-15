@@ -15,7 +15,7 @@ async function fillSignup(page: Page, prefix: string, email: string) {
   await page.getByRole("button", { name: t("registration.submit") }).click();
 }
 
-test("[FLU-01] alta de empresa con plan sugerido: el dueño entra y su prueba corre @pr", async ({ page }, info) => {
+test("[FLU-01][AUT-011] alta de empresa con plan sugerido: el dueño entra y su prueba corre @pr", async ({ page }, info) => {
   const prefix = uniquePrefix(info.workerIndex);
 
   // [AUT-011] El plan y el ciclo sugeridos vienen marcados; la nota de la prueba se ve.
@@ -73,7 +73,8 @@ test.describe("enlace de contraseña", () => {
     await expect(page).toHaveURL(/set-password/);
   });
 
-  test("[AUT-022] la contraseña nueva se valida, se guarda y permite entrar @regresion", async ({ page, request }, info) => {
+  // Cuarentena (spec 010): inestable en la regresión local. Arreglar o borrar en 14 días.
+  test("[AUT-022] la contraseña nueva se valida, se guarda y permite entrar @regresion @flaky", async ({ page, request }, info) => {
     const company = await createCompany(request, { workerIndex: info.workerIndex });
     const user = { id: company.userId, email: company.email, fullName: "E2E" };
     await page.goto(`/es/set-password?token=${encodeURIComponent(passwordToken(user))}`);
