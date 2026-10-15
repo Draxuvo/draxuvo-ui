@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "eslint --max-warnings 0",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "e2e:pr": "playwright test --grep @pr --grep-invert @flaky",
+    "e2e:regresion": "playwright test --grep-invert @flaky",
+    "e2e:map": "node --no-warnings --experimental-strip-types e2e/map.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -37,6 +40,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",

@@ -1,0 +1,104 @@
+name: e2e-regresion
+
+# Suite completa (todo menos @flaky) sobre una base reiniciada. Corre a las 3:00 (hora de Ciudad de México, 09:00 UTC) y bajo demanda,
+# por ejemplo antes de un despliegue: Actions → e2e-regresion → Run workflow.
+on:
+  schedule:
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+    inputs:
+      api_ref:
+        description: "Rama de draxuvo-api (vacío = main)"
+        required: false
+        default: ""
+
+jobs:
+  regresion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432
+      SECRET_KEY_BASE: e2e-secret-key-base-0000000000000000000000000000000000000000000000000000
+      SUPER_ADMIN_PASSWORD: E2eSuperAdmin123*
+      STRIPE_WEBHOOK_SECRET: whsec_e2e_test
+      E2E_LOG_DIR: ${{ github.workspace }}/e2e-logs
+      CI: "true"
+
+    steps:
+      - name: Checkout ui
+        uses: actions/checkout@v4
+        with:
+          path: ui
+
+      - name: Checkout api
+        uses: actions/checkout@v4
+        with:
+          repository: Draxuvo/draxuvo-api
+          ref: ${{ inputs.api_ref || 'main' }}
+          token: ${{ secrets.E2E_REPO_TOKEN || github.token }}
+          path: api
+
+      - name: Install system packages
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential libpq-dev libyaml-dev pkg-config
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4.4
+          bundler-cache: true
+          working-directory: api
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install ui dependencies
+        run: npm ci
+        working-directory: ui
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+        working-directory: ui
+
+      # Base nueva en cada corrida: la regresión no depende de datos de otra ejecución.
+      - name: Reset database
+        env:
+          RAILS_ENV: development
+        run: bin/rails db:drop db:create
+        working-directory: api
+
+      - name: Start stack
+        env:
+          API_DIR: ${{ github.workspace }}/api
+          UI_DIR: ${{ github.workspace }}/ui
+        run: ui/e2e/ci/up.sh
+
+      - name: E2E suite regresion
+        run: npm run e2e:regresion
+        working-directory: ui
+
+      - name: Keep report, traces and API log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            ui/playwright-report
+            ui/test-results
+            e2e-logs
+          retention-days: 14
+          if-no-files-found: ignore
