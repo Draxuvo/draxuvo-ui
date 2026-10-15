@@ -26,6 +26,7 @@ export interface UserCompany {
   slug: string;
   role: CompanyRole;
   parent_company_id: number | null;
+  order_mode: OrderMode;
 }
 
 /** Persona del equipo de la empresa activa (`/company/members`). */
@@ -52,6 +53,7 @@ export interface Company {
   name: string;
   slug: string;
   active: boolean;
+  order_mode?: OrderMode;
   users_count?: number;
   created_at: string;
 }
@@ -229,8 +231,22 @@ export interface AuthResponse {
   user: User;
 }
 
-export type WorkOrderStatus = "pending" | "in_progress" | "in_review" | "completed" | "cancelled";
+export type WorkOrderStatus = "open" | "in_progress" | "done" | "paid" | "cancelled";
 export type WorkOrderPriority = "low" | "medium" | "high" | "urgent";
+export type PaymentMethod = "cash" | "card" | "transfer";
+export type OrderMode = "service" | "order";
+export type WorkOrderEventKind =
+  | "created" | "started" | "finished" | "reopened" | "charged"
+  | "voided" | "cancelled" | "reassigned" | "note" | "photo";
+export type WorkOrderAction =
+  | "start" | "finish" | "reopen" | "charge" | "void_charge" | "cancel"
+  | "edit" | "delete" | "add_item" | "edit_items" | "edit_steps" | "check_steps"
+  | "add_note" | "add_photo";
+
+export interface PersonRef {
+  id: number;
+  name: string;
+}
 
 export interface WorkOrderItem {
   id: number;
@@ -239,11 +255,34 @@ export interface WorkOrderItem {
   unit?: string;
   unit_price?: number;
   subtotal?: number;
-  status: "pending" | "completed";
   position: number;
   product_id?: number;
   product?: Pick<Product, "id" | "name" | "sku">;
-  completed_at?: string;
+}
+
+export interface WorkOrderStep {
+  id: number;
+  description: string;
+  position: number;
+  done: boolean;
+  done_at?: string;
+  done_by?: PersonRef;
+}
+
+export interface WorkOrderPhoto {
+  id: number;
+  url: string;
+  description?: string;
+  uploaded_by: PersonRef;
+  created_at: string;
+}
+
+export interface WorkOrderEvent {
+  id: number;
+  kind: WorkOrderEventKind;
+  actor: PersonRef | null;
+  data: Record<string, unknown>;
+  created_at: string;
 }
 
 export interface WorkOrder {
@@ -257,11 +296,35 @@ export interface WorkOrder {
   notes?: string;
   progress: number;
   total?: number;
-  employee?: { id: number; name: string };
-  items?: WorkOrderItem[];
+  customer_name?: string;
+  customer_phone?: string;
+  customer_address?: string;
+  employee?: PersonRef | null;
   items_count: number;
-  items_done: number;
+  steps_count: number;
+  steps_done: number;
   created_at: string;
+  // Solo en el detalle
+  items?: WorkOrderItem[];
+  steps?: WorkOrderStep[];
+  photos?: WorkOrderPhoto[];
+  events?: WorkOrderEvent[];
+  ticket?: Ticket | null;
+  allowed_actions?: WorkOrderAction[];
+  charge_blocked_reason?: "no_items" | null;
+  cancel_reason?: string | null;
+}
+
+export interface WorkOrderSummary {
+  counts: {
+    open: number;
+    in_progress: number;
+    done: number;
+    paid_today: number;
+    cancelled: number;
+    unassigned: number;
+  };
+  to_charge_total: number;
 }
 
 export interface DashboardStats {
@@ -278,11 +341,14 @@ export interface DashboardStats {
     total: number;
     by_status: Record<WorkOrderStatus, number>;
     by_priority: Record<WorkOrderPriority, number>;
+    to_charge: number;
+    to_charge_total: number;
   };
   tickets: {
     total: number;
     pending: number;
     paid: number;
+    voided: number;
     total_revenue: number;
     pending_revenue: number;
   };
@@ -364,7 +430,7 @@ export interface PayrollReport {
   employees: PayrollEmployee[];
 }
 
-export type TicketStatus = "pending" | "paid";
+export type TicketStatus = "pending" | "paid" | "voided";
 
 export interface TicketItem {
   id: number;
@@ -384,6 +450,9 @@ export interface Ticket {
     title: string;
     description?: string;
     employee?: { id: number; name: string };
+    priority?: WorkOrderPriority;
+    status?: WorkOrderStatus;
+    customer_phone?: string;
   };
   status: TicketStatus;
   total: number;
@@ -391,6 +460,14 @@ export interface Ticket {
   notes?: string;
   created_at: string;
   paid_at?: string;
+  payment_method?: PaymentMethod;
+  payment_method_label?: string;
+  amount_received?: number;
+  change_given?: number;
+  charged_by?: PersonRef;
+  voided_at?: string;
+  voided_by?: PersonRef;
+  void_reason?: string;
 }
 
 // ── Filtros de lista (contracts/ui-routes.md). Los nombres son los de la API (R5). ──
@@ -419,6 +496,10 @@ export interface WorkOrderFilters {
   priority?: WorkOrderPriority;
   employee_id?: number;
   search?: string;
+  unassigned?: boolean;
+  /** `YYYY-MM-DD`; con `status=paid`, las cobradas ese día. */
+  paid_on?: string;
+  sort_by?: "urgency" | "created_at" | "due_date";
 }
 
 export interface TicketFilters {
@@ -436,13 +517,9 @@ export interface AttendanceFilters {
 }
 
 export const EMPLOYEE_STATUSES: readonly EmployeeStatus[] = ["active", "inactive"];
-export const WORK_ORDER_STATUSES: readonly WorkOrderStatus[] = [
-  "pending",
-  "in_progress",
-  "in_review",
-  "completed",
-  "cancelled",
-];
+export const WORK_ORDER_STATUSES: readonly WorkOrderStatus[] = ["open", "in_progress", "done", "paid", "cancelled"];
 export const WORK_ORDER_PRIORITIES: readonly WorkOrderPriority[] = ["low", "medium", "high", "urgent"];
-export const TICKET_STATUSES: readonly TicketStatus[] = ["pending", "paid"];
+export const TICKET_STATUSES: readonly TicketStatus[] = ["pending", "paid", "voided"];
+export const PAYMENT_METHODS: readonly PaymentMethod[] = ["cash", "card", "transfer"];
+export const ORDER_MODES: readonly OrderMode[] = ["service", "order"];
 export const ATTENDANCE_TYPES: readonly AttendanceType[] = ["normal", "late", "absent"];

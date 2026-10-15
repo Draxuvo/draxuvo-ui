@@ -1,7 +1,8 @@
 // src/components/tickets/ticket-detail.tsx
 "use client";
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import {
   Sheet,
   SheetContent,
@@ -18,12 +19,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useTicket, useMarkTicketPaid, useSendTicketWhatsapp } from "@/hooks/use-tickets";
+import { useTicket, useSendTicketWhatsapp } from "@/hooks/use-tickets";
 import { TicketStatusBadge } from "./ticket-status-badge";
 import { downloadTicketPDF } from "@/lib/ticket-pdf";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Download, CheckCircle, Hash, Loader2, MessageCircle } from "lucide-react";
+import { Ban, Download, ExternalLink, Hash, Loader2, MessageCircle } from "lucide-react";
+import { useAuthStore } from "@/store/auth";
 import type { Ticket } from "@/types";
 
 export function TicketDetail({
@@ -37,11 +39,12 @@ export function TicketDetail({
 }) {
   const t = useTranslations("tickets");
   const tc = useTranslations("common");
+  const locale = useLocale();
+  const role = useAuthStore((s) => s.role);
 
   const { data: ticket } = useTicket(initial.id);
   const current = ticket ?? initial;
 
-  const markPaid = useMarkTicketPaid(current.id);
   const sendWhatsapp = useSendTicketWhatsapp(current.id);
 
   const [downloading, setDownloading] = useState(false);
@@ -59,19 +62,14 @@ export function TicketDetail({
     }
   }
 
-  async function handleMarkPaid() {
-    try {
-      await markPaid.mutateAsync();
-      toast.success(t("markedPaid"));
-      setShowWhatsapp(true);
-    } catch {
-      toast.error(tc("error"));
-    }
+  function openWhatsapp() {
+    setPhone(current.work_order?.customer_phone ?? "");
+    setShowWhatsapp(true);
   }
 
   async function handleSendWhatsapp() {
     try {
-      await sendWhatsapp.mutateAsync(phone);
+      await sendWhatsapp.mutateAsync(phone.trim() || undefined);
       toast.success(t("whatsappSent"));
     } catch {
       toast.error(tc("error"));
@@ -87,6 +85,8 @@ export function TicketDetail({
   }
 
   const orderTotal = Number(current.total ?? 0);
+  const orderHref = `/${locale}${role === "staff" ? "/mis-ordenes" : "/ordenes"}/${current.work_order_id}`;
+  const money = (n: number | string | undefined) => `$${Number(n ?? 0).toFixed(2)}`;
 
   return (
     <>
@@ -143,6 +143,60 @@ export function TicketDetail({
               </div>
             </div>
 
+            {/* Voided notice */}
+            {current.status === "voided" && (
+              <div role="status" className="space-y-1 rounded-xl border border-estado-cancelada-border bg-estado-cancelada px-4 py-3 text-estado-cancelada-foreground">
+                <p className="flex items-center gap-1.5 text-sm font-semibold">
+                  <Ban size={14} aria-hidden="true" />
+                  {t("voidedNote")}
+                </p>
+                {current.voided_by && (
+                  <p className="text-xs">{t("voidedBy")}: {current.voided_by.name}</p>
+                )}
+                {current.voided_at && (
+                  <p className="text-xs">{t("voidedAt", { date: format(new Date(current.voided_at), "dd MMM yyyy HH:mm") })}</p>
+                )}
+                {current.void_reason && (
+                  <p className="text-xs">{t("voidReason")}: {current.void_reason}</p>
+                )}
+              </div>
+            )}
+
+            {/* Payment */}
+            {current.payment_method && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">{t("paymentMethod")}</p>
+                  <p className="text-sm text-foreground">{t(`methods.${current.payment_method}`)}</p>
+                </div>
+                {current.charged_by && (
+                  <div className="space-y-1">
+                    <p className="text-xs font-medium text-muted-foreground">{t("chargedBy")}</p>
+                    <p className="text-sm text-foreground">{current.charged_by.name}</p>
+                  </div>
+                )}
+                {current.payment_method === "cash" && current.amount_received != null && (
+                  <>
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground">{t("amountReceived")}</p>
+                      <p className="text-sm tabular-nums text-foreground">{money(current.amount_received)}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground">{t("changeGiven")}</p>
+                      <p className="text-sm tabular-nums text-foreground">{money(current.change_given)}</p>
+                    </div>
+                  </>
+                )}
+                {current.paid_at && (
+                  <div className="col-span-2 space-y-1">
+                    <p className="text-sm text-muted-foreground">
+                      {t("chargedAt", { date: format(new Date(current.paid_at), "dd MMM yyyy HH:mm") })}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Items table */}
             {(current.items ?? []).length > 0 && (
               <div>
@@ -192,7 +246,7 @@ export function TicketDetail({
             {/* Total */}
             <div className="flex justify-between items-center rounded-xl border border-border bg-card px-5 py-4">
               <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                Total
+                {t("total")}
               </span>
               <span className="text-xl font-bold text-foreground tabular-nums">
                 ${orderTotal.toFixed(2)}
@@ -225,28 +279,19 @@ export function TicketDetail({
               {t("download")}
             </Button>
 
-            {current.status === "pending" && (
-              <Button
-                size="sm"
-                className="gap-2 ml-auto"
-                onClick={handleMarkPaid}
-                disabled={markPaid.isPending}
-              >
-                {markPaid.isPending ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : (
-                  <CheckCircle size={14} />
-                )}
-                {t("markPaid")}
-              </Button>
-            )}
+            <Button asChild variant="outline" size="sm" className="gap-2 min-h-11 sm:min-h-0">
+              <Link href={orderHref}>
+                <ExternalLink size={14} aria-hidden="true" />
+                {t("viewOrder")}
+              </Link>
+            </Button>
 
             {current.status === "paid" && (
               <Button
                 variant="outline"
                 size="sm"
                 className="gap-2 ml-auto border-estado-completada-border text-estado-completada-foreground hover:bg-estado-completada"
-                onClick={() => setShowWhatsapp(true)}
+                onClick={openWhatsapp}
               >
                 <MessageCircle size={14} />
                 {t("resendWhatsapp")}
@@ -256,7 +301,7 @@ export function TicketDetail({
         </SheetContent>
       </Sheet>
 
-      {/* WhatsApp dialog — shown after marking paid */}
+      {/* WhatsApp dialog: el teléfono viene de la orden y se puede cambiar */}
       <Dialog open={showWhatsapp} onOpenChange={handleSkipWhatsapp}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
@@ -273,7 +318,7 @@ export function TicketDetail({
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && phone.trim()) handleSendWhatsapp();
+              if (e.key === "Enter") handleSendWhatsapp();
             }}
           />
 
@@ -285,7 +330,7 @@ export function TicketDetail({
               size="sm"
               className="gap-2 bg-success text-success-foreground hover:bg-success/90"
               onClick={handleSendWhatsapp}
-              disabled={!phone.trim() || sendWhatsapp.isPending}
+              disabled={sendWhatsapp.isPending}
             >
               {sendWhatsapp.isPending ? (
                 <Loader2 size={14} className="animate-spin" />

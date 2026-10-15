@@ -22,7 +22,7 @@ import { SearchInput } from "@/components/filters/search-input";
 const PAGE_SIZE = 20;
 const DEFAULTS = { status: "", search: "" };
 const ALLOWED = { status: TICKET_STATUSES };
-const STATUS_TABS = ["all", "pending", "paid"] as const;
+const STATUS_TABS = ["all", "pending", "paid", "voided"] as const;
 
 const CHIP =
   "inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors duration-[120ms] ease-etiqueta foco-etiqueta";
@@ -76,6 +76,7 @@ function TicketsContent() {
     all: stats?.tickets.total,
     pending: stats?.tickets.pending,
     paid: stats?.tickets.paid,
+    voided: undefined,
   };
 
   if (gate.isLocked(error)) return <ModuleLocked module="tickets" />;
@@ -188,10 +189,17 @@ function TicketsContent() {
                     <TicketStatusBadge status={ticket.status} />
                   </div>
                   <p className="truncate font-medium text-foreground">
-                    {ticket.work_order?.title ?? t("workOrder")} #{ticket.work_order_id}
+                    {ticket.work_order?.title ?? t("workOrder")}
                   </p>
-                  {ticket.work_order?.employee && (
-                    <p className="mt-0.5 text-xs text-muted-foreground">{ticket.work_order.employee.name}</p>
+                  {(ticket.payment_method || ticket.work_order?.employee) && (
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {[
+                        ticket.payment_method && t(`methods.${ticket.payment_method}`),
+                        ticket.work_order?.employee?.name,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
                   )}
                 </div>
                 <div className="flex-shrink-0 text-right">

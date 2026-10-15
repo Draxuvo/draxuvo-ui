@@ -45,10 +45,10 @@ const tooltipStyle: React.CSSProperties = {
 };
 
 const STATUS_COLORS: Record<string, ChartColor> = {
-  pending: 4,
+  open: 4,
   in_progress: 2,
-  in_review: 5,
-  completed: 3,
+  done: 5,
+  paid: 3,
   cancelled: 1,
 };
 
@@ -142,6 +142,7 @@ export default function EstadisticasPage() {
 
   const companies = companiesData?.results ?? [];
 
+  const tw = useTranslations("workOrders");
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["dashboard-stats-sa", selectedCompany?.id],
     queryFn: () => getDashboardStatsByCompany(selectedCompany!.id),
@@ -151,7 +152,7 @@ export default function EstadisticasPage() {
 
   const workOrderStatusData = data
     ? Object.entries(data.work_orders.by_status).map(([key, val]) => ({
-        name: t(`workOrderStatuses.${key}`),
+        name: tw(`statuses.${key}`),
         value: val,
         fill: chartColors[STATUS_COLORS[key] ?? 5],
       }))
@@ -168,7 +169,7 @@ export default function EstadisticasPage() {
   const ticketData = data
     ? [
         { name: t("ticketPaid"), value: data.tickets.paid, fill: chartColors[3] },
-        { name: t("ticketPending"), value: data.tickets.pending, fill: chartColors[4] },
+        { name: t("ticketVoided"), value: data.tickets.voided ?? 0, fill: chartColors[1] },
       ]
     : [];
 
@@ -253,8 +254,9 @@ export default function EstadisticasPage() {
                 <StatCard
                   label={t("totalWorkOrders")}
                   value={data?.work_orders.total ?? 0}
-                  sub={t("workOrdersSub", {
-                    completed: data?.work_orders.by_status.completed ?? 0,
+                  sub={t("workOrdersToChargeSub", {
+                    count: data?.work_orders.to_charge ?? 0,
+                    amount: formatCurrency(data?.work_orders.to_charge_total ?? 0),
                   })}
                   icon={ClipboardList}
                   iconColor="text-estado-revision-foreground"
@@ -263,7 +265,7 @@ export default function EstadisticasPage() {
                 <StatCard
                   label={t("totalTickets")}
                   value={data?.tickets.total ?? 0}
-                  sub={t("ticketsPending", { count: data?.tickets.pending ?? 0 })}
+                  sub={t("ticketsVoided", { count: data?.tickets.voided ?? 0 })}
                   icon={Receipt}
                   iconColor="text-estado-pendiente-foreground"
                   iconBg="bg-estado-pendiente"
@@ -271,8 +273,8 @@ export default function EstadisticasPage() {
                 <StatCard
                   label={t("totalRevenue")}
                   value={formatCurrency(data?.tickets.total_revenue ?? 0)}
-                  sub={t("pendingRevenue", {
-                    amount: formatCurrency(data?.tickets.pending_revenue ?? 0),
+                  sub={t("toChargeRevenue", {
+                    amount: formatCurrency(data?.work_orders.to_charge_total ?? 0),
                   })}
                   icon={DollarSign}
                   iconColor="text-estado-completada-foreground"
@@ -426,22 +428,16 @@ export default function EstadisticasPage() {
                     <span className="text-sm text-muted-foreground">{t("collectedRevenue")}</span>
                   </div>
                   <span className="text-sm font-medium text-foreground">
-                    {formatCurrency((data?.tickets.total_revenue ?? 0) - (data?.tickets.pending_revenue ?? 0))}
+                    {formatCurrency(data?.tickets.total_revenue ?? 0)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-estado-pendiente-border shrink-0" />
-                    <span className="text-sm text-muted-foreground">{t("pendingRevenueLabel")}</span>
+                    <span className="text-sm text-muted-foreground">{t("toChargeLabel")}</span>
                   </div>
                   <span className="text-sm font-medium text-foreground">
-                    {formatCurrency(data?.tickets.pending_revenue ?? 0)}
-                  </span>
-                </div>
-                <div className="border-t border-border/60 pt-3 flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground">{t("totalRevenue")}</span>
-                  <span className="text-base font-semibold text-foreground">
-                    {formatCurrency(data?.tickets.total_revenue ?? 0)}
+                    {formatCurrency(data?.work_orders.to_charge_total ?? 0)}
                   </span>
                 </div>
               </div>

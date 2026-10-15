@@ -1,56 +1,47 @@
 // src/app/[locale]/(dashboard)/ordenes/page.tsx
+// Lista del jefe: grupos por estado con su conteo (Abiertas, En curso, Por cobrar, Cobradas hoy, Sin
+// asignar). Al elegir un estado se ve la lista completa de ese estado, paginada.
 "use client";
 import { Suspense, useState } from "react";
+import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
-import { useWorkOrders, useDeleteWorkOrder } from "@/hooks/use-work-orders";
+import { format } from "date-fns";
+import { ClipboardList, Plus, RefreshCw, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/ui/pagination";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { PriorityBadge } from "@/components/work-orders/priority-badge";
 import { StatusBadge } from "@/components/work-orders/status-badge";
 import { ProgressBar } from "@/components/work-orders/progress-bar";
-import { WorkOrderDialog } from "@/components/work-orders/work-order-dialog";
-import { WorkOrderDetail } from "@/components/work-orders/work-order-detail";
-import { ClipboardList, Plus, RefreshCw, Trash2 } from "lucide-react";
-import {
-  WORK_ORDER_PRIORITIES,
-  WORK_ORDER_STATUSES,
-  type WorkOrder,
-  type WorkOrderPriority,
-  type WorkOrderStatus,
-} from "@/types";
+import { OrderForm } from "@/components/work-orders/order-form";
+import { OrderModeDialog } from "@/components/work-orders/order-mode-dialog";
 import { ModuleLocked, useModuleGate } from "@/components/subscription/module-locked";
 import { FilterNotice } from "@/components/filters/filter-notice";
 import { SearchInput } from "@/components/filters/search-input";
 import { useUrlFilters } from "@/hooks/use-url-filters";
+import { useWorkOrders, useWorkOrderSummary } from "@/hooks/use-work-orders";
 import { employeesService } from "@/services/employees";
 import { getDashboardStats } from "@/services/analytics";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { es, enUS } from "date-fns/locale";
 import { useAuthStore } from "@/store/auth";
-import { toast } from "sonner";
+import {
+  WORK_ORDER_PRIORITIES, WORK_ORDER_STATUSES,
+  type WorkOrder, type WorkOrderFilters, type WorkOrderPriority, type WorkOrderStatus,
+} from "@/types";
+import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 20;
+const GROUP_SIZE = 5;
 const DEFAULTS = { status: "", priority: "", employee_id: "", search: "" };
 const ALLOWED = { status: WORK_ORDER_STATUSES, priority: WORK_ORDER_PRIORITIES };
 const ID_PATTERN = /^\d+$/;
 
-const ADMIN_ROLES = ["admin", "owner", "super_admin"] as const;
-
 const CHIP =
-  "inline-flex h-8 items-center rounded-full border px-3 text-sm transition-colors duration-[120ms] ease-etiqueta foco-etiqueta";
+  "inline-flex h-9 items-center rounded-full border px-3 text-sm transition-colors duration-[120ms] ease-etiqueta foco-etiqueta";
 const CHIP_ON = "border-foreground bg-foreground text-background";
 const CHIP_OFF = "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground";
 const SELECT =
-  "h-9 w-full rounded-etiqueta border border-input bg-card px-2.5 text-sm text-foreground transition-colors duration-[120ms] hover:border-foreground/40 foco-etiqueta sm:w-auto";
+  "h-10 w-full rounded-etiqueta border border-input bg-card px-2.5 text-sm text-foreground transition-colors duration-[120ms] hover:border-foreground/40 foco-etiqueta sm:w-auto";
 
 export default function OrdenesPage() {
   return (
@@ -60,43 +51,112 @@ export default function OrdenesPage() {
   );
 }
 
+function OrderRow({ order, showPriority }: { order: WorkOrder; showPriority: boolean }) {
+  const t = useTranslations("workOrders");
+  const locale = useLocale();
+  const money = new Intl.NumberFormat(locale === "en" ? "en-US" : "es-MX", { style: "currency", currency: "MXN" });
+  return (
+    <li>
+      <Link
+        href={`/${locale}/ordenes/${order.id}`}
+        className="flex min-h-16 flex-col gap-2 rounded-etiqueta border border-transparent bg-card p-4 shadow-etiqueta transition-colors duration-[120ms] ease-etiqueta hover:border-foreground/40 foco-etiqueta"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1 space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusBadge status={order.status} />
+              {showPriority && <PriorityBadge priority={order.priority} />}
+            </div>
+            <p className="truncate font-medium text-foreground">{order.title}</p>
+            {order.customer_name && <p className="truncate text-sm text-muted-foreground">{order.customer_name}</p>}
+          </div>
+          <div className="shrink-0 text-right">
+            <p className="font-display text-lg font-semibold tabular-nums">{money.format(Number(order.total ?? 0))}</p>
+            <p className="text-xs text-muted-foreground">{order.employee?.name ?? t("unassigned")}</p>
+            {order.due_date && showPriority && (
+              <p className="text-xs text-muted-foreground tabular-nums">{format(new Date(order.due_date), "dd MMM")}</p>
+            )}
+          </div>
+        </div>
+        {order.steps_count > 0 && <ProgressBar steps_done={order.steps_done} steps_count={order.steps_count} />}
+      </Link>
+    </li>
+  );
+}
+
+function Group({
+  title, count, extra, filters, showPriority, enabled,
+}: {
+  title: string; count: number | undefined; extra?: string; filters: WorkOrderFilters; showPriority: boolean; enabled: boolean;
+}) {
+  const t = useTranslations("workOrders");
+  const [expanded, setExpanded] = useState(false);
+  const { data, isLoading } = useWorkOrders(filters, { page_size: expanded ? PAGE_SIZE : GROUP_SIZE }, { enabled });
+  const orders = data?.results ?? [];
+  const total = data?.info?.total ?? count ?? 0;
+
+  return (
+    <section aria-label={title} className="space-y-2">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="font-heading text-lg font-semibold">
+          {title} <span className="text-muted-foreground tabular-nums">({count ?? total})</span>
+        </h2>
+        {extra && <p className="text-sm font-medium tabular-nums">{extra}</p>}
+      </div>
+      {isLoading ? (
+        <Skeleton className="h-20 w-full rounded-etiqueta" />
+      ) : orders.length === 0 ? (
+        <p className="py-3 text-sm text-muted-foreground">{t("groups.empty")}</p>
+      ) : (
+        <ul className="space-y-2">
+          {orders.map((order) => (
+            <OrderRow key={order.id} order={order} showPriority={showPriority} />
+          ))}
+        </ul>
+      )}
+      {total > GROUP_SIZE && (
+        <Button variant="ghost" className="h-10" onClick={() => setExpanded((v) => !v)}>
+          {expanded ? t("groups.showLess") : t("groups.showMore")}
+        </Button>
+      )}
+    </section>
+  );
+}
+
 function OrdenesContent() {
   const t = useTranslations("workOrders");
   const tc = useTranslations("common");
   const tf = useTranslations("common.filters");
   const locale = useLocale();
-  const dateLocale = locale === "es" ? es : enUS;
+  const money = new Intl.NumberFormat(locale === "en" ? "en-US" : "es-MX", { style: "currency", currency: "MXN" });
   const selectedCompanyId = useAuthStore((s) => s.selectedCompanyId);
   const role = useAuthStore((s) => s.role);
-  const isAdmin = ADMIN_ROLES.includes(role as typeof ADMIN_ROLES[number]);
+  const mode = useAuthStore((s) => s.user?.companies?.find((c) => c.id === s.selectedCompanyId)?.order_mode ?? "service");
+  const isOwner = role === "owner" || role === "super_admin";
+  const today = format(new Date(), "yyyy-MM-dd");
 
-  const { filters, page, setFilter, setPage, reset, isFiltered } = useUrlFilters(DEFAULTS, {
-    allowed: ALLOWED,
-  });
-  // employee_id: solo ids numéricos; otro valor se ignora.
+  const { filters, page, setFilter, setPage, reset, isFiltered } = useUrlFilters(DEFAULTS, { allowed: ALLOWED });
   const employeeId = ID_PATTERN.test(filters.employee_id) ? filters.employee_id : "";
 
-  const [createOpen, setCreateOpen] = useState(false);
-  const [selected, setSelected] = useState<WorkOrder | null>(null);
-  const [toDelete, setToDelete] = useState<WorkOrder | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [modeOpen, setModeOpen] = useState(false);
 
-  const deleteOrder = useDeleteWorkOrder();
-
-  // Puerta del módulo antes de consultar: con el plan sin órdenes no hay request ni toast.
   const gate = useModuleGate("work_orders");
-  const { data, isLoading, isFetching, refetch, error } = useWorkOrders(
-    {
-      status: (filters.status || undefined) as WorkOrderStatus | undefined,
-      priority: (filters.priority || undefined) as WorkOrderPriority | undefined,
-      employee_id: employeeId ? Number(employeeId) : undefined,
-      search: filters.search || undefined,
-    },
-    { page, page_size: PAGE_SIZE },
-    { enabled: gate.enabled },
-  );
-  const orders = data?.results ?? [];
+  const { data: summary, error: summaryError, refetch, isFetching } = useWorkOrderSummary({ enabled: gate.enabled });
 
-  // Opciones de empleado: solo si el módulo de personal está activo (evita un 403).
+  const common: WorkOrderFilters = {
+    priority: (filters.priority || undefined) as WorkOrderPriority | undefined,
+    employee_id: employeeId ? Number(employeeId) : undefined,
+    search: filters.search || undefined,
+  };
+  // Con un estado elegido (o una búsqueda) se ve la lista completa; si no, los grupos.
+  const flat = !!filters.status || !!filters.search || !!filters.priority || !!employeeId;
+  const { data, isLoading, error } = useWorkOrders(
+    { ...common, status: (filters.status || undefined) as WorkOrderStatus | undefined },
+    { page, page_size: PAGE_SIZE },
+    { enabled: gate.enabled && flat },
+  );
+
   const { data: stats } = useQuery({
     queryKey: ["dashboard", selectedCompanyId],
     queryFn: getDashboardStats,
@@ -111,51 +171,47 @@ function OrdenesContent() {
     staleTime: 5 * 60 * 1000,
   });
 
-  if (gate.isLocked(error)) return <ModuleLocked module="work_orders" />;
+  if (gate.isLocked(error ?? summaryError)) return <ModuleLocked module="work_orders" />;
 
-  const employeeName =
-    employeeOptions?.results.find((e) => String(e.id) === employeeId)?.name ?? `#${employeeId}`;
+  const showPriority = mode === "service";
+  const counts = summary?.counts;
+  const employeeName = employeeOptions?.results.find((e) => String(e.id) === employeeId)?.name ?? `#${employeeId}`;
   const applied = [
     filters.status && `${t("status")}: ${t(`statuses.${filters.status as WorkOrderStatus}`)}`,
     filters.priority && `${t("priority")}: ${t(`priorities.${filters.priority as WorkOrderPriority}`)}`,
     employeeId && `${t("employee")}: ${employeeName}`,
     filters.search && `"${filters.search}"`,
   ].filter(Boolean);
-  const statusChips: { value: string; label: string }[] = [
-    { value: "", label: t("all") },
-    ...WORK_ORDER_STATUSES.map((s) => ({ value: s, label: t(`statuses.${s}`) })),
-  ];
+  const statusChips = [{ value: "", label: t("all") }, ...WORK_ORDER_STATUSES.map((s) => ({ value: s, label: t(`statuses.${s}`) }))];
+  const orders = data?.results ?? [];
 
   return (
     <div className="space-y-4">
-      <div className="mb-2 flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-semibold leading-tight text-foreground">{t("title")}</h1>
+          <h1 className="font-display text-3xl leading-tight font-semibold">{t("title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {isFiltered
-              ? tf("results", { count: data?.info?.total ?? 0 })
-              : t("subtitle", { count: data?.info?.total ?? 0 })}
+            {flat && isFiltered ? tf("results", { count: data?.info?.total ?? 0 }) : t("subtitle", { count: summaryTotal(counts) })}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => refetch()}
-            disabled={isFetching}
-            aria-label={tc("refresh")}
-          >
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="icon" className="size-10" onClick={() => refetch()} disabled={isFetching} aria-label={tc("refresh")}>
             <RefreshCw size={15} className={isFetching ? "animate-spin" : ""} />
           </Button>
-          <Button onClick={() => setCreateOpen(true)} className="gap-2">
-            <Plus size={15} />
-            {t("new")}
+          {isOwner && (
+            <Button variant="outline" className="h-10 gap-2" onClick={() => setModeOpen(true)}>
+              <Settings2 size={15} aria-hidden="true" />
+              {t("mode.open")}
+            </Button>
+          )}
+          <Button className="h-10 gap-2" onClick={() => setFormOpen(true)}>
+            <Plus size={15} aria-hidden="true" />
+            {t(`labels.${mode}.new`)}
           </Button>
         </div>
       </div>
 
-      {/* Filtro de estado */}
-      <div role="group" aria-label={t("filterStatus")} className="flex flex-wrap gap-2">
+      <div role="group" aria-label={t("filters.status")} className="flex flex-wrap gap-2">
         {statusChips.map((s) => (
           <button
             key={s.value || "all"}
@@ -169,37 +225,22 @@ function OrdenesContent() {
         ))}
       </div>
 
-      {/* Búsqueda, prioridad y empleado */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <SearchInput
-          value={filters.search}
-          onSearch={(value) => setFilter("search", value)}
-          placeholder={t("searchPlaceholder")}
-        />
-        <select
-          aria-label={t("filterPriority")}
-          className={SELECT}
-          value={filters.priority}
-          onChange={(e) => setFilter("priority", e.target.value || null)}
-        >
-          <option value="">{t("allPriorities")}</option>
-          {WORK_ORDER_PRIORITIES.map((p) => (
-            <option key={p} value={p}>
-              {t(`priorities.${p}`)}
-            </option>
-          ))}
-        </select>
+        <SearchInput value={filters.search} onSearch={(value) => setFilter("search", value)} placeholder={t("searchPlaceholder")} />
+        {showPriority && (
+          <select aria-label={t("filters.priority")} className={SELECT} value={filters.priority} onChange={(e) => setFilter("priority", e.target.value || null)}>
+            <option value="">{t("filters.allPriorities")}</option>
+            {WORK_ORDER_PRIORITIES.map((p) => (
+              <option key={p} value={p}>
+                {t(`priorities.${p}`)}
+              </option>
+            ))}
+          </select>
+        )}
         {(hasEmployees || employeeId) && (
-          <select
-            aria-label={t("filterEmployee")}
-            className={SELECT}
-            value={employeeId}
-            onChange={(e) => setFilter("employee_id", e.target.value || null)}
-          >
-            <option value="">{t("allEmployees")}</option>
-            {employeeId && !employeeOptions?.results.some((e) => String(e.id) === employeeId) && (
-              <option value={employeeId}>{employeeName}</option>
-            )}
+          <select aria-label={t("filters.employee")} className={SELECT} value={employeeId} onChange={(e) => setFilter("employee_id", e.target.value || null)}>
+            <option value="">{t("filters.allEmployees")}</option>
+            {employeeId && !employeeOptions?.results.some((e) => String(e.id) === employeeId) && <option value={employeeId}>{employeeName}</option>}
             {employeeOptions?.results.map((e) => (
               <option key={e.id} value={String(e.id)}>
                 {e.name}
@@ -211,138 +252,42 @@ function OrdenesContent() {
 
       {isFiltered && <FilterNotice applied={applied} onClear={reset} />}
 
-      {/* Lista de órdenes */}
-      <div className="space-y-2">
-        {isLoading ? (
-          Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} aria-hidden className="h-24 animate-pulse rounded-etiqueta bg-card shadow-etiqueta" />
-          ))
-        ) : orders.length === 0 ? (
-          <div className="py-12 text-center text-sm text-muted-foreground">
-            <ClipboardList size={32} strokeWidth={1.75} aria-hidden className="mx-auto mb-3" />
-            {isFiltered ? (
-              <>
-                <p className="font-medium text-foreground">{tf("noResults")}</p>
-                <p className="mt-1">{tf("noResultsHint")}</p>
-              </>
-            ) : (
-              t("noOrders")
-            )}
-          </div>
-        ) : (
-          orders.map((order) => (
-            <div
-              key={order.id}
-              role="button"
-              tabIndex={0}
-              onClick={() => setSelected(order)}
-              onKeyDown={(e) => {
-                if (e.target !== e.currentTarget) return;
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setSelected(order);
-                }
-              }}
-              className="cursor-pointer rounded-etiqueta border border-transparent bg-card p-4 shadow-etiqueta transition-colors duration-[120ms] ease-etiqueta hover:border-foreground/40 foco-etiqueta"
-            >
-              <div className="mb-3 flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <div className="mb-1 flex items-center gap-2">
-                    <PriorityBadge priority={order.priority} />
-                    <StatusBadge status={order.status} />
-                  </div>
-                  <p className="truncate font-medium text-foreground">{order.title}</p>
-                  {order.description && (
-                    <p className="mt-0.5 truncate text-sm text-muted-foreground">{order.description}</p>
-                  )}
-                </div>
-                <div className="flex flex-shrink-0 items-start gap-2">
-                  <div className="text-right">
-                    {order.due_date && (
-                      <p className="text-xs text-muted-foreground tabular-nums">
-                        {format(new Date(order.due_date), "dd MMM", { locale: dateLocale })}
-                      </p>
-                    )}
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {order.employee?.name ?? t("unassigned")}
-                    </p>
-                  </div>
-                  {isAdmin && (
-                    <button
-                      type="button"
-                      aria-label={t("delete")}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setToDelete(order);
-                      }}
-                      className="rounded-etiqueta p-1.5 text-muted-foreground transition-colors duration-[120ms] hover:bg-destructive/10 hover:text-destructive foco-etiqueta"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {order.items_count > 0 && (
-                <div className="mt-2">
-                  <div className="mb-1 flex justify-between text-xs text-muted-foreground">
-                    <span>{t("items")}</span>
-                    <span className="tabular-nums">
-                      {order.items_done}/{order.items_count}
-                    </span>
-                  </div>
-                  <ProgressBar value={order.progress} />
-                </div>
-              )}
+      {flat ? (
+        <div className="space-y-2">
+          {isLoading ? (
+            [0, 1, 2].map((i) => <Skeleton key={i} className="h-24 w-full rounded-etiqueta" />)
+          ) : orders.length === 0 ? (
+            <div className="py-12 text-center text-sm text-muted-foreground">
+              <ClipboardList size={32} strokeWidth={1.75} aria-hidden className="mx-auto mb-3" />
+              <p className="font-medium text-foreground">{isFiltered ? tf("noResults") : t(`labels.${mode}.empty`)}</p>
+              {isFiltered && <p className="mt-1">{tf("noResultsHint")}</p>}
             </div>
-          ))
-        )}
-      </div>
-
-      {data?.info && data.info.total > 0 && (
-        <Pagination info={data.info} onPageChange={setPage} />
+          ) : (
+            <ul className="space-y-2">
+              {orders.map((order) => (
+                <OrderRow key={order.id} order={order} showPriority={showPriority} />
+              ))}
+            </ul>
+          )}
+          {data?.info && data.info.total > 0 && <Pagination info={data.info} onPageChange={setPage} />}
+        </div>
+      ) : (
+        <div className="space-y-8">
+          <Group title={t("groups.toCharge")} count={counts?.done} extra={summary ? t("groups.toChargeTotal", { amount: money.format(summary.to_charge_total) }) : undefined}
+                 filters={{ status: "done" }} showPriority={showPriority} enabled={gate.enabled} />
+          <Group title={t("groups.open")} count={counts?.open} filters={{ status: "open" }} showPriority={showPriority} enabled={gate.enabled} />
+          <Group title={t("groups.inProgress")} count={counts?.in_progress} filters={{ status: "in_progress" }} showPriority={showPriority} enabled={gate.enabled} />
+          <Group title={t("groups.unassigned")} count={counts?.unassigned} filters={{ unassigned: true }} showPriority={showPriority} enabled={gate.enabled} />
+          <Group title={t("groups.paidToday")} count={counts?.paid_today} filters={{ status: "paid", paid_on: today }} showPriority={showPriority} enabled={gate.enabled} />
+        </div>
       )}
 
-      <WorkOrderDialog open={createOpen} onClose={() => setCreateOpen(false)} />
-
-      {selected && (
-        <WorkOrderDetail
-          order={selected}
-          open={!!selected}
-          onClose={() => setSelected(null)}
-        />
-      )}
-
-      <Dialog open={!!toDelete} onOpenChange={(open) => !open && setToDelete(null)}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>{t("deleteTitle")}</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            {t("deleteConfirm", { title: toDelete?.title ?? "" })}
-          </p>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setToDelete(null)}>
-              {t("cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={deleteOrder.isPending}
-              onClick={() => {
-                if (!toDelete) return;
-                deleteOrder.mutate(toDelete.id, {
-                  onSuccess: () => {
-                    toast.success(t("deleteSuccess"));
-                    setToDelete(null);
-                  },
-                });
-              }}
-            >
-              {deleteOrder.isPending ? t("deleting") : t("delete")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <OrderForm open={formOpen} onOpenChange={setFormOpen} />
+      {isOwner && <OrderModeDialog open={modeOpen} onOpenChange={setModeOpen} />}
     </div>
   );
+}
+
+function summaryTotal(counts: { open: number; in_progress: number; done: number; paid_today: number } | undefined): number {
+  return counts ? counts.open + counts.in_progress + counts.done + counts.paid_today : 0;
 }
