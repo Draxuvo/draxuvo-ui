@@ -32,6 +32,7 @@ export function DataTable<TData>({
   loadingMessage = "Cargando...",
   emptyMessage = "Sin resultados",
 }: DataTableProps<TData>) {
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table devuelve funciones no memoizables; el compilador de React solo omite memoizar este componente
   const table = useReactTable({
     data,
     columns,

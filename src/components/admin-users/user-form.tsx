@@ -1,7 +1,7 @@
 // src/components/admin-users/user-form.tsx
 "use client";
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
@@ -63,7 +63,8 @@ export function UserForm({ open, onOpenChange, user }: UserFormProps) {
     register,
     handleSubmit,
     reset,
-    watch,
+    control,
+    getValues,
     setValue,
     formState: { errors },
   } = useForm<FormValues>({
@@ -71,10 +72,10 @@ export function UserForm({ open, onOpenChange, user }: UserFormProps) {
     defaultValues: { role: "staff", active: true, company_ids: [] },
   });
 
-  const selectedCompanyIds = watch("company_ids") ?? [];
+  const selectedCompanyIds = useWatch({ control, name: "company_ids" }) ?? [];
 
   const toggleCompany = (id: number, checked: boolean) => {
-    const current = watch("company_ids") ?? [];
+    const current = getValues("company_ids") ?? [];
     setValue(
       "company_ids",
       checked ? [...current, id] : current.filter((cid) => cid !== id),
