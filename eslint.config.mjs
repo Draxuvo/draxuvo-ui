@@ -15,6 +15,10 @@ const eslintConfig = defineConfig([
     "playwright-report/**",
     "test-results/**",
     "e2e/.auth/**",
+    // Salida generada por vinext/Cloudflare (no se versiona).
+    ".cloudflare/**",
+    ".vinext/**",
+    "dist/**",
   ]),
   {
     files: ["**/*.test.{ts,tsx}", "src/test/**"],
