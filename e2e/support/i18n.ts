@@ -4,7 +4,7 @@ import { join } from "node:path";
 type Tree = { [key: string]: string | Tree };
 
 const messages: Tree = JSON.parse(
-  readFileSync(join(__dirname, "..", "..", "messages", "es.json"), "utf-8"),
+  readFileSync(join(import.meta.dirname, "..", "..", "messages", "es.json"), "utf-8"),
 ) as Tree;
 
 /**

@@ -185,3 +185,34 @@ jobs:
             e2e-logs
           retention-days: 14
           if-no-files-found: ignore
+
+  # Despliegue a producción (Cloudflare Workers): solo tras un push a main con todo lo anterior en verde.
+  # Secretos del repo: CLOUDFLARE_API_TOKEN y CLOUDFLARE_ACCOUNT_ID (specs/012-deploy-produccion).
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [lint, typecheck, test, build, e2e]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and deploy
+        run: npm run deploy:vinext
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          NEXT_PUBLIC_API_URL: https://api.draxuvo.com

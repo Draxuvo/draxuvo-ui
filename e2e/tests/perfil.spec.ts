@@ -11,7 +11,7 @@ const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
 const pr = (key: string) => t(`profile.${key}`);
 const ap = (key: string) => t(`appearance.${key}`);
 const html = (page: Page) => page.locator("html");
-const english = JSON.parse(readFileSync(join(__dirname, "..", "..", "messages", "en.json"), "utf-8"));
+const english = JSON.parse(readFileSync(join(import.meta.dirname, "..", "..", "messages", "en.json"), "utf-8"));
 
 async function login(page: Page, email: string, password: string) {
   await page.goto("/es/login");

@@ -79,7 +79,7 @@ export const SESSIONS: readonly TestSession[] = [
   SUPER_ADMIN_SESSION,
 ];
 
-export const AUTH_DIR = join(__dirname, "..", ".auth");
+export const AUTH_DIR = join(import.meta.dirname, "..", ".auth");
 
 /** Ruta del estado guardado: `e2e/.auth/<rol>-<dominio>.json`. */
 export function authFile(key: string): string {
