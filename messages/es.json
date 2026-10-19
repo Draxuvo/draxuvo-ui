@@ -478,6 +478,8 @@
     "active": "Activo",
     "inactive": "Inactivo",
     "noCompany": "Sin empresa",
+    "companyRole": "Rol en {company}",
+    "companiesHint": "Marca las empresas y elige el rol en cada una.",
     "empty": "No hay usuarios registrados",
     "firstNameRequired": "Nombre requerido",
     "lastNameRequired": "Apellido paterno requerido",
