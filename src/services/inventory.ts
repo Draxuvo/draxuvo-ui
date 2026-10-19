@@ -20,6 +20,8 @@ export interface ProductPayload {
   category?: string;
   description?: string;
   available?: boolean;
+  station_id?: number | null;
+  tracks_stock?: boolean;
 }
 
 export interface StockMovementPayload {

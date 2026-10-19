@@ -93,7 +93,8 @@
     "expandMenu": "Expandir menú",
     "superAdminRole": "Super Admin",
     "team": "Equipo",
-    "myCompanies": "Mis empresas"
+    "myCompanies": "Mis empresas",
+    "restaurant": "Restaurante"
   },
   "home": {
     "welcome": "Bienvenido, {name}",
@@ -382,7 +383,12 @@
       "outOfStock": "Agotados",
       "available": "Disponibles",
       "unavailable": "No disponibles"
-    }
+    },
+    "station": "Estación",
+    "stationNone": "Estación predeterminada",
+    "tracksStock": "Controla inventario",
+    "tracksStockHint": "Descuenta existencias al cerrar la cuenta y marca agotado en cero.",
+    "restaurantSection": "Restaurante"
   },
   "companies": {
     "title": "Empresas",
@@ -562,7 +568,8 @@
     "methods": {
       "cash": "Efectivo",
       "card": "Tarjeta",
-      "transfer": "Transferencia"
+      "transfer": "Transferencia",
+      "mixed": "Mixto"
     },
     "amountReceived": "Recibido",
     "changeGiven": "Cambio",
@@ -574,7 +581,13 @@
     "viewOrder": "Ver orden",
     "voidedNote": "Este cobro fue anulado",
     "loadError": "No se pudo cargar el ticket",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "table": "Mesa {name}",
+    "takeout": "Para llevar: {name}",
+    "waiter": "Mesero",
+    "payments": "Pagos",
+    "reference": "Referencia",
+    "check": "Cuenta"
   },
   "subscription": {
     "nav": "Suscripción",
@@ -1211,7 +1224,7 @@
     "pro": "Pro",
     "enterprise": "Empresa",
     "basicDesc": "Personal, asistencia e inventario",
-    "proDesc": "Todo Básico más órdenes de trabajo, tickets y reportes",
+    "proDesc": "Todo Básico más órdenes de trabajo, tickets, reportes y restaurante",
     "enterpriseDesc": "Todo Pro más WhatsApp y varias empresas o sucursales",
     "monthly": "Mensual",
     "annual": "Anual",
@@ -1242,7 +1255,8 @@
     "tickets": "Tickets",
     "reports": "Reportes",
     "whatsapp": "WhatsApp",
-    "multi_company": "Varias empresas o sucursales"
+    "multi_company": "Varias empresas o sucursales",
+    "restaurant": "Restaurante"
   },
   "attendance": {
     "title": "Asistencia",
@@ -1398,5 +1412,65 @@
     "previewLight": "Claro",
     "previewDark": "Oscuro",
     "saveFailed": "Se aplicó en este dispositivo, pero no se guardó en tu cuenta."
+  },
+  "restaurant": {
+    "title": "Restaurante",
+    "subtitle": "Estaciones, mesas y existencias del servicio",
+    "stations": "Estaciones",
+    "stationsHint": "Cada estación tiene su propia pantalla para la cocina o la barra.",
+    "newStation": "Nueva estación",
+    "editStation": "Editar estación",
+    "stationName": "Nombre",
+    "stationNamePlaceholder": "Cocina",
+    "stationDefault": "Estación predeterminada",
+    "stationDefaultHint": "Recibe los productos sin estación.",
+    "stationActive": "Activa",
+    "defaultBadge": "Predeterminada",
+    "inactiveBadge": "Inactiva",
+    "openScreen": "Abrir pantalla",
+    "tables": "Mesas",
+    "tablesHint": "Las mesas que verá el personal en la app.",
+    "newTable": "Nueva mesa",
+    "editTable": "Editar mesa",
+    "tableName": "Nombre o número",
+    "tableNamePlaceholder": "4",
+    "tableActive": "Activa",
+    "noStations": "Aún no hay estaciones",
+    "noTables": "Aún no hay mesas",
+    "stockAlerts": "Existencias",
+    "stockAlertsEmpty": "Sin alertas de existencias",
+    "soldOut": "Agotado",
+    "lowStock": "Quedan pocas",
+    "stockLeft": "{stock} de mínimo {min}",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "saved": "Guardado",
+    "saveError": "No se pudo guardar",
+    "nameRequired": "Escribe un nombre",
+    "station": {
+      "empty": "Sin comandas",
+      "emptyHint": "Las comandas nuevas aparecen aquí solas.",
+      "loadError": "No se pudo actualizar. Reintentando…",
+      "soundOn": "Sonido activado",
+      "soundOff": "Activar sonido",
+      "waitingSound": "Toca para activar el sonido de nuevas comandas",
+      "table": "Mesa {name}",
+      "takeout": "Para llevar: {name}",
+      "waiter": "Mesero: {name}",
+      "comanda": "Comanda {number}",
+      "elapsed": "{minutes} min",
+      "elapsedNow": "Ahora",
+      "prepare": "Preparar",
+      "ready": "Listo",
+      "markAll": "Marcar todo",
+      "status": {
+        "new": "Nuevo",
+        "preparing": "En preparación",
+        "ready": "Listo",
+        "cancelled": "Cancelado"
+      },
+      "advanceError": "Ese platillo ya cambió. Se actualizó la lista.",
+      "pending": "{count, plural, one {# comanda} other {# comandas}}"
+    }
   }
 }

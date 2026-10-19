@@ -113,6 +113,12 @@ export interface Product {
   category?: string;
   description?: string;
   available?: boolean;
+  /** Restaurante: estación que prepara el producto y si descuenta inventario al cerrar la cuenta. */
+  station_id?: number | null;
+  tracks_stock?: boolean;
+  available_qty?: number | null;
+  sold_out?: boolean;
+  low?: boolean;
 }
 
 export interface MenuCategory {
@@ -157,6 +163,7 @@ export type ModuleKey =
   | "work_orders"
   | "tickets"
   | "reports"
+  | "restaurant"
   | "whatsapp"
   | "multi_company";
 export type SubscriptionStatus = "trialing" | "active" | "past_due" | "cancelled" | "expired";
@@ -433,7 +440,7 @@ export interface PayrollReport {
 export type TicketStatus = "pending" | "paid" | "voided";
 
 export interface TicketItem {
-  id: number;
+  id?: number;
   description: string;
   quantity: number;
   unit?: string;
@@ -444,7 +451,7 @@ export interface TicketItem {
 export interface Ticket {
   id: number;
   folio: string;
-  work_order_id: number;
+  work_order_id?: number | null;
   work_order?: {
     id: number;
     title: string;
@@ -453,14 +460,17 @@ export interface Ticket {
     priority?: WorkOrderPriority;
     status?: WorkOrderStatus;
     customer_phone?: string;
-  };
+  } | null;
+  /** Ticket de una cuenta de restaurante (sin orden de trabajo). */
+  check?: { id: number; table: string | null; takeout_name: string | null; waiter: PersonRef | null } | null;
+  payments?: CheckPayment[];
   status: TicketStatus;
   total: number;
   items?: TicketItem[];
   notes?: string;
   created_at: string;
   paid_at?: string;
-  payment_method?: PaymentMethod;
+  payment_method?: PaymentMethod | "mixed";
   payment_method_label?: string;
   amount_received?: number;
   change_given?: number;
@@ -523,3 +533,135 @@ export const TICKET_STATUSES: readonly TicketStatus[] = ["pending", "paid", "voi
 export const PAYMENT_METHODS: readonly PaymentMethod[] = ["cash", "card", "transfer"];
 export const ORDER_MODES: readonly OrderMode[] = ["service", "order"];
 export const ATTENDANCE_TYPES: readonly AttendanceType[] = ["normal", "late", "absent"];
+
+// ── Restaurante (specs/013-restaurante-comandas/contracts/restaurant-api.md) ──
+
+export type ItemStatus = "draft" | "new" | "preparing" | "ready" | "delivered" | "cancelled";
+export type CheckStatus = "open" | "closed" | "cancelled";
+
+export interface Station {
+  id: number;
+  name: string;
+  is_default: boolean;
+  active: boolean;
+  position: number;
+}
+
+export interface DiningTable {
+  id: number;
+  name: string;
+  active: boolean;
+  position: number;
+}
+
+export interface CheckItem {
+  id: number;
+  name: string;
+  quantity: number;
+  unit_price: string;
+  note: string | null;
+  status: ItemStatus;
+  station: { id: number; name: string } | null;
+  kitchen_order_number: number | null;
+  sent_at: string | null;
+  ready_at: string | null;
+  allowed_actions: ("deliver" | "cancel")[];
+}
+
+export interface CheckPayment {
+  id?: number;
+  method: PaymentMethod;
+  amount: string;
+  reference: string | null;
+  amount_received: string | null;
+  change_given: string | null;
+}
+
+export interface Check {
+  id: number;
+  status: CheckStatus;
+  table: { id: number; name: string } | null;
+  takeout_name: string | null;
+  waiter: PersonRef | null;
+  opened_at: string;
+  total: string;
+  paid: string;
+  balance: string;
+  items: CheckItem[];
+  payments: CheckPayment[];
+  ticket_id: number | null;
+  allowed_actions: ("add_item" | "send" | "pay" | "reassign" | "cancel" | "close")[];
+}
+
+export interface ItemCounts {
+  new: number;
+  preparing: number;
+  ready: number;
+  delivered: number;
+}
+
+export interface CheckSummary {
+  id: number;
+  waiter: PersonRef | null;
+  opened_at: string;
+  total: string;
+  counts: ItemCounts;
+  mine: boolean;
+}
+
+export interface TableSummary extends DiningTable {
+  check: CheckSummary | null;
+}
+
+export interface TakeoutSummary extends CheckSummary {
+  takeout_name: string;
+}
+
+export interface ReadyItem {
+  id: number;
+  name: string;
+  quantity: number;
+  check_id: number;
+  table: string | null;
+  takeout_name: string | null;
+  ready_at: string;
+}
+
+export interface TablesResponse {
+  results: TableSummary[];
+  takeouts: TakeoutSummary[];
+  ready_items: ReadyItem[];
+  stock_alerts?: number;
+}
+
+export interface BoardItem {
+  id: number;
+  name: string;
+  quantity: number;
+  note: string | null;
+  status: "new" | "preparing" | "ready" | "cancelled";
+}
+
+export interface BoardOrder {
+  id: number;
+  number: number;
+  sent_at: string;
+  table: string | null;
+  takeout_name: string | null;
+  waiter: string | null;
+  items: BoardItem[];
+}
+
+export interface StationBoard {
+  station: { id: number; name: string };
+  server_time: string;
+  orders: BoardOrder[];
+}
+
+export interface StockAlert {
+  id: number;
+  name: string;
+  stock: number;
+  min_stock: number | null;
+  sold_out: boolean;
+}

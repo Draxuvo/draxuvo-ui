@@ -84,7 +84,7 @@ export default function MisTicketsPage() {
           tickets.map((ticket) => (
             <li key={ticket.id}>
               <Link
-                href={`/${locale}/mis-ordenes/${ticket.work_order?.id ?? ""}`}
+                href={ticket.work_order ? `/${locale}/mis-ordenes/${ticket.work_order.id}` : `/${locale}/mis-tickets`}
                 className="flex min-h-16 items-start justify-between gap-3 rounded-etiqueta border border-border bg-card p-4 foco-etiqueta"
               >
                 <div className="min-w-0 flex-1 space-y-1">
@@ -92,7 +92,10 @@ export default function MisTicketsPage() {
                     <span className="font-mono text-[11px] font-semibold tracking-wide text-muted-foreground">{ticket.folio}</span>
                     <TicketStatusBadge status={ticket.status} />
                   </div>
-                  <p className="truncate font-medium">{ticket.work_order?.title}</p>
+                  <p className="truncate font-medium">
+                    {ticket.work_order?.title ??
+                      (ticket.check?.table ? t("table", { name: ticket.check.table }) : t("takeout", { name: ticket.check?.takeout_name ?? "" }))}
+                  </p>
                   {ticket.paid_at && <p className="text-xs text-muted-foreground">{format(new Date(ticket.paid_at), "d MMM, HH:mm")}</p>}
                 </div>
                 <p className="font-display text-lg font-bold tabular-nums">{money.format(Number(ticket.total))}</p>

@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { inventoryService } from "@/services/inventory";
+import { useModuleGate } from "@/components/subscription/module-locked";
+import { useStations } from "@/hooks/use-restaurant";
 import type { Product } from "@/types";
 
 interface ProductFormProps {
@@ -41,6 +43,8 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
     category: z.string().optional(),
     description: z.string().optional(),
     available: z.boolean().optional(),
+    station_id: z.string().optional(),
+    tracks_stock: z.boolean().optional(),
   });
 
   type FormValues = {
@@ -53,11 +57,13 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
     category?: string;
     description?: string;
     available?: boolean;
+    station_id?: string;
+    tracks_stock?: boolean;
   };
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema) as Resolver<FormValues>,
-    defaultValues: { sku: "", name: "", stock: 0, min_stock: 0, unit_cost: 0, price: 0, category: "", description: "", available: true },
+    defaultValues: { sku: "", name: "", stock: 0, min_stock: 0, unit_cost: 0, price: 0, category: "", description: "", available: true, station_id: "", tracks_stock: false },
   });
 
   const { data: productData } = useQuery({
@@ -80,14 +86,21 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
       category: source?.category ?? "",
       description: source?.description ?? "",
       available: source?.available ?? true,
+      station_id: source?.station_id ? String(source.station_id) : "",
+      tracks_stock: source?.tracks_stock ?? false,
     });
   }, [open, productData, isEdit, reset]);
 
+  // Estación y control de inventario solo existen si la empresa tiene el módulo de restaurante.
+  const gate = useModuleGate("restaurant");
+  const stations = useStations({ enabled: open && gate.enabled });
+  const restaurant = !!stations.data;
+
   const mutation = useMutation({
-    mutationFn: (values: FormValues) =>
-      isEdit
-        ? inventoryService.update(product!.id, values)
-        : inventoryService.create(values),
+    mutationFn: ({ station_id, ...values }: FormValues) => {
+      const payload = restaurant ? { ...values, station_id: station_id ? Number(station_id) : null } : values;
+      return isEdit ? inventoryService.update(product!.id, payload) : inventoryService.create(payload);
+    },
     onSuccess: () => {
       toast.success(isEdit ? t("updateSuccess") : t("createSuccess"));
       qc.invalidateQueries({ queryKey: ["products"] });
@@ -170,6 +183,32 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-ring"
               />
             </div>
+
+            {restaurant && (
+              <div className="space-y-4 rounded-etiqueta border border-border/60 p-4">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{t("restaurantSection")}</p>
+                <div className="space-y-1.5">
+                  <Label htmlFor="station_id" className="text-xs font-medium text-foreground">{t("station")}</Label>
+                  <select
+                    id="station_id"
+                    {...register("station_id")}
+                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  >
+                    <option value="">{t("stationNone")}</option>
+                    {stations.data!.filter((s) => s.active).map((s) => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" id="tracks_stock" {...register("tracks_stock")} className="h-4 w-4 rounded border-border" />
+                    <Label htmlFor="tracks_stock" className="cursor-pointer text-xs font-medium text-foreground">{t("tracksStock")}</Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{t("tracksStockHint")}</p>
+                </div>
+              </div>
+            )}
 
             <div className="flex items-center gap-2">
               <input type="checkbox" id="available" {...register("available")} className="h-4 w-4 rounded border-border" />

@@ -93,7 +93,8 @@
     "expandMenu": "Expand menu",
     "superAdminRole": "Super Admin",
     "team": "Team",
-    "myCompanies": "My companies"
+    "myCompanies": "My companies",
+    "restaurant": "Restaurant"
   },
   "home": {
     "welcome": "Welcome, {name}",
@@ -382,7 +383,12 @@
       "outOfStock": "Out of stock",
       "available": "Available",
       "unavailable": "Unavailable"
-    }
+    },
+    "station": "Station",
+    "stationNone": "Default station",
+    "tracksStock": "Track inventory",
+    "tracksStockHint": "Deducts stock when the check is closed and shows sold out at zero.",
+    "restaurantSection": "Restaurant"
   },
   "companies": {
     "title": "Companies",
@@ -562,7 +568,8 @@
     "methods": {
       "cash": "Cash",
       "card": "Card",
-      "transfer": "Transfer"
+      "transfer": "Transfer",
+      "mixed": "Mixed"
     },
     "amountReceived": "Received",
     "changeGiven": "Change",
@@ -574,7 +581,13 @@
     "viewOrder": "View order",
     "voidedNote": "This charge was voided",
     "loadError": "The ticket could not be loaded",
-    "close": "Close"
+    "close": "Close",
+    "table": "Table {name}",
+    "takeout": "Takeout: {name}",
+    "waiter": "Waiter",
+    "payments": "Payments",
+    "reference": "Reference",
+    "check": "Check"
   },
   "subscription": {
     "nav": "Subscription",
@@ -1211,7 +1224,7 @@
     "pro": "Pro",
     "enterprise": "Enterprise",
     "basicDesc": "Staff, attendance and inventory",
-    "proDesc": "Everything in Basic plus work orders, tickets and reports",
+    "proDesc": "Everything in Basic plus work orders, tickets, reports and restaurant",
     "enterpriseDesc": "Everything in Pro plus WhatsApp and multiple companies or branches",
     "monthly": "Monthly",
     "annual": "Annual",
@@ -1242,7 +1255,8 @@
     "tickets": "Tickets",
     "reports": "Reports",
     "whatsapp": "WhatsApp",
-    "multi_company": "Multiple companies or branches"
+    "multi_company": "Multiple companies or branches",
+    "restaurant": "Restaurant"
   },
   "attendance": {
     "title": "Attendance",
@@ -1398,5 +1412,65 @@
     "previewLight": "Light",
     "previewDark": "Dark",
     "saveFailed": "Applied on this device, but it was not saved to your account."
+  },
+  "restaurant": {
+    "title": "Restaurant",
+    "subtitle": "Stations, tables and stock for service",
+    "stations": "Stations",
+    "stationsHint": "Each station has its own screen for the kitchen or the bar.",
+    "newStation": "New station",
+    "editStation": "Edit station",
+    "stationName": "Name",
+    "stationNamePlaceholder": "Kitchen",
+    "stationDefault": "Default station",
+    "stationDefaultHint": "Receives products without a station.",
+    "stationActive": "Active",
+    "defaultBadge": "Default",
+    "inactiveBadge": "Inactive",
+    "openScreen": "Open screen",
+    "tables": "Tables",
+    "tablesHint": "The tables staff will see in the app.",
+    "newTable": "New table",
+    "editTable": "Edit table",
+    "tableName": "Name or number",
+    "tableNamePlaceholder": "4",
+    "tableActive": "Active",
+    "noStations": "No stations yet",
+    "noTables": "No tables yet",
+    "stockAlerts": "Stock",
+    "stockAlertsEmpty": "No stock alerts",
+    "soldOut": "Sold out",
+    "lowStock": "Running low",
+    "stockLeft": "{stock} left, minimum {min}",
+    "save": "Save",
+    "cancel": "Cancel",
+    "saved": "Saved",
+    "saveError": "Could not save",
+    "nameRequired": "Enter a name",
+    "station": {
+      "empty": "No orders",
+      "emptyHint": "New orders show up here on their own.",
+      "loadError": "Could not refresh. Retrying…",
+      "soundOn": "Sound on",
+      "soundOff": "Turn on sound",
+      "waitingSound": "Tap to turn on the new order sound",
+      "table": "Table {name}",
+      "takeout": "Takeout: {name}",
+      "waiter": "Waiter: {name}",
+      "comanda": "Order {number}",
+      "elapsed": "{minutes} min",
+      "elapsedNow": "Now",
+      "prepare": "Start",
+      "ready": "Ready",
+      "markAll": "Mark all",
+      "status": {
+        "new": "New",
+        "preparing": "Preparing",
+        "ready": "Ready",
+        "cancelled": "Cancelled"
+      },
+      "advanceError": "That item already changed. The list was refreshed.",
+      "pending": "{count, plural, one {# order} other {# orders}}"
+    }
   }
 }

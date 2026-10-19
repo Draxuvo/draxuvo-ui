@@ -86,6 +86,12 @@ export function TicketDetail({
 
   const orderTotal = Number(current.total ?? 0);
   const orderHref = `/${locale}${role === "staff" ? "/mis-ordenes" : "/ordenes"}/${current.work_order_id}`;
+  const check = current.check;
+  const checkTitle = check
+    ? check.table
+      ? t("table", { name: check.table })
+      : t("takeout", { name: check.takeout_name ?? "" })
+    : null;
   const money = (n: number | string | undefined) => `$${Number(n ?? 0).toFixed(2)}`;
 
   return (
@@ -120,11 +126,17 @@ export function TicketDetail({
             {/* Metadata */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <p className="text-xs font-medium text-muted-foreground">{t("workOrder")}</p>
+                <p className="text-xs font-medium text-muted-foreground">{check ? t("check") : t("workOrder")}</p>
                 <p className="text-sm text-foreground">
-                  {current.work_order?.title ?? `#${current.work_order_id}`}
+                  {checkTitle ?? current.work_order?.title ?? `#${current.work_order_id}`}
                 </p>
               </div>
+              {check?.waiter && (
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">{t("waiter")}</p>
+                  <p className="text-sm text-foreground">{check.waiter.name}</p>
+                </div>
+              )}
               {current.work_order?.employee && (
                 <div className="space-y-1">
                   <p className="text-xs font-medium text-muted-foreground">{t("employee")}</p>
@@ -197,6 +209,26 @@ export function TicketDetail({
               </div>
             )}
 
+            {/* Pagos de una cuenta de restaurante */}
+            {(current.payments ?? []).length > 0 && (
+              <div>
+                <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  {t("payments")}
+                </p>
+                <ul className="divide-y divide-border rounded-xl border border-border">
+                  {current.payments!.map((payment, i) => (
+                    <li key={payment.id ?? i} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                      <span className="text-foreground">
+                        {t(`methods.${payment.method}`)}
+                        {payment.reference ? ` · ${t("reference")}: ${payment.reference}` : ""}
+                      </span>
+                      <span className="font-semibold tabular-nums text-foreground">{money(payment.amount)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {/* Items table */}
             {(current.items ?? []).length > 0 && (
               <div>
@@ -222,8 +254,8 @@ export function TicketDetail({
                       </tr>
                     </thead>
                     <tbody>
-                      {current.items!.map((item) => (
-                        <tr key={item.id} className="border-b border-border/60 last:border-0">
+                      {current.items!.map((item, i) => (
+                        <tr key={item.id ?? i} className="border-b border-border/60 last:border-0">
                           <td className="px-4 py-3 text-foreground">{item.description}</td>
                           <td className="px-4 py-3 text-center text-muted-foreground">
                             {item.quantity}
@@ -279,12 +311,14 @@ export function TicketDetail({
               {t("download")}
             </Button>
 
-            <Button asChild variant="outline" size="sm" className="gap-2 min-h-11 sm:min-h-0">
-              <Link href={orderHref}>
-                <ExternalLink size={14} aria-hidden="true" />
-                {t("viewOrder")}
-              </Link>
-            </Button>
+            {current.work_order_id != null && (
+              <Button asChild variant="outline" size="sm" className="gap-2 min-h-11 sm:min-h-0">
+                <Link href={orderHref}>
+                  <ExternalLink size={14} aria-hidden="true" />
+                  {t("viewOrder")}
+                </Link>
+              </Button>
+            )}
 
             {current.status === "paid" && (
               <Button
