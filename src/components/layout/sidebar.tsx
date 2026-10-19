@@ -14,6 +14,7 @@ import {
   CreditCard,
   CalendarCheck,
   UsersRound,
+  UtensilsCrossed,
   Building2,
   X,
   type LucideIcon,
@@ -29,6 +30,7 @@ import { cn } from "@/lib/utils";
 const ANALYTICS_ROLES = new Set(["admin", "owner", "manager"]);
 const ATTENDANCE_ROLES = new Set(["admin", "owner", "manager"]);
 const REPORTS_ROLES = new Set(["admin", "owner"]);
+const RESTAURANT_ROLES = new Set(["admin", "owner", "manager"]);
 const SUBSCRIPTION_ROLES = new Set(["admin", "owner"]);
 const TEAM_ROLES = new Set(["admin", "owner"]);
 
@@ -100,6 +102,7 @@ export function Sidebar() {
   const showAnalytics = !!role && ANALYTICS_ROLES.has(role);
   const showAttendance = !!role && ATTENDANCE_ROLES.has(role);
   const showReports = !!role && REPORTS_ROLES.has(role);
+  const showRestaurant = !!role && RESTAURANT_ROLES.has(role);
   const showSubscription = !!role && SUBSCRIPTION_ROLES.has(role);
   const showTeam = !!role && TEAM_ROLES.has(role);
 
@@ -143,6 +146,9 @@ export function Sidebar() {
       : []),
     ...(hasModule("tickets")
       ? [{ href: `/${locale}/tickets`, label: t("tickets"), icon: Receipt }]
+      : []),
+    ...(showRestaurant && hasModule("restaurant")
+      ? [{ href: `/${locale}/restaurante`, label: t("restaurant"), icon: UtensilsCrossed }]
       : []),
     ...(showReports && hasModule("reports")
       ? [

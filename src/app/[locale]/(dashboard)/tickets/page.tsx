@@ -189,13 +189,17 @@ function TicketsContent() {
                     <TicketStatusBadge status={ticket.status} />
                   </div>
                   <p className="truncate font-medium text-foreground">
-                    {ticket.work_order?.title ?? t("workOrder")}
+                    {ticket.check
+                      ? ticket.check.table
+                        ? t("table", { name: ticket.check.table })
+                        : t("takeout", { name: ticket.check.takeout_name ?? "" })
+                      : (ticket.work_order?.title ?? t("workOrder"))}
                   </p>
-                  {(ticket.payment_method || ticket.work_order?.employee) && (
+                  {(ticket.payment_method || ticket.work_order?.employee || ticket.check?.waiter) && (
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       {[
                         ticket.payment_method && t(`methods.${ticket.payment_method}`),
-                        ticket.work_order?.employee?.name,
+                        ticket.work_order?.employee?.name ?? ticket.check?.waiter?.name,
                       ]
                         .filter(Boolean)
                         .join(" · ")}

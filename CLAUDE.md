@@ -33,9 +33,10 @@ Tests live next to the code (`*.test.ts(x)`); shared helpers in `src/test/` (`se
 | Route group | Roles | Layout | Routes (Spanish) |
 |---|---|---|---|
 | `(auth)` | unauthenticated | none | `/login`, `/recuperar-contrasena`, `/set-password` |
-| `(dashboard)` | owner, admin, manager | Sidebar + Header | `/inicio`, `/dashboard`, `/empleados`, `/inventario`, `/ordenes`, `/tickets`, `/suscripcion`, `/perfil` |
+| `(dashboard)` | owner, admin, manager | Sidebar + Header | `/inicio`, `/dashboard`, `/empleados`, `/inventario`, `/ordenes`, `/tickets`, `/restaurante`, `/suscripcion`, `/perfil` |
 | `(super-admin)` | super_admin | SuperAdminSidebar + Header | `/empresas`, `/usuarios`, `/suscripciones`, `/estadisticas` |
 | `(employee)` | staff | EmployeeShell | `/mis-ordenes`, `/mis-tickets` |
+| `(estacion)` | any role | none, full screen | `/estacion/[id]` (kitchen or bar screen of the restaurant module; polls every 3 s, sound on new orders) |
 
 After login, role-based redirect targets: `super_admin` → `/empresas`, `staff` → `/mis-ordenes`, others → `/inicio`.
 
