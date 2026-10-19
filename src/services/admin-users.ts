@@ -1,6 +1,6 @@
 // src/services/admin-users.ts
 import { apiClient } from "@/lib/api";
-import type { AdminUser, PaginatedResponse } from "@/types";
+import type { AdminUser, CompanyRole, PaginatedResponse } from "@/types";
 
 export interface AdminUserPayload {
   email: string;
@@ -8,9 +8,9 @@ export interface AdminUserPayload {
   last_name: string;
   second_last_name: string;
   phone: string;
-  role: "staff" | "manager" | "admin" | "owner";
   active?: boolean;
-  company_ids?: number[];
+  // Estado final completo: las empresas que no vienen se quitan (spec 014).
+  memberships?: { company_id: number; role: CompanyRole }[];
 }
 
 export const adminUsersService = {
@@ -35,9 +35,4 @@ export const adminUsersService = {
 
   toggleActive: (id: number): Promise<AdminUser> =>
     apiClient.patch(`/api/v1/users/${id}/active`).then((r) => r.data),
-
-  assignCompanies: (userId: number, companyIds: number[]): Promise<AdminUser> =>
-    apiClient
-      .patch(`/api/v1/users/${userId}`, { user: { company_ids: companyIds } })
-      .then((r) => r.data),
 };

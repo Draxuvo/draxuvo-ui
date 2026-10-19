@@ -478,6 +478,8 @@
     "active": "Active",
     "inactive": "Inactive",
     "noCompany": "No company",
+    "companyRole": "Role in {company}",
+    "companiesHint": "Check the companies and choose the role in each.",
     "empty": "No users registered",
     "firstNameRequired": "First name required",
     "lastNameRequired": "Last name required",

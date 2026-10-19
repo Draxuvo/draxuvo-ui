@@ -65,9 +65,10 @@ export interface AdminUser {
   last_name: string;
   second_last_name: string;
   phone: string;
-  role: "staff" | "manager" | "admin" | "owner";
+  role: CompanyRole;
   active: boolean;
-  companies: Pick<Company, "id" | "name" | "slug">[];
+  // El rol de la persona en cada empresa (user_companies.role); `role` es el de la primera.
+  companies: (Pick<Company, "id" | "name" | "slug"> & { role: CompanyRole })[];
   created_at: string;
 }
 

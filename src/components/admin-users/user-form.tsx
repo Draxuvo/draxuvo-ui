@@ -19,7 +19,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { adminUsersService } from "@/services/admin-users";
 import { companiesService } from "@/services/companies";
-import type { AdminUser } from "@/types";
+import { cn } from "@/lib/utils";
+import type { AdminUser, CompanyRole } from "@/types";
+
+const COMPANY_ROLES = ["staff", "manager", "admin", "owner"] as const satisfies readonly CompanyRole[];
 
 interface UserFormProps {
   open: boolean;
@@ -52,9 +55,9 @@ export function UserForm({ open, onOpenChange, user }: UserFormProps) {
     second_last_name: z.string().min(1, t("secondLastNameRequired")),
     phone: z.string().min(1, t("phoneRequired")),
     email: z.string().email(t("emailInvalid")),
-    role: z.enum(["staff", "manager", "admin", "owner"]),
     active: z.boolean(),
-    company_ids: z.array(z.number()),
+    // Una entrada por empresa marcada, con el rol de la persona en ella (spec 014).
+    memberships: z.array(z.object({ company_id: z.number(), role: z.enum(COMPANY_ROLES) })),
   });
 
   type FormValues = z.infer<typeof schema>;
@@ -69,16 +72,26 @@ export function UserForm({ open, onOpenChange, user }: UserFormProps) {
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { role: "staff", active: true, company_ids: [] },
+    defaultValues: { active: true, memberships: [] },
   });
 
-  const selectedCompanyIds = useWatch({ control, name: "company_ids" }) ?? [];
+  const memberships = useWatch({ control, name: "memberships" }) ?? [];
 
   const toggleCompany = (id: number, checked: boolean) => {
-    const current = getValues("company_ids") ?? [];
+    const current = getValues("memberships") ?? [];
     setValue(
-      "company_ids",
-      checked ? [...current, id] : current.filter((cid) => cid !== id),
+      "memberships",
+      checked
+        ? [...current, { company_id: id, role: "staff" }]
+        : current.filter((m) => m.company_id !== id),
+      { shouldValidate: true },
+    );
+  };
+
+  const setCompanyRole = (id: number, role: CompanyRole) => {
+    setValue(
+      "memberships",
+      (getValues("memberships") ?? []).map((m) => (m.company_id === id ? { ...m, role } : m)),
       { shouldValidate: true },
     );
   };
@@ -92,9 +105,8 @@ export function UserForm({ open, onOpenChange, user }: UserFormProps) {
       second_last_name: src?.second_last_name ?? "",
       phone: src?.phone ?? "",
       email: src?.email ?? "",
-      role: src?.role ?? "staff",
       active: src?.active ?? true,
-      company_ids: src?.companies?.map((c) => c.id) ?? [],
+      memberships: src?.companies?.map((c) => ({ company_id: c.id, role: c.role })) ?? [],
     });
   }, [open, userData, isEdit, reset]);
 
@@ -106,9 +118,8 @@ export function UserForm({ open, onOpenChange, user }: UserFormProps) {
         second_last_name: values.second_last_name,
         phone: values.phone,
         email: values.email,
-        role: values.role,
         active: values.active,
-        company_ids: values.company_ids,
+        memberships: values.memberships,
       };
       return isEdit
         ? adminUsersService.update(user!.id, payload)
@@ -210,72 +221,73 @@ export function UserForm({ open, onOpenChange, user }: UserFormProps) {
               </div>
             )}
 
-            {/* Rol + Estado */}
-            <div className={`grid gap-4 ${isEdit ? "grid-cols-2" : "grid-cols-1"}`}>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-foreground">
-                  {t("role")}
-                </Label>
-                <select
-                  {...register("role")}
-                  className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                >
-                  <option value="staff">{t("roles.staff")}</option>
-                  <option value="manager">{t("roles.manager")}</option>
-                  <option value="admin">{t("roles.admin")}</option>
-                  <option value="owner">{t("roles.owner")}</option>
-                </select>
-              </div>
-
-              {isEdit && (
+            {/* Estado */}
+            {isEdit && (
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-medium text-foreground">
                     {t("status")}
                   </Label>
                   <select
-                    {...register("active", { setValueAs: (v) => v === "true" })}
+                    // setValueAs también recibe el booleano que llega por reset(); con solo
+                    // `v === "true"` un usuario activo se guardaba como inactivo (spec 014).
+                    {...register("active", { setValueAs: (v) => v === true || v === "true" })}
                     className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   >
                     <option value="true">{t("active")}</option>
                     <option value="false">{t("inactive")}</option>
                   </select>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
-            {/* Empresas */}
+            {/* Empresas, cada una con el rol de la persona en ella */}
             <div className="space-y-1.5">
               <Label className="text-xs font-medium text-foreground">
                 {t("company")}
               </Label>
-              <div className="rounded-md border border-input bg-background overflow-y-auto max-h-40 divide-y divide-border">
+              <p className="text-xs text-muted-foreground">{t("companiesHint")}</p>
+              <div className="rounded-md border border-input bg-background overflow-y-auto max-h-56 divide-y divide-border">
                 {companies.length === 0 ? (
                   <p className="px-3 py-2 text-sm text-muted-foreground italic">{t("noCompany")}</p>
                 ) : (
                   companies.map((c) => {
-                    const checked = selectedCompanyIds.includes(c.id);
+                    const membership = memberships.find((m) => m.company_id === c.id);
+                    const checked = !!membership;
                     return (
-                      <label
-                        key={c.id}
-                        className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
-                      >
-                        <span
-                          className={`flex items-center justify-center w-4 h-4 rounded border transition-colors shrink-0 ${
-                            checked
-                              ? "bg-primary border-primary text-primary-foreground"
-                              : "border-input bg-background"
-                          }`}
-                        >
-                          {checked && <Check size={11} strokeWidth={3} />}
-                        </span>
-                        <input
-                          type="checkbox"
-                          className="sr-only"
-                          checked={checked}
-                          onChange={(e) => toggleCompany(c.id, e.target.checked)}
-                        />
-                        <span className="text-sm text-foreground">{c.name}</span>
-                      </label>
+                      <div key={c.id} className="flex items-center gap-2 pr-2 hover:bg-muted/50 transition-colors">
+                        <label className="flex flex-1 min-w-0 items-center gap-2.5 px-3 py-2 cursor-pointer">
+                          <span
+                            className={cn(
+                              "flex items-center justify-center w-4 h-4 rounded border transition-colors shrink-0",
+                              checked
+                                ? "bg-primary border-primary text-primary-foreground"
+                                : "border-input bg-background",
+                            )}
+                          >
+                            {checked && <Check size={11} strokeWidth={3} />}
+                          </span>
+                          <input
+                            type="checkbox"
+                            className="sr-only"
+                            checked={checked}
+                            onChange={(e) => toggleCompany(c.id, e.target.checked)}
+                          />
+                          <span className="text-sm text-foreground truncate">{c.name}</span>
+                        </label>
+                        {membership && (
+                          <select
+                            aria-label={t("companyRole", { company: c.name })}
+                            value={membership.role}
+                            onChange={(e) => setCompanyRole(c.id, e.target.value as CompanyRole)}
+                            className="h-8 shrink-0 rounded-md border border-input bg-background px-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                          >
+                            {COMPANY_ROLES.map((role) => (
+                              <option key={role} value={role}>{t(`roles.${role}`)}</option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
                     );
                   })
                 )}
