@@ -19,6 +19,9 @@ export default defineConfig({
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     locale: "es-MX",
+    // La API interpreta las fechas en hora de Ciudad de México; sin esto, entre 00:00 y 06:00 UTC
+    // el navegador del CI pide "hoy" con la fecha UTC y las órdenes cobradas no aparecen.
+    timezoneId: "America/Mexico_City",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
 });
