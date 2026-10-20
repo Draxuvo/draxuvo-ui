@@ -2,6 +2,7 @@ import { expect, test, type Browser, type Page } from "@playwright/test";
 import { createCompany, E2E_PASSWORD, uniquePrefix, type NewCompany } from "../support/data";
 import { t } from "../support/i18n";
 import { knownFailure } from "../support/known-failure";
+import { setDisabledModules } from "../support/modules";
 import { API_URL, authFile, storageStatePath } from "../support/session";
 import { setPasswordPath } from "../support/tokens";
 
@@ -243,37 +244,43 @@ test.describe("acceso a /equipo según el rol", () => {
   });
 });
 
-test("[EMP-018] el dueño apaga y enciende un módulo de su plan; apagado, la pantalla lo bloquea @regresion", async ({ browser, request }, info) => {
+test("[EMP-018] el dueño ve los módulos de su plan en solo lectura; si el super admin apaga uno, la pantalla lo bloquea @regresion", async ({ browser, request }, info) => {
   test.setTimeout(90_000);
   const company = await createCompany(request, { workerIndex: info.workerIndex });
   const owner = await ownerOf(browser, company);
   const page = owner.page;
   const moduleRow = (key: string) =>
     page.locator("section").filter({ has: page.getByRole("heading", { name: t("subscription.modulesTitle") }) }).getByRole("listitem").filter({ hasText: t(`modules.${key}`) });
-  const inventory = page.getByRole("switch", { name: t("modules.inventory") });
 
+  // 1. Solo los módulos del plan, con su estado y sin ningún interruptor (spec 017).
   await page.goto("/es/suscripcion");
   await expect(page.getByRole("heading", { name: t("subscription.modulesTitle") })).toBeVisible();
+  await expect(page.getByText(t("subscription.modulesReadOnly"))).toBeVisible();
   for (const key of ["employees", "attendance", "inventory"]) {
     await expect(moduleRow(key)).toContainText(t("subscription.moduleOn"));
   }
-  await expect(moduleRow("work_orders")).toContainText(t("subscription.availableIn", { plans: `${t("plans.pro")} o ${t("plans.enterprise")}` }));
-  await expect(moduleRow("whatsapp")).toContainText(t("subscription.availableIn", { plans: t("plans.enterprise") }));
-  await expect(moduleRow("multi_company")).toContainText(t("subscription.availableIn", { plans: t("plans.enterprise") }));
+  for (const key of ["work_orders", "whatsapp", "multi_company"]) {
+    await expect(moduleRow(key)).toHaveCount(0);
+  }
+  await expect(page.getByRole("switch")).toHaveCount(0);
 
-  await inventory.click();
-  await expect(page.getByText(t("subscription.modulesSaved"))).toBeVisible();
+  // 2. Un cambio del dueño por la API se rechaza.
+  const denied = await request.patch(`${API_URL}/api/v1/company/modules`, { headers: owner.headers, data: { disabled_modules: ["inventory"] } });
+  expect(denied.status()).toBe(403);
+
+  // 3. El super admin apaga Inventario: la pantalla del dueño lo refleja y el módulo queda bloqueado.
+  await setDisabledModules(request, owner.headers["X-Company-Id"], ["inventory"]);
+  await page.goto("/es/suscripcion");
   await expect(moduleRow("inventory")).toContainText(t("subscription.moduleOff"));
   await expect(menu(page).getByRole("link", { name: t("nav.inventory") })).toHaveCount(0);
-
   await page.goto("/es/inventario");
   await expect(page.getByText(t("subscription.moduleLocked"))).toBeVisible();
   await expect(page.getByText(t("subscription.moduleLockedDesc", { module: t("modules.inventory") }))).toBeVisible();
 
+  // 4. Al volver a activarlo, reaparece.
+  await setDisabledModules(request, owner.headers["X-Company-Id"], []);
   await page.goto("/es/suscripcion");
-  await inventory.click();
   await expect(moduleRow("inventory")).toContainText(t("subscription.moduleOn"));
-  await expect(menu(page).getByRole("link", { name: t("nav.inventory") })).toBeVisible();
   await owner.context.close();
 });
 

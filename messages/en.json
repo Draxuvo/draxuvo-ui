@@ -498,7 +498,20 @@
     "subLoading": "Loading...",
     "viewSubscription": "View subscriptions",
     "selectCompany": "Select company",
-    "selectCompanyPrompt": "Select a company to view its reports"
+    "selectCompanyPrompt": "Select a company to view its reports",
+    "modules": {
+      "column": "Modules",
+      "summary": "{active} of {total} modules active",
+      "open": "Modules of {name}",
+      "title": "Modules of {name}",
+      "planLine": "{plan} plan · subscription: {status}",
+      "noSubscription": "No subscription: there are no modules to manage.",
+      "none": "This company plan includes no modules.",
+      "on": "Active",
+      "off": "Off",
+      "saved": "Modules updated",
+      "error": "Could not update the modules"
+    }
   },
   "forgotPassword": {
     "title": "Forgot your password?",
@@ -737,7 +750,8 @@
     "managedByParentTitle": "Billing is managed by {company}",
     "managedByParentDesc": "This branch uses the main company's subscription. Payments and plan changes happen there.",
     "managedByParentAction": "Go to {company}",
-    "mainCompany": "the main company"
+    "mainCompany": "the main company",
+    "modulesReadOnly": "These are the modules of your plan. Draxuvo turns them on and off; if you need a change, ask Draxuvo support."
   },
   "profile": {
     "pageTitle": "My profile",

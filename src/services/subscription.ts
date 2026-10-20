@@ -41,9 +41,14 @@ export const cancelSubscription = (): Promise<Subscription> =>
   apiClient.delete("/api/v1/subscription").then((r) => r.data);
 
 // Lista completa de módulos desactivados (reemplaza). `[]` activa todos los del plan.
-export const updateModules = (disabledModules: ModuleKey[]): Promise<ModulesResponse> =>
+// Solo el super admin cambia módulos (spec 017); `companyId` es la empresa que administra.
+export const updateModules = (disabledModules: ModuleKey[], companyId: number): Promise<ModulesResponse> =>
   apiClient
-    .patch("/api/v1/company/modules", { disabled_modules: disabledModules })
+    .patch(
+      "/api/v1/company/modules",
+      { disabled_modules: disabledModules },
+      { headers: { "X-Company-Id": String(companyId) } },
+    )
     .then((r) => r.data);
 
 // ── Super admin: opera sobre cualquier empresa pasando X-Company-Id explícito ──
