@@ -94,7 +94,8 @@
     "superAdminRole": "Super Admin",
     "team": "Team",
     "myCompanies": "My companies",
-    "restaurant": "Restaurant"
+    "restaurant": "Restaurant",
+    "terminals": "Terminals"
   },
   "home": {
     "welcome": "Welcome, {name}",
@@ -589,7 +590,8 @@
     "waiter": "Waiter",
     "payments": "Payments",
     "reference": "Reference",
-    "check": "Check"
+    "check": "Check",
+    "authorization": "Authorization"
   },
   "subscription": {
     "nav": "Subscription",
@@ -830,6 +832,13 @@
       "colAbsent": "Absent",
       "hoursUnit": "hrs",
       "empty": "No payroll data for the selected period"
+    },
+    "payments": {
+      "byMethod": "By method",
+      "byTerminal": "By terminal (card)",
+      "noTerminal": "No terminal",
+      "noCard": "No card payments in the range",
+      "count": "{count, plural, one {# payment} other {# payments}}"
     }
   },
   "workOrders": {
@@ -992,7 +1001,9 @@
       "catalogOnly": "You can only pick catalog products, at their price",
       "invalidNumber": "Invalid number",
       "create": "Create order",
-      "submit": "Save changes"
+      "submit": "Save changes",
+      "staffItemsHint": "Pick products from the catalog; the catalog sets the price",
+      "staffInvalidItem": "Pick a product and a quantity greater than zero"
     },
     "steps": {
       "title": "Steps",
@@ -1038,7 +1049,9 @@
       "required": "Write the description",
       "invalidQuantity": "Quantity must be greater than 0",
       "invalidPrice": "The price is not valid",
-      "noPrice": "No price"
+      "noPrice": "No price",
+      "pickProduct": "Pick a product",
+      "editQuantity": "Quantity of {description}"
     },
     "photos": {
       "title": "Photos",
@@ -1085,7 +1098,11 @@
       "reassignedFromNone": "{name} assigned the order to {to}",
       "reassignedToNone": "{name} removed the assignee ({from})",
       "note": "{name} added a note",
-      "photo": "{name} added a photo"
+      "photo": "{name} added a photo",
+      "item_added": "{name} added {quantity} × {product}",
+      "item_updated": "{name} changed {product} from {from} to {to}",
+      "item_removed": "{name} removed {product}",
+      "voidedPayments": "Voided payments: {payments}"
     },
     "charge": {
       "title": "Charge order",
@@ -1118,7 +1135,27 @@
       "receivedRequired": "Enter the amount received",
       "noItems": "The order has no line items with a price",
       "error": "The charge could not be recorded",
-      "exact": "Exact amount"
+      "exact": "Exact amount",
+      "addPayment": "Add another payment",
+      "paymentN": "Payment {n}",
+      "removePayment": "Remove payment {n}",
+      "amount": "Amount",
+      "terminal": "Terminal",
+      "pickTerminal": "Pick the terminal",
+      "authorization": "Authorization",
+      "last4": "Last 4",
+      "optionalVoucher": "The voucher authorization and last 4 digits are optional.",
+      "reference": "Reference",
+      "errors": {
+        "missing": "The payments do not cover the total",
+        "exceeds_total": "Card or transfer payments exceed the total",
+        "multiple_cash": "Only one cash payment is allowed",
+        "reference_required": "Enter the transfer reference",
+        "invalid_terminal": "That terminal is no longer available; pick another",
+        "invalid_amount": "Check the amount of each payment",
+        "invalid_card_last4": "The last 4 digits must be 4 numbers",
+        "too_many_payments": "Record 1 to 5 payments"
+      }
     },
     "mode": {
       "open": "How you work your orders",
@@ -1158,7 +1195,8 @@
       "startAria": "Start order {title}",
       "finishAria": "Finish order {title}",
       "pendingSteps": "{count, plural, one {# step pending} other {# steps pending}}",
-      "open": "Open order"
+      "open": "Open order",
+      "newOrder": "New order"
     },
     "aria": {
       "statusBadge": "Status: {status}",
@@ -1180,7 +1218,8 @@
       "forbidden": "You do not have access to this order",
       "notFound": "We could not find this order",
       "photo": "The photo could not be uploaded"
-    }
+    },
+    "createdBy": "Created by"
   },
   "registration": {
     "title": "Create your account",
@@ -1474,5 +1513,50 @@
       "advanceError": "That item already changed. The list was refreshed.",
       "pending": "{count, plural, one {# order} other {# orders}}"
     }
+  },
+  "terminals": {
+    "title": "Payment terminals",
+    "subtitle": "The terminals you take cards with. When charging, pick the one the card went through.",
+    "new": "New terminal",
+    "edit": "Edit terminal",
+    "formHint": "Draxuvo does not connect to the terminal: it only records which one was used.",
+    "name": "Name",
+    "namePlaceholder": "BBVA register 1, bar Clip…",
+    "nameRequired": "Enter a name",
+    "nameTooLong": "60 characters at most",
+    "nameTaken": "There is already a terminal with that name",
+    "provider": "Provider",
+    "providers": {
+      "bbva": "BBVA",
+      "banorte": "Banorte",
+      "santander": "Santander",
+      "banamex": "Banamex",
+      "getnet": "Getnet",
+      "mercado_pago": "Mercado Pago",
+      "clip": "Clip",
+      "other": "Other"
+    },
+    "active": "Active",
+    "statusActive": "Active",
+    "statusInactive": "Inactive",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saved": "Terminal saved",
+    "activated": "{name} is active",
+    "deactivated": "{name} is inactive",
+    "deleted": "{name} was deleted",
+    "paymentsCount": "{count, plural, =0 {no payments} one {# payment} other {# payments}}",
+    "editAria": "Edit {name}",
+    "deleteAria": "Delete {name}",
+    "deleteTitle": "Delete the terminal?",
+    "deleteDesc": "{name} has no payments and will be deleted.",
+    "inUseTitle": "The terminal has payments",
+    "inUseDesc": "{name} has {count, plural, one {# payment} other {# payments}} and cannot be deleted. Deactivate it so it no longer shows when charging.",
+    "empty": "No terminals yet",
+    "emptyDesc": "Add the business terminals to know how much was charged on each.",
+    "loadError": "Could not load the terminals"
   }
 }

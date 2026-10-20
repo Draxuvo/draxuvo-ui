@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { PaymentBreakdown } from "@/components/reports/payment-breakdown";
 import { useTranslations, useLocale } from "next-intl";
 import { ResponsiveBar } from "@nivo/bar";
 import { ResponsivePie } from "@nivo/pie";
@@ -660,6 +661,8 @@ export function ReportContent({ companyId }: ReportContentProps) {
               </select>
             </div>
           </div>
+
+          <PaymentBreakdown report={incomeQuery.data} />
 
           {incomeQuery.isLoading ? (
             <div className="h-56 bg-muted rounded-xl animate-pulse" />

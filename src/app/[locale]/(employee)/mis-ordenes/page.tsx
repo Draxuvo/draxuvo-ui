@@ -1,12 +1,14 @@
 // src/app/[locale]/(employee)/mis-ordenes/page.tsx
 // Órdenes asignadas al empleado, pensadas para el celular: una columna, tarjetas grandes y
-// botones de 44 px. La API ya limita la lista a sus órdenes (404 en las ajenas).
+// botones de 44 px. La API ya limita la lista a sus órdenes (404 en las ajenas). "Nueva orden" abre el
+// formulario del operador (spec 015): la orden queda asignada a su empleado.
 "use client";
+import { useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { format, isPast, isToday } from "date-fns";
 import { toast } from "sonner";
-import { ClipboardList, MapPin } from "lucide-react";
+import { ClipboardList, MapPin, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useStartOrder, useWorkOrders } from "@/hooks/use-work-orders";
@@ -14,6 +16,7 @@ import { ModuleLocked, useModuleGate } from "@/components/subscription/module-lo
 import { PriorityBadge } from "@/components/work-orders/priority-badge";
 import { ProgressBar } from "@/components/work-orders/progress-bar";
 import { StatusBadge } from "@/components/work-orders/status-badge";
+import { OrderForm } from "@/components/work-orders/order-form";
 import type { WorkOrder } from "@/types";
 
 function OrderCard({ order }: { order: WorkOrder }) {
@@ -94,6 +97,7 @@ export default function MisOrdenesPage() {
   const ts = useTranslations("workOrders.staff");
   const gate = useModuleGate("work_orders");
   const today = format(new Date(), "yyyy-MM-dd");
+  const [formOpen, setFormOpen] = useState(false);
 
   // sort_by=urgency es el orden por defecto de staff en la API: lo urgente y lo que vence hoy, primero.
   const { data, isLoading, error } = useWorkOrders({ sort_by: "urgency" }, { page_size: 100 }, { enabled: gate.enabled });
@@ -107,10 +111,17 @@ export default function MisOrdenesPage() {
 
   return (
     <div className="mx-auto max-w-xl space-y-6 pb-8">
-      <header>
-        <h1 className="font-heading text-2xl font-semibold">{t("myOrders")}</h1>
-        <p className="text-sm text-muted-foreground">{t("myOrdersSubtitle", { count: todo.length })}</p>
+      <header className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="font-heading text-2xl font-semibold">{t("myOrders")}</h1>
+          <p className="text-sm text-muted-foreground">{t("myOrdersSubtitle", { count: todo.length })}</p>
+        </div>
+        <Button className="min-h-11 shrink-0 gap-1.5" onClick={() => setFormOpen(true)}>
+          <Plus size={16} aria-hidden="true" />
+          {ts("newOrder")}
+        </Button>
       </header>
+      <OrderForm open={formOpen} onOpenChange={setFormOpen} staff />
 
       {isLoading ? (
         <div className="space-y-3" aria-busy="true">

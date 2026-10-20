@@ -17,6 +17,7 @@ const ADMIN_ROUTES = [
   "/equipo",
   "/mis-empresas",
   "/restaurante",
+  "/terminales",
 ];
 
 export default function middleware(request: NextRequest) {

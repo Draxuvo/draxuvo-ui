@@ -245,11 +245,12 @@ export type PaymentMethod = "cash" | "card" | "transfer";
 export type OrderMode = "service" | "order";
 export type WorkOrderEventKind =
   | "created" | "started" | "finished" | "reopened" | "charged"
-  | "voided" | "cancelled" | "reassigned" | "note" | "photo";
+  | "voided" | "cancelled" | "reassigned" | "note" | "photo"
+  | "item_added" | "item_updated" | "item_removed";
 export type WorkOrderAction =
   | "start" | "finish" | "reopen" | "charge" | "void_charge" | "cancel"
   | "edit" | "delete" | "add_item" | "edit_items" | "edit_steps" | "check_steps"
-  | "add_note" | "add_photo";
+  | "add_note" | "add_photo" | "change_items";
 
 export interface PersonRef {
   id: number;
@@ -308,6 +309,7 @@ export interface WorkOrder {
   customer_phone?: string;
   customer_address?: string;
   employee?: PersonRef | null;
+  created_by?: PersonRef | null;
   items_count: number;
   steps_count: number;
   steps_done: number;
@@ -410,6 +412,9 @@ export interface IncomePaidTicket {
 export interface IncomeReport {
   groups: Array<{ period: string; total: number; count: number }>;
   tickets: IncomePaidTicket[];
+  /** Pagos no anulados del rango por método y, en tarjeta, por terminal (spec 015). */
+  by_method?: Array<{ method: PaymentMethod; label: string; total: number; count: number }>;
+  by_terminal?: Array<{ terminal: PaymentTerminalRef | null; total: number; count: number }>;
 }
 
 export interface ExpensesReport {
@@ -464,7 +469,8 @@ export interface Ticket {
   } | null;
   /** Ticket de una cuenta de restaurante (sin orden de trabajo). */
   check?: { id: number; table: string | null; takeout_name: string | null; waiter: PersonRef | null } | null;
-  payments?: CheckPayment[];
+  /** Pagos del cobro: de la cuenta o de la orden (spec 015). Los anulados traen `voided_at`. */
+  payments?: TicketPayment[];
   status: TicketStatus;
   total: number;
   items?: TicketItem[];
@@ -576,6 +582,50 @@ export interface CheckPayment {
   reference: string | null;
   amount_received: string | null;
   change_given: string | null;
+  terminal?: PaymentTerminalRef | null;
+}
+
+// Terminales de cobro del negocio (spec 015).
+export type TerminalProvider =
+  | "bbva" | "banorte" | "santander" | "banamex" | "getnet" | "mercado_pago" | "clip" | "other";
+
+export const TERMINAL_PROVIDERS: readonly TerminalProvider[] = [
+  "bbva", "banorte", "santander", "banamex", "getnet", "mercado_pago", "clip", "other",
+];
+
+export interface PaymentTerminalRef {
+  id: number;
+  name: string;
+  provider: TerminalProvider;
+}
+
+export interface PaymentTerminal extends PaymentTerminalRef {
+  provider_label: string;
+  active: boolean;
+  /** Solo para admin y dueño. */
+  payments_count?: number;
+}
+
+/** Un pago del cobro de una orden; el de una cuenta trae solo los campos de CheckPayment. */
+export interface TicketPayment extends CheckPayment {
+  method_label?: string;
+  authorization_code?: string | null;
+  card_last4?: string | null;
+  source?: "manual";
+  created_by?: PersonRef | null;
+  created_at?: string;
+  voided_at?: string | null;
+}
+
+/** Un pago en el cuerpo de POST /work_orders/:id/charge. */
+export interface ChargePaymentInput {
+  method: PaymentMethod;
+  amount?: number;
+  amount_received?: number;
+  terminal_id?: number;
+  authorization_code?: string;
+  card_last4?: string;
+  reference?: string;
 }
 
 export interface Check {

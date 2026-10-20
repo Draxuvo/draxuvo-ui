@@ -215,6 +215,11 @@ export function OrderView({ id, backHref, onEdit }: OrderViewProps) {
           <li>
             {t("assignedTo")}: {order.employee?.name ?? t("unassigned")}
           </li>
+          {order.created_by && (
+            <li>
+              {t("createdBy")}: {order.created_by.name}
+            </li>
+          )}
           {order.due_date && orderMode === "service" && (
             <li>
               {t("dueDate")}: {format(new Date(order.due_date), "d MMM, HH:mm", { locale: dateLocale })}

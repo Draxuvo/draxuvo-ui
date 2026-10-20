@@ -16,6 +16,7 @@ import {
   UsersRound,
   UtensilsCrossed,
   Building2,
+  Landmark,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -161,6 +162,10 @@ export function Sidebar() {
       : []),
     ...(showTeam
       ? [{ href: `/${locale}/equipo`, label: t("team"), icon: UsersRound }]
+      : []),
+    // Terminales de cobro (spec 015): las administran admin y dueño, igual que el equipo.
+    ...(showTeam
+      ? [{ href: `/${locale}/terminales`, label: t("terminals"), icon: Landmark }]
       : []),
     ...(showMyCompanies
       ? [{ href: `/${locale}/mis-empresas`, label: t("myCompanies"), icon: Building2 }]

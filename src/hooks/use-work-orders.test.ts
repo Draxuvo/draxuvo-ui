@@ -108,7 +108,6 @@ describe("transiciones", () => {
     ["finish", wo.useFinishOrder, false],
     ["reopen", wo.useReopenOrder, false],
     ["cancel", wo.useCancelOrder, false],
-    ["charge", wo.useChargeOrder, true],
     ["void_charge", wo.useVoidCharge, true],
   ] as const;
 
@@ -123,6 +122,17 @@ describe("transiciones", () => {
     expect(keys).toContainEqual(["work-orders"]);
     expect(keys).toContainEqual(["dashboard", 3]);
     expect(keys.some((k) => k![0] === "tickets")).toBe(tickets);
+  });
+
+  it("charge manda la lista de pagos con Idempotency-Key e invalida tickets (spec 015)", async () => {
+    const spy = vi.spyOn(client, "invalidateQueries");
+    const { result } = renderHook(() => wo.useChargeOrder(7), { wrapper });
+    const payments = [{ method: "card" as const, amount: 300 }, { method: "cash" as const, amount_received: 250 }];
+    await act(() => result.current.mutateAsync({ payments, idempotencyKey: "k-1" }));
+
+    expect(api.post).toHaveBeenCalledWith("/api/v1/work_orders/7/charge", { payments }, { headers: { "Idempotency-Key": "k-1" } });
+    expect(client.getQueryData(["work-orders", 7])).toEqual(order);
+    expect(spy.mock.calls.some((c) => c[0]!.queryKey![0] === "tickets")).toBe(true);
   });
 
   it("sin cuerpo envía un objeto vacío", async () => {

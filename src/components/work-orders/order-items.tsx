@@ -1,6 +1,6 @@
 "use client";
 // Conceptos cobrables y total. Agregar viene de `add_item` (staff solo del catálogo, sin precio propio);
-// editar precio y borrar vienen de `edit_items`.
+// editar precio y borrar vienen de `edit_items`; el asignado cambia la cantidad y quita con `change_items` (spec 015).
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
@@ -17,6 +17,8 @@ export function OrderItems({ order }: { order: WorkOrder }) {
   const locale = useLocale();
   const can = (action: WorkOrderAction) => order.allowed_actions?.includes(action) ?? false;
   const boss = can("edit_items");
+  const changeQuantity = !boss && can("change_items");
+  const canRemove = boss || can("change_items");
   const money = new Intl.NumberFormat(locale === "en" ? "en-US" : "es-MX", { style: "currency", currency: "MXN" });
   const [productId, setProductId] = useState("");
   const [free, setFree] = useState({ description: "", quantity: "1", unit_price: "" });
@@ -82,10 +84,24 @@ export function OrderItems({ order }: { order: WorkOrder }) {
                   }}
                   className="h-11 w-28 text-right tabular-nums"
                 />
+              ) : changeQuantity ? (
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  min={1}
+                  step="1"
+                  defaultValue={Number(item.quantity)}
+                  aria-label={t("concepts.editQuantity", { description: item.description })}
+                  onBlur={(e) => {
+                    const value = Number(e.target.value);
+                    if (value > 0 && value !== Number(item.quantity)) update.mutate({ itemId: item.id, data: { quantity: value } });
+                  }}
+                  className="h-11 w-20 text-right tabular-nums"
+                />
               ) : (
                 <p className="font-display text-lg font-semibold tabular-nums">{money.format(Number(item.subtotal ?? 0))}</p>
               )}
-              {boss && (
+              {canRemove && (
                 <button
                   type="button"
                   onClick={() => remove.mutate(item.id)}

@@ -87,4 +87,16 @@ describe("OrderItems", () => {
     renderWithProviders(<OrderItems order={{ ...orden([]), items: [], total: 0 }} />);
     expect(screen.getByText("Sin conceptos")).toBeInTheDocument();
   });
+  it("con change_items el asignado cambia la cantidad y quita, pero no ve el precio editable", async () => {
+    renderWithProviders(<OrderItems order={orden(["change_items"])} />);
+    expect(screen.queryByLabelText("Editar precio")).not.toBeInTheDocument();
+    const quantity = screen.getByLabelText("Cantidad de Mano de obra");
+    await userEvent.clear(quantity);
+    await userEvent.type(quantity, "4");
+    await userEvent.tab();
+    expect(updateMutate).toHaveBeenCalledWith({ itemId: 1, data: { quantity: 4 } });
+
+    await userEvent.click(screen.getByRole("button", { name: /Refacción/ }));
+    expect(removeMutate).toHaveBeenCalledWith(2);
+  });
 });

@@ -2,6 +2,8 @@
 // Crear y editar una orden en una hoja de una columna (controles de 44 px, sin scroll horizontal).
 // Los campos dependen del modo de la empresa: `order` (mesa o cliente + conceptos) o `service`
 // (cliente, conceptos y, plegado en "Más detalles", pasos, fecha, prioridad y notas).
+// Con `staff` (spec 015) el operador crea su propia orden: solo título, cliente y productos del catálogo con
+// cantidad; la API la asigna a su empleado y pone los precios.
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,6 +21,7 @@ import { employeesService } from "@/services/employees";
 import { useCreateWorkOrder, useUpdateWorkOrder } from "@/hooks/use-work-orders";
 import { useAppRouter } from "@/hooks/use-router";
 import { useAuthStore } from "@/store/auth";
+import { cn } from "@/lib/utils";
 import type { Employee, Product, WorkOrder, WorkOrderPriority } from "@/types";
 
 const PRIORITIES: WorkOrderPriority[] = ["low", "medium", "high", "urgent"];
@@ -67,10 +70,12 @@ export function OrderForm({
   open,
   onOpenChange,
   order,
+  staff = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   order?: WorkOrder;
+  staff?: boolean;
 }) {
   const t = useTranslations("workOrders");
   const tf = useTranslations("workOrders.form");
@@ -131,11 +136,11 @@ export function OrderForm({
   }, [open, order, reset]);
 
   // Quien no tiene el módulo de empleados recibe 403: se oculta el selector y no hay toast.
-  useEffect(() => (open ? expectModuleLock("employees") : undefined), [open]);
+  useEffect(() => (open && !staff ? expectModuleLock("employees") : undefined), [open, staff]);
   const { data: employeesData } = useQuery({
     queryKey: ["employees", "assignee-select"],
     queryFn: () => employeesService.list({ page: 1, page_size: 100, status: "active" }),
-    enabled: open,
+    enabled: open && !staff,
     retry: false,
   });
   const employees: Employee[] = employeesData?.results ?? [];
@@ -165,6 +170,7 @@ export function OrderForm({
   }
 
   async function onSubmit(values: FormValues) {
+    if (staff) return submitStaff(values);
     const rows = items.filter((r) => r.description.trim());
     const invalid = rows.some(
       (r) => !(Number(r.quantity) > 0) || (r.unit_price !== "" && !(Number(r.unit_price) >= 0)),
@@ -222,6 +228,34 @@ export function OrderForm({
     }
   }
 
+  // El operador manda solo qué es, el cliente y productos del catálogo con cantidad (FR-001 a FR-004).
+  async function submitStaff(values: FormValues) {
+    const rows = items.filter((r) => r.product_id || r.quantity !== "1");
+    const invalid = rows.some((r) => !r.product_id || !(Number(r.quantity) > 0));
+    setItemsError(invalid);
+    if (invalid) return;
+
+    const work_order: Record<string, unknown> = { title: values.title.trim() };
+    if (!isOrderMode) {
+      Object.assign(work_order, {
+        customer_name: values.customer_name.trim() || null,
+        customer_phone: values.customer_phone.trim() || null,
+      });
+    }
+    try {
+      const created = await create.mutateAsync({
+        work_order,
+        items: rows.map((r) => ({ product_id: r.product_id, quantity: Number(r.quantity) })),
+      });
+      toast.success(t("createSuccess"));
+      onOpenChange(false);
+      router.push(`/mis-ordenes/${created.id}`);
+    } catch (err) {
+      const apiError = err as { response?: { data?: { error?: { message?: string } } } };
+      toast.error(tc("error"), { description: apiError.response?.data?.error?.message });
+    }
+  }
+
   const titleLabel = isOrderMode ? tf("tableLabel") : tf("titleLabel");
   const titlePlaceholder = isOrderMode ? tf("tablePlaceholder") : tf("titlePlaceholder");
   const busy = isSubmitting || create.isPending || update.isPending;
@@ -257,13 +291,15 @@ export function OrderForm({
                     placeholder={tf("customerPhonePlaceholder")}
                   />
                 </Field>
-                <Field label={tf("customerAddress")}>
-                  <Input {...register("customer_address")} className="h-11" placeholder={tf("customerAddressPlaceholder")} />
-                </Field>
+                {!staff && (
+                  <Field label={tf("customerAddress")}>
+                    <Input {...register("customer_address")} className="h-11" placeholder={tf("customerAddressPlaceholder")} />
+                  </Field>
+                )}
               </fieldset>
             )}
 
-            {employeesData && (
+            {!staff && employeesData && (
               <Field label={tf("assignee")}>
                 <select {...register("employee_id")} className={FIELD}>
                   <option value="">{tf("assigneeNone")}</option>
@@ -282,7 +318,7 @@ export function OrderForm({
                 <h3 id="order-form-items" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                   {tf("items")}
                 </h3>
-                <p className="text-xs text-muted-foreground">{tf("itemsHint")}</p>
+                <p className="text-xs text-muted-foreground">{staff ? tf("staffItemsHint") : tf("itemsHint")}</p>
               </div>
               {items.map((row, idx) => (
                 <div key={row.id ?? idx} className="space-y-2 rounded-xl border border-border bg-muted/30 p-3">
@@ -293,7 +329,7 @@ export function OrderForm({
                       onChange={(e) => pickProduct(idx, e.target.value)}
                       className={FIELD}
                     >
-                      <option value="">{t("concepts.addFree")}</option>
+                      <option value="">{staff ? t("concepts.pickProduct") : t("concepts.addFree")}</option>
                       {Object.entries(byCategory).map(([cat, list]) => (
                         <optgroup key={cat} label={cat}>
                           {list.map((p) => (
@@ -315,14 +351,16 @@ export function OrderForm({
                       <Trash2 size={16} aria-hidden="true" />
                     </Button>
                   </div>
-                  <Input
-                    className="h-11"
-                    value={row.description}
-                    onChange={(e) => patchItem(idx, { description: e.target.value })}
-                    placeholder={t("concepts.freePlaceholder")}
-                    aria-label={t("concepts.freeDescription")}
-                  />
-                  <div className="grid grid-cols-2 gap-2">
+                  {!staff && (
+                    <Input
+                      className="h-11"
+                      value={row.description}
+                      onChange={(e) => patchItem(idx, { description: e.target.value })}
+                      placeholder={t("concepts.freePlaceholder")}
+                      aria-label={t("concepts.freeDescription")}
+                    />
+                  )}
+                  <div className={cn("grid gap-2", staff ? "grid-cols-1" : "grid-cols-2")}>
                     <Input
                       className="h-11"
                       value={row.quantity}
@@ -331,21 +369,23 @@ export function OrderForm({
                       aria-label={t("concepts.quantity")}
                       placeholder={t("concepts.quantity")}
                     />
-                    <Input
-                      className="h-11"
-                      value={row.unit_price}
-                      onChange={(e) => patchItem(idx, { unit_price: e.target.value })}
-                      inputMode="decimal"
-                      aria-label={t("concepts.price")}
-                      placeholder={t("concepts.price")}
-                    />
+                    {!staff && (
+                      <Input
+                        className="h-11"
+                        value={row.unit_price}
+                        onChange={(e) => patchItem(idx, { unit_price: e.target.value })}
+                        inputMode="decimal"
+                        aria-label={t("concepts.price")}
+                        placeholder={t("concepts.price")}
+                      />
+                    )}
                   </div>
                 </div>
               ))}
               {itemsError && (
                 <p role="alert" className="flex items-center gap-1 text-xs text-destructive">
                   <AlertCircle size={11} aria-hidden="true" />
-                  {tf("invalidNumber")}
+                  {staff ? tf("staffInvalidItem") : tf("invalidNumber")}
                 </p>
               )}
               <Button
@@ -359,8 +399,8 @@ export function OrderForm({
               </Button>
             </section>
 
-            {/* Más detalles (solo servicio) */}
-            {!isOrderMode && (
+            {/* Más detalles (solo servicio y solo el jefe) */}
+            {!isOrderMode && !staff && (
               <section className="space-y-4">
                 <button
                   type="button"
