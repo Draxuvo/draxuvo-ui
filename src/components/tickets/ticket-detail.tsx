@@ -44,6 +44,7 @@ export function TicketDetail({
 
   const { data: ticket } = useTicket(initial.id);
   const current = ticket ?? initial;
+  const activePayments = (current?.payments ?? []).filter((payment) => !payment.voided_at);
 
   const sendWhatsapp = useSendTicketWhatsapp(current.id);
 
@@ -209,17 +210,20 @@ export function TicketDetail({
               </div>
             )}
 
-            {/* Pagos de una cuenta de restaurante */}
-            {(current.payments ?? []).length > 0 && (
+            {/* Pagos de una cuenta o del cobro de una orden (spec 015); los anulados quedan en la historia */}
+            {activePayments.length > 0 && (
               <div>
                 <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                   {t("payments")}
                 </p>
                 <ul className="divide-y divide-border rounded-xl border border-border">
-                  {current.payments!.map((payment, i) => (
+                  {activePayments.map((payment, i) => (
                     <li key={payment.id ?? i} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
                       <span className="text-foreground">
                         {t(`methods.${payment.method}`)}
+                        {payment.terminal ? ` · ${payment.terminal.name}` : ""}
+                        {payment.authorization_code ? ` · ${t("authorization")}: ${payment.authorization_code}` : ""}
+                        {payment.card_last4 ? ` · •••• ${payment.card_last4}` : ""}
                         {payment.reference ? ` · ${t("reference")}: ${payment.reference}` : ""}
                       </span>
                       <span className="font-semibold tabular-nums text-foreground">{money(payment.amount)}</span>

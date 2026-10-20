@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
 import type {
+  ChargePaymentInput,
   ListParams,
   OrderMode,
   PaginatedResponse,
@@ -140,7 +141,19 @@ export type ChargePayload = {
   amount_received?: number;
 };
 
-export const useChargeOrder = (id: number) => useTransition(id, "charge", { tickets: true });
+/**
+ * Cobro con uno o varios pagos (spec 015). La misma `Idempotency-Key` en un reintento no cobra dos veces.
+ */
+export function useChargeOrder(id: number) {
+  const { after } = useRefreshOrders();
+  return useMutation({
+    mutationFn: ({ payments, idempotencyKey }: { payments: ChargePaymentInput[]; idempotencyKey: string }) =>
+      apiClient
+        .post(`/api/v1/work_orders/${id}/charge`, { payments }, { headers: { "Idempotency-Key": idempotencyKey } })
+        .then((r) => r.data as WorkOrder),
+    onSuccess: (data) => after(id, data, { dashboard: true, tickets: true }),
+  });
+}
 
 export const useVoidCharge = (id: number) => useTransition(id, "void_charge", { tickets: true });
 

@@ -71,4 +71,16 @@ describe("OrderHistory", () => {
     pinta(evento("created", {}, null));
     expect(screen.getByText("Sistema creó la orden")).toBeInTheDocument();
   });
+  it("cuenta los cambios de productos y los pagos anulados (spec 015)", () => {
+    pinta(
+      evento("item_added", { description: "Café", quantity: "2.0" }),
+      evento("item_updated", { description: "Café", from_quantity: "2.0", to_quantity: "3.0" }),
+      evento("item_removed", { description: "Pan", quantity: 1 }),
+      evento("voided", { reason: "error", payments: [{ method: "card", amount: "300.0" }, { method: "cash", amount: 200 }] }),
+    );
+    expect(screen.getByText("Ana agregó 2 × Café")).toBeInTheDocument();
+    expect(screen.getByText("Ana cambió Café de 2 a 3")).toBeInTheDocument();
+    expect(screen.getByText("Ana quitó Pan")).toBeInTheDocument();
+    expect(screen.getByText("Pagos anulados: Tarjeta $300.00, Efectivo $200.00")).toBeInTheDocument();
+  });
 });

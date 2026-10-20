@@ -94,7 +94,8 @@
     "superAdminRole": "Super Admin",
     "team": "Equipo",
     "myCompanies": "Mis empresas",
-    "restaurant": "Restaurante"
+    "restaurant": "Restaurante",
+    "terminals": "Terminales"
   },
   "home": {
     "welcome": "Bienvenido, {name}",
@@ -589,7 +590,8 @@
     "waiter": "Mesero",
     "payments": "Pagos",
     "reference": "Referencia",
-    "check": "Cuenta"
+    "check": "Cuenta",
+    "authorization": "Autorización"
   },
   "subscription": {
     "nav": "Suscripción",
@@ -830,6 +832,13 @@
       "colAbsent": "Ausente",
       "hoursUnit": "hrs",
       "empty": "No hay datos de nómina para el período seleccionado"
+    },
+    "payments": {
+      "byMethod": "Por método",
+      "byTerminal": "Por terminal (tarjeta)",
+      "noTerminal": "Sin terminal",
+      "noCard": "Sin cobros con tarjeta en el rango",
+      "count": "{count, plural, one {# pago} other {# pagos}}"
     }
   },
   "workOrders": {
@@ -992,7 +1001,9 @@
       "catalogOnly": "Solo puedes elegir productos del catálogo, a su precio",
       "invalidNumber": "Número no válido",
       "create": "Crear orden",
-      "submit": "Guardar cambios"
+      "submit": "Guardar cambios",
+      "staffItemsHint": "Elige productos del catálogo; el precio lo pone el catálogo",
+      "staffInvalidItem": "Elige un producto y una cantidad mayor que cero"
     },
     "steps": {
       "title": "Pasos",
@@ -1038,7 +1049,9 @@
       "required": "Escribe la descripción",
       "invalidQuantity": "La cantidad debe ser mayor a 0",
       "invalidPrice": "El precio no es válido",
-      "noPrice": "Sin precio"
+      "noPrice": "Sin precio",
+      "pickProduct": "Elige un producto",
+      "editQuantity": "Cantidad de {description}"
     },
     "photos": {
       "title": "Fotos",
@@ -1085,7 +1098,11 @@
       "reassignedFromNone": "{name} asignó la orden a {to}",
       "reassignedToNone": "{name} quitó el responsable ({from})",
       "note": "{name} agregó una nota",
-      "photo": "{name} agregó una foto"
+      "photo": "{name} agregó una foto",
+      "item_added": "{name} agregó {quantity} × {product}",
+      "item_updated": "{name} cambió {product} de {from} a {to}",
+      "item_removed": "{name} quitó {product}",
+      "voidedPayments": "Pagos anulados: {payments}"
     },
     "charge": {
       "title": "Cobrar orden",
@@ -1118,7 +1135,27 @@
       "receivedRequired": "Escribe el monto recibido",
       "noItems": "La orden no tiene conceptos con precio",
       "error": "No se pudo registrar el cobro",
-      "exact": "Monto exacto"
+      "exact": "Monto exacto",
+      "addPayment": "Agregar otro pago",
+      "paymentN": "Pago {n}",
+      "removePayment": "Quitar el pago {n}",
+      "amount": "Monto",
+      "terminal": "Terminal",
+      "pickTerminal": "Elige la terminal",
+      "authorization": "Autorización",
+      "last4": "Últimos 4",
+      "optionalVoucher": "Autorización y últimos 4 dígitos del voucher son opcionales.",
+      "reference": "Referencia",
+      "errors": {
+        "missing": "Los pagos no cubren el total",
+        "exceeds_total": "Los pagos con tarjeta o transferencia pasan del total",
+        "multiple_cash": "Solo puede haber un pago en efectivo",
+        "reference_required": "Escribe la referencia de la transferencia",
+        "invalid_terminal": "La terminal ya no está disponible; elige otra",
+        "invalid_amount": "Revisa el monto de cada pago",
+        "invalid_card_last4": "Los últimos 4 dígitos deben ser 4 números",
+        "too_many_payments": "Registra de 1 a 5 pagos"
+      }
     },
     "mode": {
       "open": "Cómo trabajas tus órdenes",
@@ -1158,7 +1195,8 @@
       "startAria": "Empezar orden {title}",
       "finishAria": "Terminar orden {title}",
       "pendingSteps": "{count, plural, one {# paso pendiente} other {# pasos pendientes}}",
-      "open": "Abrir orden"
+      "open": "Abrir orden",
+      "newOrder": "Nueva orden"
     },
     "aria": {
       "statusBadge": "Estado: {status}",
@@ -1180,7 +1218,8 @@
       "forbidden": "No tienes acceso a esta orden",
       "notFound": "No encontramos esta orden",
       "photo": "No se pudo subir la foto"
-    }
+    },
+    "createdBy": "Creada por"
   },
   "registration": {
     "title": "Crea tu cuenta",
@@ -1474,5 +1513,50 @@
       "advanceError": "Ese platillo ya cambió. Se actualizó la lista.",
       "pending": "{count, plural, one {# comanda} other {# comandas}}"
     }
+  },
+  "terminals": {
+    "title": "Terminales de cobro",
+    "subtitle": "Las terminales con las que cobras con tarjeta. Al cobrar se elige en cuál se pasó la tarjeta.",
+    "new": "Nueva terminal",
+    "edit": "Editar terminal",
+    "formHint": "Draxuvo no se conecta con la terminal: solo registra en cuál se cobró.",
+    "name": "Nombre",
+    "namePlaceholder": "BBVA caja 1, Clip de la barra…",
+    "nameRequired": "Escribe un nombre",
+    "nameTooLong": "Máximo 60 caracteres",
+    "nameTaken": "Ya hay una terminal con ese nombre",
+    "provider": "Proveedor",
+    "providers": {
+      "bbva": "BBVA",
+      "banorte": "Banorte",
+      "santander": "Santander",
+      "banamex": "Banamex",
+      "getnet": "Getnet",
+      "mercado_pago": "Mercado Pago",
+      "clip": "Clip",
+      "other": "Otro"
+    },
+    "active": "Activa",
+    "statusActive": "Activa",
+    "statusInactive": "Desactivada",
+    "activate": "Activar",
+    "deactivate": "Desactivar",
+    "delete": "Borrar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "saved": "Terminal guardada",
+    "activated": "{name} quedó activa",
+    "deactivated": "{name} quedó desactivada",
+    "deleted": "{name} se borró",
+    "paymentsCount": "{count, plural, =0 {sin cobros} one {# cobro} other {# cobros}}",
+    "editAria": "Editar {name}",
+    "deleteAria": "Borrar {name}",
+    "deleteTitle": "¿Borrar la terminal?",
+    "deleteDesc": "{name} no tiene cobros y se borrará.",
+    "inUseTitle": "La terminal tiene cobros",
+    "inUseDesc": "{name} tiene {count, plural, one {# cobro} other {# cobros}} y no se puede borrar. Desactívala para que ya no aparezca al cobrar.",
+    "empty": "Aún no hay terminales",
+    "emptyDesc": "Da de alta las terminales del negocio para saber cuánto se cobró en cada una.",
+    "loadError": "No se pudieron cargar las terminales"
   }
 }
