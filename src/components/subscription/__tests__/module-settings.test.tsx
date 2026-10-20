@@ -1,53 +1,77 @@
 import { screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
-import type { Plan, Subscription } from "@/types";
+import type { Subscription } from "@/types";
 
-vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+const auth = vi.hoisted(() => ({ role: "owner" as string }));
+
 vi.mock("@/store/auth", () => ({
-  useAuthStore: () => ({ selectedCompanyId: 7, role: "owner" }),
+  useAuthStore: () => ({ selectedCompanyId: 7, role: auth.role }),
 }));
-vi.mock("@/services/subscription", () => ({ getSubscription: vi.fn(), updateModules: vi.fn() }));
-vi.mock("@/services/plans", () => ({ getPlans: vi.fn() }));
+vi.mock("@/services/subscription", () => ({ getSubscription: vi.fn() }));
 
-import { getPlans } from "@/services/plans";
 import { getSubscription } from "@/services/subscription";
 import { ModuleSettings } from "../module-settings";
 
-const plan = (key: Plan["key"], modules: Plan["modules"]): Plan => ({
-  key, modules, prices: { monthly: { amount_cents: 0, iva_cents: 0, total_cents: 0 }, annual: { amount_cents: 0, iva_cents: 0, total_cents: 0 } },
-});
 const base = ["employees", "attendance", "inventory"] as const;
 const pro = [...base, "work_orders", "tickets", "reports", "restaurant"] as const;
 
+const subscription = (available: readonly string[], active: readonly string[]) =>
+  vi.mocked(getSubscription).mockResolvedValue({ plan: "pro", status: "active", available_modules: [...available], active_modules: [...active] } as unknown as Subscription);
+
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(getPlans).mockResolvedValue({
-    iva_rate: 16,
-    modules: [...pro, "whatsapp", "multi_company"],
-    plans: [plan("basic", [...base]), plan("pro", [...pro]), plan("enterprise", [...pro, "whatsapp", "multi_company"])],
-  } as never);
+  auth.role = "owner";
 });
 
-describe("módulos de la suscripción con restaurante", () => {
-  it("un plan Pro muestra el módulo Restaurante con su interruptor", async () => {
-    vi.mocked(getSubscription).mockResolvedValue({
-      plan: "pro", status: "active", available_modules: [...pro], active_modules: [...pro],
-    } as unknown as Subscription);
-    renderWithProviders(<ModuleSettings />);
-
-    const toggle = await screen.findByRole("switch", { name: /Restaurante/ });
-    expect(toggle).toBeChecked();
-  });
-
-  it("un plan Básico lo muestra bloqueado y dice en qué planes está", async () => {
-    vi.mocked(getSubscription).mockResolvedValue({
-      plan: "basic", status: "active", available_modules: [...base], active_modules: [...base],
-    } as unknown as Subscription);
+describe("módulos de la suscripción en solo lectura (spec 017)", () => {
+  it("un plan Pro muestra sus 7 módulos como Activo, sin interruptores", async () => {
+    subscription(pro, pro);
     renderWithProviders(<ModuleSettings />);
 
     expect(await screen.findByText("Restaurante")).toBeInTheDocument();
-    expect(screen.queryByRole("switch", { name: /Restaurante/ })).not.toBeInTheDocument();
-    expect(screen.getByText("Restaurante").parentElement).toHaveTextContent("Disponible en Pro o Empresa");
+    expect(screen.getAllByRole("listitem")).toHaveLength(7);
+    expect(screen.getAllByText("Activo")).toHaveLength(7);
+    expect(screen.queryByRole("switch")).not.toBeInTheDocument();
+  });
+
+  it("un módulo desactivado aparece como Desactivado", async () => {
+    subscription(pro, pro.filter((module) => module !== "tickets"));
+    renderWithProviders(<ModuleSettings />);
+
+    const row = (await screen.findByText("Tickets")).closest("li")!;
+    expect(row).toHaveTextContent("Desactivado");
+    expect(screen.getAllByText("Activo")).toHaveLength(6);
+  });
+
+  it("un plan Básico no muestra Restaurante ni ningún módulo de otro plan", async () => {
+    subscription(base, base);
+    renderWithProviders(<ModuleSettings />);
+
+    expect(await screen.findByText("Inventario")).toBeInTheDocument();
+    expect(screen.getAllByRole("listitem")).toHaveLength(3);
+    expect(screen.queryByText("Restaurante")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Disponible en/)).not.toBeInTheDocument();
+  });
+
+  it("explica que Draxuvo administra los módulos", async () => {
+    subscription(base, base);
+    renderWithProviders(<ModuleSettings />);
+    expect(await screen.findByText(/Draxuvo los activa y desactiva/)).toBeInTheDocument();
+  });
+
+  it("el administrador la ve; el encargado y el operador no", async () => {
+    subscription(base, base);
+    auth.role = "admin";
+    const first = renderWithProviders(<ModuleSettings />);
+    expect(await screen.findByText("Inventario")).toBeInTheDocument();
+    first.unmount();
+
+    for (const role of ["manager", "staff"]) {
+      auth.role = role;
+      const view = renderWithProviders(<ModuleSettings />);
+      expect(view.container).toBeEmptyDOMElement();
+      view.unmount();
+    }
   });
 });

@@ -1,7 +1,7 @@
 // src/components/companies/columns.tsx
 "use client";
 import { type ColumnDef } from "@tanstack/react-table";
-import { Pencil, Trash2, ExternalLink, CheckCircle2, Clock, CircleDot, XCircle, Ban } from "lucide-react";
+import { Pencil, Trash2, ExternalLink, CheckCircle2, Clock, CircleDot, XCircle, Ban, Blocks } from "lucide-react";
 import { differenceInDays } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,8 @@ interface CompanyActions {
   onEdit: (company: Company) => void;
   onDelete: (company: Company) => void;
   onViewSubscription: () => void;
+  /** Abre los módulos de la empresa (spec 017): solo el super admin los cambia. */
+  onModules: (row: CompanyRow) => void;
 }
 
 type DisplaySubStatus =
@@ -53,7 +55,7 @@ function getSubStatus(sub: Subscription | null): DisplaySubStatus {
 }
 
 export function getCompanyColumns(
-  t: (key: string) => string,
+  t: (key: string, values?: Record<string, string | number>) => string,
   tc: (key: string) => string,
   actions: CompanyActions,
 ): ColumnDef<CompanyRow, unknown>[] {
@@ -160,6 +162,22 @@ export function getCompanyColumns(
       },
     },
     {
+      id: "modules",
+      header: t("modules.column"),
+      cell: ({ row }) => {
+        const { subscription, isLoadingSub } = row.original;
+        if (isLoadingSub) return <span className="text-xs text-muted-foreground animate-pulse">{t("subLoading")}</span>;
+        if (!subscription) return <span className="text-muted-foreground">—</span>;
+        const total = subscription.available_modules.length;
+        const active = subscription.active_modules.length;
+        return (
+          <span className="tabular-nums text-foreground" title={t("modules.summary", { active, total })}>
+            {active}/{total}
+          </span>
+        );
+      },
+    },
+    {
       id: "users_count",
       header: t("users"),
       cell: ({ row }) => (
@@ -174,6 +192,21 @@ export function getCompanyColumns(
       cell: ({ row }) => (
         <TooltipProvider>
           <div className="flex items-center justify-end gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                  aria-label={t("modules.open", { name: row.original.company.name })}
+                  onClick={() => actions.onModules(row.original)}
+                >
+                  <Blocks size={14} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t("modules.title", { name: row.original.company.name })}</TooltipContent>
+            </Tooltip>
+
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button

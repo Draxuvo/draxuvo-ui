@@ -498,7 +498,20 @@
     "subLoading": "Cargando...",
     "viewSubscription": "Ver suscripciones",
     "selectCompany": "Seleccionar empresa",
-    "selectCompanyPrompt": "Selecciona una empresa para ver sus reportes"
+    "selectCompanyPrompt": "Selecciona una empresa para ver sus reportes",
+    "modules": {
+      "column": "Módulos",
+      "summary": "{active} de {total} módulos activos",
+      "open": "Módulos de {name}",
+      "title": "Módulos de {name}",
+      "planLine": "Plan {plan} · suscripción: {status}",
+      "noSubscription": "Sin suscripción: no hay módulos que administrar.",
+      "none": "El plan de esta empresa no incluye módulos.",
+      "on": "Activo",
+      "off": "Desactivado",
+      "saved": "Módulos actualizados",
+      "error": "No se pudieron actualizar los módulos"
+    }
   },
   "forgotPassword": {
     "title": "¿Olvidaste tu contraseña?",
@@ -737,7 +750,8 @@
     "managedByParentTitle": "La facturación la administra {company}",
     "managedByParentDesc": "Esta sucursal usa la suscripción de la empresa principal. Los pagos y el plan se cambian desde ahí.",
     "managedByParentAction": "Ir a {company}",
-    "mainCompany": "la empresa principal"
+    "mainCompany": "la empresa principal",
+    "modulesReadOnly": "Estos son los módulos de tu plan. Draxuvo los activa y desactiva; si necesitas un cambio, pídelo al soporte de Draxuvo."
   },
   "profile": {
     "pageTitle": "Mi perfil",

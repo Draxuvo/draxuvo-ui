@@ -34,6 +34,41 @@ test("[SAD-010] la lista de empresas trae sus columnas y el estado de la suscrip
   }
   await expect(row(page, company.companyName)).toContainText(co("subTrial"));
   await expect(row(page, company.companyName)).toContainText(co("plans.pro"));
+  // Resumen de módulos (spec 017): una empresa Pro nueva tiene 7 de 7 activos.
+  await expect(page.getByRole("columnheader", { name: co("modules.column"), exact: true })).toBeVisible();
+  await expect(row(page, company.companyName)).toContainText("7/7");
+});
+
+test("[SAD-014] el super admin desactiva un módulo de una empresa y el dueño deja de verlo @pr", async ({ page, request, browser }, info) => {
+  test.setTimeout(90_000);
+  const company = await newCompany(request, info.workerIndex);
+
+  // 1. Abre los módulos de la empresa: solo los de su plan, con interruptor.
+  await page.goto("/es/empresas");
+  await page.getByPlaceholder(co("searchPlaceholder")).fill(company.companyName);
+  await expect(row(page, company.companyName)).toContainText("7/7");
+  await row(page, company.companyName).getByRole("button", { name: co("modules.open", { name: company.companyName }) }).click();
+  const sheet = page.getByRole("dialog");
+  await expect(sheet.getByText(co("modules.title", { name: company.companyName }))).toBeVisible();
+  await expect(sheet.getByRole("switch")).toHaveCount(7);
+
+  // 2. Desactiva Inventario: avisa, el resumen baja y queda registrado por la API.
+  await sheet.getByRole("switch", { name: t("modules.inventory") }).click();
+  await expect(page.getByText(co("modules.saved"))).toBeVisible();
+  await expect(sheet.getByRole("switch", { name: t("modules.inventory") })).not.toBeChecked();
+  await page.keyboard.press("Escape");
+  await expect(row(page, company.companyName)).toContainText("6/7");
+
+  // 3. El dueño de esa empresa ya no ve Inventario en el menú.
+  const ownerContext = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+  const owner = await ownerContext.newPage();
+  await owner.goto("/es/login");
+  await owner.getByLabel(t("auth.email"), { exact: true }).fill(company.email);
+  await owner.getByLabel(t("auth.password"), { exact: true }).fill(company.password);
+  await owner.getByRole("button", { name: t("auth.submit") }).click();
+  await expect(owner).toHaveURL(/\/es\/inicio$/);
+  await expect(owner.getByRole("navigation", { name: t("nav.mainNav") }).getByRole("link", { name: t("nav.inventory") })).toHaveCount(0);
+  await ownerContext.close();
 });
 
 // Cuarentena (spec 010): falló o fue inestable en la primera corrida local. Arreglar o borrar en 14 días.

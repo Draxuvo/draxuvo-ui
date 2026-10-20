@@ -2,8 +2,9 @@ import { expect, test, type Browser, type Locator, type Page } from "@playwright
 import { createCompany, uniquePrefix, type NewCompany } from "../support/data";
 import { t } from "../support/i18n";
 import { knownFailure } from "../support/known-failure";
+import { setDisabledModules } from "../support/modules";
 import { createOrderViaUI } from "../support/orders";
-import { API_URL, storageStatePath } from "../support/session";
+import { storageStatePath } from "../support/session";
 
 const ANON = { cookies: [], origins: [] };
 const board = (key: string, values?: Record<string, string | number>) => t(`analyticsBoard.${key}`, values);
@@ -116,11 +117,8 @@ test("[REP-010] sin módulos activos el dashboard lo dice y ofrece ver los plane
   test.setTimeout(90_000);
   const company = await createCompany(request, { workerIndex: info.workerIndex });
   const owner = await ownerOf(browser, company);
-  const off = await request.patch(`${API_URL}/api/v1/company/modules`, {
-    headers: owner.headers,
-    data: { disabled_modules: ["employees", "attendance", "inventory"] },
-  });
-  expect(off.ok()).toBe(true);
+  // Solo el super admin apaga módulos (spec 017).
+  await setDisabledModules(request, owner.headers["X-Company-Id"], ["employees", "attendance", "inventory"]);
 
   await owner.page.goto("/es/dashboard");
   await expect(owner.page.getByText(board("empty.noModules"))).toBeVisible();

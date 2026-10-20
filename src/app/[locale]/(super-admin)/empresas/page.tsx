@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { DataTable } from "@/components/ui/data-table";
 import { Pagination } from "@/components/ui/pagination";
 import { CompanyForm } from "@/components/companies/company-form";
+import { CompanyModulesSheet } from "@/components/companies/company-modules-sheet";
 import { CompanyDeleteDialog } from "@/components/companies/company-delete-dialog";
 import { getCompanyColumns, type CompanyRow } from "@/components/companies/columns";
 import { companiesService } from "@/services/companies";
@@ -31,6 +32,7 @@ export default function EmpresasPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Company | null>(null);
   const [deleting, setDeleting] = useState<Company | null>(null);
+  const [modulesFor, setModulesFor] = useState<number | null>(null);
 
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ["companies", page, PAGE_SIZE, debouncedSearch],
@@ -55,8 +57,9 @@ export default function EmpresasPage() {
         subscription: subscriptionQueries[i]?.data ?? null,
         isLoadingSub: subscriptionQueries[i]?.isLoading ?? true,
       })),
+    // `dataUpdatedAt` cambia con cada respuesta: así el resumen y la hoja de módulos se refrescan al guardar (spec 017).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [companies, subscriptionQueries.map((q) => q.data).join(",")],
+    [companies, subscriptionQueries.map((q) => `${q.dataUpdatedAt}:${q.isLoading}`).join(",")],
   );
 
   function handleSearch(value: string) {
@@ -82,6 +85,7 @@ export default function EmpresasPage() {
         },
         onDelete: (company) => setDeleting(company),
         onViewSubscription: () => router.push("/suscripciones"),
+        onModules: (row) => setModulesFor(row.company.id),
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
@@ -142,6 +146,13 @@ export default function EmpresasPage() {
         open={formOpen}
         onOpenChange={setFormOpen}
         company={editing}
+      />
+
+      {/* Módulos de la empresa (spec 017): solo el super admin los cambia */}
+      <CompanyModulesSheet
+        company={rows.find((row) => row.company.id === modulesFor)?.company ?? null}
+        subscription={rows.find((row) => row.company.id === modulesFor)?.subscription ?? null}
+        onOpenChange={(open) => !open && setModulesFor(null)}
       />
 
       {/* Delete Dialog */}
