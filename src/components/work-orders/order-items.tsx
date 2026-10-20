@@ -25,7 +25,7 @@ export function OrderItems({ order }: { order: WorkOrder }) {
 
   const { data: productsData } = useQuery({
     queryKey: ["products-selector"],
-    queryFn: () => apiClient.get("/api/v1/products?page_size=100").then((r) => r.data),
+    queryFn: () => apiClient.get("/api/v1/products?page_size=100&sellable=true").then((r) => r.data),
     enabled: can("add_item"),
   });
   const products: Product[] = productsData?.results ?? productsData ?? [];

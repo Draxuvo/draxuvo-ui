@@ -10,7 +10,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { Product } from "@/types";
+import { formatQuantity } from "@/lib/quantity";
+import type { Product, ProductTypeRef } from "@/types";
 
 interface ProductActions {
   onEntry: (product: Product) => void;
@@ -19,12 +20,21 @@ interface ProductActions {
   onDelete: (product: Product) => void;
 }
 
+/**
+ * Columnas según la vista (spec 016): en "Todos" se muestra el tipo; en un tipo que no se cuenta no hay existencia
+ * ni entradas y salidas; en uno que no se vende no hay precio.
+ */
 export function getProductColumns(
   t: (key: string) => string,
   tc: (key: string) => string,
   actions: ProductActions,
+  view?: ProductTypeRef | null,
+  locale = "es",
 ): ColumnDef<Product, unknown>[] {
-  return [
+  const showStock = !view || view.counted;
+  const showPrice = !view || view.sellable;
+  const money = (value: number | undefined) => (value === undefined || value === null ? "—" : `$${Number(value).toFixed(2)}`);
+  const columns: (ColumnDef<Product, unknown> | false)[] = [
     {
       accessorKey: "sku",
       header: t("sku"),
@@ -50,19 +60,36 @@ export function getProductColumns(
         </div>
       ),
     },
-    {
+    !view && {
+      id: "type",
+      header: t("type"),
+      cell: ({ row }) => <span className="text-muted-foreground">{row.original.product_type?.name ?? "—"}</span>,
+    },
+    showStock && {
       accessorKey: "stock",
       header: t("stock"),
       cell: ({ row }) => (
-        <span className="text-foreground">{row.original.stock}</span>
+        <span className="text-foreground tabular-nums">{formatQuantity(row.original.stock, row.original.unit, locale)}</span>
       ),
+    },
+    showStock && !!view && {
+      accessorKey: "min_stock",
+      header: t("minStock"),
+      cell: ({ row }) => (
+        <span className="text-muted-foreground tabular-nums">{formatQuantity(row.original.min_stock, row.original.unit, locale)}</span>
+      ),
+    },
+    showPrice && {
+      accessorKey: "price",
+      header: t("price"),
+      cell: ({ row }) => <span className="text-foreground tabular-nums">{row.original.product_type?.sellable === false ? "—" : money(row.original.price)}</span>,
     },
     {
       accessorKey: "unit_cost",
       header: t("unitCost"),
       cell: ({ row }) => (
         <span className="text-muted-foreground">
-          ${Number(row.original.unit_cost).toFixed(2)}
+          {money(row.original.unit_cost)}
         </span>
       ),
     },
@@ -72,6 +99,7 @@ export function getProductColumns(
       cell: ({ row }) => (
         <TooltipProvider>
           <div className="flex items-center justify-end gap-1">
+            {row.original.product_type?.counted !== false && (<>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -99,6 +127,7 @@ export function getProductColumns(
               </TooltipTrigger>
               <TooltipContent>{t("exit")}</TooltipContent>
             </Tooltip>
+            </>)}
 
             <Tooltip>
               <TooltipTrigger asChild>
@@ -132,4 +161,5 @@ export function getProductColumns(
       ),
     },
   ];
+  return columns.filter((column): column is ColumnDef<Product, unknown> => Boolean(column));
 }

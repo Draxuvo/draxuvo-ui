@@ -11,6 +11,10 @@ const row = (page: Page, text: string) => page.getByRole("row").filter({ hasText
 const action = (rowLocator: Locator, name: "entry" | "exit" | "edit" | "delete") =>
   rowLocator.getByRole("button").nth(["entry", "exit", "edit", "delete"].indexOf(name));
 /** Campo de un formulario: la etiqueta no está ligada con `for`, así que se toma el input que le sigue. */
+// Cantidades en piezas (spec 016): la etiqueta y la existencia llevan la unidad.
+const QTY = () => t("inventory.quantityIn", { unit: "Pieza" });
+/** Columna de existencia en la vista Todos: SKU, nombre, tipo, existencia. */
+const STOCK_CELL = 3;
 const field = (scope: Locator, label: string) =>
   scope.getByText(label, { exact: true }).locator("xpath=following-sibling::input");
 
@@ -43,6 +47,8 @@ async function apiHeaders(page: Page) {
 async function createProduct(page: Page, product: { sku: string; name: string; stock?: number; minStock?: number }) {
   await page.getByRole("button", { name: t("inventory.new") }).click();
   const sheet = page.getByRole("dialog");
+  // Spec 016: el tipo decide los campos. Las empresas nuevas son de servicio: "Refacción" se vende y se cuenta.
+  await sheet.getByLabel(t("inventory.type")).selectOption({ label: "Refacción" });
   await sheet.getByPlaceholder(t("inventory.skuPlaceholder")).fill(product.sku);
   await sheet.getByPlaceholder(t("inventory.namePlaceholder")).fill(product.name);
   await field(sheet, t("inventory.stock")).fill(String(product.stock ?? 0));
@@ -53,7 +59,7 @@ async function createProduct(page: Page, product: { sku: string; name: string; s
 async function moveStock(page: Page, productRow: Locator, kind: "entry" | "exit", qty: number) {
   await action(productRow, kind).click();
   const dialog = page.getByRole("dialog");
-  await field(dialog, t("inventory.quantity")).fill(String(qty));
+  await field(dialog, QTY()).fill(String(qty));
   await dialog.getByRole("button", { name: t("inventory.confirm") }).click();
 }
 
@@ -95,11 +101,11 @@ test("[FLU-03] el dueño importa productos, mueve stock y el historial cuadra @p
   // 3. Una entrada de 5 y una salida de 3 sobre el primero (INV-007, INV-008, INV-020).
   await moveStock(page, row(page, a), "entry", 5);
   await expect(page.getByText(t("inventory.entrySuccess"))).toBeVisible();
-  await expect(row(page, a).getByRole("cell").nth(2)).toHaveText("15");
+  await expect(row(page, a).getByRole("cell").nth(STOCK_CELL)).toHaveText("15 pza");
   await moveStock(page, row(page, a), "exit", 3);
   await expect(page.getByText(t("inventory.exitSuccess"))).toBeVisible();
-  await expect(row(page, a).getByRole("cell").nth(2)).toHaveText("12");
-  await expect(row(page, b).getByRole("cell").nth(2)).toHaveText("4");
+  await expect(row(page, a).getByRole("cell").nth(STOCK_CELL)).toHaveText("12 pza");
+  await expect(row(page, b).getByRole("cell").nth(STOCK_CELL)).toHaveText("4 pza");
 
   // 4. La pantalla no muestra el historial; se revisa por la API: la entrada y la salida están, y el stock cuadra.
   const found = await request.get(`${API_URL}/api/v1/products?search=${a}`, { headers: owner.headers });
@@ -138,7 +144,7 @@ test.describe("manager de Volta", () => {
   test.use({ storageState: storageStatePath("manager", "volta.demo") });
 
   test("[INV-018] las filas con stock bajo o agotadas llevan la etiqueta Stock bajo @regresion", async ({ page }) => {
-    knownFailure("H-22");
+    // H-22 se corrigió en la spec 016: la etiqueta usa la regla única de bajo inventario.
     await page.goto("/es/inventario");
     await expect(row(page, "FOC-09")).toBeVisible();
     await expect(row(page, "FOC-09")).toContainText(t("inventory.lowStockBadge"));
@@ -249,20 +255,20 @@ test("[INV-020] el gerente registra entradas y salidas desde la fila @pr", async
   await action(row(page, sku), "entry").click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByText(t("inventory.entryTitle", { name: `Llave ${sku}` }))).toBeVisible();
-  await expect(dialog.getByText(t("inventory.currentStock", { stock: 3 }))).toBeVisible();
-  await field(dialog, t("inventory.quantity")).fill("0");
+  await expect(dialog.getByText(t("inventory.currentStock", { stock: "3 pza" }))).toBeVisible();
+  await field(dialog, QTY()).fill("0");
   await dialog.getByRole("button", { name: t("inventory.confirm") }).click();
   // El navegador frena el 0 (min=1) antes de que la pantalla muestre su propio aviso.
-  expect(await field(dialog, t("inventory.quantity")).evaluate((input: HTMLInputElement) => input.validity.rangeUnderflow)).toBe(true);
+  expect(await field(dialog, QTY()).evaluate((input: HTMLInputElement) => input.validity.rangeUnderflow)).toBe(true);
   await expect(page.getByText(t("inventory.entrySuccess"))).toHaveCount(0);
-  await field(dialog, t("inventory.quantity")).fill("7");
+  await field(dialog, QTY()).fill("7");
   await dialog.getByRole("button", { name: t("inventory.confirm") }).click();
   await expect(page.getByText(t("inventory.entrySuccess"))).toBeVisible();
-  await expect(row(page, sku).getByRole("cell").nth(2)).toHaveText("10");
+  await expect(row(page, sku).getByRole("cell").nth(STOCK_CELL)).toHaveText("10 pza");
 
   await moveStock(page, row(page, sku), "exit", 4);
   await expect(page.getByText(t("inventory.exitSuccess"))).toBeVisible();
-  await expect(row(page, sku).getByRole("cell").nth(2)).toHaveText("6");
+  await expect(row(page, sku).getByRole("cell").nth(STOCK_CELL)).toHaveText("6 pza");
   await owner.context.close();
 });
 
@@ -280,7 +286,7 @@ test("[INV-020] una salida mayor al stock se rechaza y el stock queda igual @pr"
   await moveStock(page, row(page, sku), "exit", 10);
   await expect(page.getByText(t("inventory.insufficientStock"))).toBeVisible();
   await page.getByRole("dialog").getByRole("button", { name: t("common.cancel") }).click();
-  await expect(row(page, sku).getByRole("cell").nth(2)).toHaveText("3");
+  await expect(row(page, sku).getByRole("cell").nth(STOCK_CELL)).toHaveText("3 pza");
   await owner.context.close();
 });
 

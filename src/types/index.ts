@@ -102,14 +102,49 @@ export interface Attendance {
   employee: { id: number; name: string; position: string | null };
 }
 
+// Tipos de producto de la empresa (spec 016): sus reglas deciden menú, existencia y decimales.
+export interface ProductTypeRules {
+  sellable: boolean;
+  counted: boolean;
+  fractional: boolean;
+}
+
+export interface ProductTypeRef extends ProductTypeRules {
+  id: number;
+  name: string;
+}
+
+export interface UnitRef {
+  key: string;
+  name: string;
+}
+
+export interface ProductType extends ProductTypeRef {
+  kind: "sold" | "counted_sold" | "supply" | null;
+  default_unit: UnitRef | null;
+  active: boolean;
+  position: number;
+  products_count: number;
+}
+
+export interface ProductTypePayload extends Partial<ProductTypeRules> {
+  name?: string;
+  default_unit_key?: string;
+  active?: boolean;
+  position?: number;
+}
+
 export interface Product {
   id: number;
   sku: string;
   name: string;
-  stock: number;
-  min_stock: number;
+  /** `null` cuando el tipo no se cuenta (spec 016). */
+  stock: number | null;
+  min_stock: number | null;
   unit_cost: number;
   low_stock: boolean;
+  product_type?: ProductTypeRef | null;
+  unit?: UnitRef | null;
   price?: number;
   category?: string;
   description?: string;
@@ -368,6 +403,8 @@ export interface DashboardStats {
     unavailable: number;
     low_stock: number;
     out_of_stock: number;
+    /** Productos y valor a costo por tipo (spec 016); `value` es null en tipos que no se cuentan. */
+    by_type?: Array<{ id: number; name: string; counted: boolean; products: number; value: number | null }>;
   };
   attendance: {
     today: { total: number; normal: number; late: number; absent: number };
@@ -503,6 +540,10 @@ export interface EmployeeFilters {
 export interface ProductFilters {
   low_stock?: boolean;
   out_of_stock?: boolean;
+  /** Pestaña de tipo en Inventario (spec 016). */
+  product_type_id?: number;
+  /** Solo productos de tipos que se venden (selectores de catálogo). */
+  sellable?: boolean;
   /** `true` = disponibles; `false` = no disponibles (fila del resumen de inventario). */
   available?: boolean;
   search?: string;
