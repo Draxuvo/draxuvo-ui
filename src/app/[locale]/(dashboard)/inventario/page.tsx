@@ -1,9 +1,9 @@
 // src/app/[locale]/(dashboard)/inventario/page.tsx
 "use client";
 import { Suspense, useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, RefreshCw, FileUp } from "lucide-react";
+import { Plus, RefreshCw, FileUp, Shapes } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Pagination } from "@/components/ui/pagination";
@@ -12,6 +12,8 @@ import { ProductDeleteDialog } from "@/components/inventory/product-delete-dialo
 import { StockMovementDialog } from "@/components/inventory/stock-movement-dialog";
 import { ProductImportDialog } from "@/components/inventory/product-import-dialog";
 import { getProductColumns } from "@/components/inventory/columns";
+import { ProductTypesSheet } from "@/components/inventory/product-types-sheet";
+import { useProductTypes } from "@/hooks/use-product-types";
 import { inventoryService } from "@/services/inventory";
 import { getDashboardStats } from "@/services/analytics";
 import { useUrlFilters } from "@/hooks/use-url-filters";
@@ -23,7 +25,8 @@ import { FilterNotice } from "@/components/filters/filter-notice";
 import { SearchInput } from "@/components/filters/search-input";
 
 const PAGE_SIZE = 10;
-const DEFAULTS = { low_stock: "", out_of_stock: "", available: "", search: "" };
+// `product_type_id` es la pestaña de tipo (spec 016); vacío = Todos.
+const DEFAULTS = { low_stock: "", out_of_stock: "", available: "", search: "", product_type_id: "" };
 // Solo `true` aplica (contracts/ui-routes.md); cualquier otro valor se ignora.
 const ONLY_TRUE = ["true"] as const;
 const ALLOWED = { low_stock: ONLY_TRUE, out_of_stock: ONLY_TRUE, available: ONLY_TRUE };
@@ -48,7 +51,11 @@ function InventarioContent() {
   const tc = useTranslations("common");
   const tf = useTranslations("common.filters");
   const ta = useTranslations("analyticsBoard");
+  const locale = useLocale();
   const selectedCompanyId = useAuthStore((s) => s.selectedCompanyId);
+  const role = useAuthStore((s) => s.role);
+  const canManageTypes = !!role && ["admin", "owner", "super_admin"].includes(role);
+  const [typesOpen, setTypesOpen] = useState(false);
   const { filters, page, setFilter, setFilters, setPage, reset, isFiltered } = useUrlFilters(DEFAULTS, {
     allowed: ALLOWED,
   });
@@ -73,8 +80,12 @@ function InventarioContent() {
         out_of_stock: filters.out_of_stock === "true" || undefined,
         available: filters.available === "true" || undefined,
         search: filters.search || undefined,
+        product_type_id: filters.product_type_id ? Number(filters.product_type_id) : undefined,
       }),
   });
+
+  const types = useProductTypes({ enabled: gate.enabled });
+  const view = types.data?.find((type) => String(type.id) === filters.product_type_id) ?? null;
 
   // Conteo real de stock bajo (no solo la página cargada), compartido con el dashboard.
   const { data: stats } = useQuery({
@@ -107,9 +118,9 @@ function InventarioContent() {
         onExit: (p) => { setMovementProduct(p); setMovementType("exit"); },
         onEdit: (p) => { setEditing(p); setFormOpen(true); },
         onDelete: (p) => setDeleting(p),
-      }),
+      }, view, locale),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [view, locale],
   );
 
   if (gate.isLocked(error)) return <ModuleLocked module="inventory" />;
@@ -126,6 +137,7 @@ function InventarioContent() {
     filters.out_of_stock && t("filters.outOfStock"),
     filters.available && t("filters.available"),
     filters.search && `"${filters.search}"`,
+    view?.name,
   ].filter(Boolean);
   const lowStockTotal = stats?.inventory.low_stock ?? 0;
 
@@ -160,6 +172,10 @@ function InventarioContent() {
           >
             <RefreshCw size={15} className={isFetching ? "animate-spin" : ""} />
           </Button>
+          <Button variant="outline" onClick={() => setTypesOpen(true)} className="gap-2">
+            <Shapes size={15} />
+            {t("types.button")}
+          </Button>
           <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2">
             <FileUp size={15} />
             {t("importBtn")}
@@ -170,6 +186,27 @@ function InventarioContent() {
           </Button>
         </div>
       </div>
+
+      {/* Pestañas por tipo de producto (spec 016) */}
+      {(types.data?.length ?? 0) > 0 && (
+        <div role="tablist" aria-label={t("types.tabs")} className="flex flex-wrap gap-2 border-b border-border pb-2">
+          {[{ id: "", name: t("filters.all") }, ...types.data!.map((type) => ({ id: String(type.id), name: type.name }))].map((tab) => {
+            const on = filters.product_type_id === tab.id;
+            return (
+              <button
+                key={tab.id || "all"}
+                type="button"
+                role="tab"
+                aria-selected={on}
+                onClick={() => setFilter("product_type_id", tab.id || null)}
+                className={cn(CHIP, on ? CHIP_ON : CHIP_OFF)}
+              >
+                {tab.name}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Filtros */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -218,7 +255,11 @@ function InventarioContent() {
         open={formOpen}
         onOpenChange={setFormOpen}
         product={editing}
+        defaultTypeId={view?.id}
       />
+
+      {/* Tipos de producto (spec 016) */}
+      <ProductTypesSheet open={typesOpen} onOpenChange={setTypesOpen} canManage={canManageTypes} />
 
       {/* Delete Dialog */}
       <ProductDeleteDialog

@@ -14,18 +14,20 @@ export interface ProductPayload {
   sku: string;
   name: string;
   stock?: number;
-  min_stock: number;
+  min_stock?: number;
   unit_cost: number;
   price?: number;
   category?: string;
   description?: string;
   available?: boolean;
   station_id?: number | null;
-  tracks_stock?: boolean;
+  product_type_id?: number;
+  unit_key?: string | null;
 }
 
 export interface StockMovementPayload {
   movement_type: "entry" | "exit";
+  /** Con decimales solo en tipos que los admiten (spec 016). */
   qty: number;
   note?: string;
 }
@@ -38,6 +40,8 @@ export const inventoryService = {
     out_of_stock,
     available,
     search,
+    product_type_id,
+    sellable,
   }: ProductListParams = {}): Promise<PaginatedResponse<Product>> =>
     apiClient
       .get("/api/v1/products", {
@@ -49,6 +53,8 @@ export const inventoryService = {
           out_of_stock: out_of_stock ? "true" : undefined,
           available: available === undefined ? undefined : String(available),
           search: search?.trim() || undefined,
+          product_type_id: product_type_id || undefined,
+          sellable: sellable ? "true" : undefined,
         },
       })
       .then((r) => r.data),

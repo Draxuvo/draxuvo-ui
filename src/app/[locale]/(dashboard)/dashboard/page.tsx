@@ -191,6 +191,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 export default function DashboardPage() {
   const t = useTranslations("analyticsBoard");
+  const ti = useTranslations("inventory");
   const tc = useTranslations("common");
   const tw = useTranslations("workOrders");
   const locale = useLocale();
@@ -319,6 +320,13 @@ export default function DashboardPage() {
             href: href("/inventario?available=true"),
             ariaLabel: t("aria.available", { count: inventory.available }),
           },
+          // Productos y valor a costo por tipo (spec 016, FR-014); cada uno abre su pestaña en Inventario.
+          ...(inventory.by_type ?? []).map((type) => {
+            const label = type.value === null
+              ? `${type.name}: ${ti("byTypeProducts", { count: type.products })}`
+              : `${type.name}: ${ti("byTypeProducts", { count: type.products })} · ${ti("byTypeValue", { value: formatCurrency(type.value) })}`;
+            return { label, href: href(`/inventario?product_type_id=${type.id}`), ariaLabel: label };
+          }),
         ],
       });
       cards.push({

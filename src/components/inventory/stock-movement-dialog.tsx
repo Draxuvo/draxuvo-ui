@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { inventoryService } from "@/services/inventory";
+import { formatQuantity } from "@/lib/quantity";
 import type { Product } from "@/types";
 
 interface StockMovementDialogProps {
@@ -33,12 +34,14 @@ export function StockMovementDialog({
 }: StockMovementDialogProps) {
   const t = useTranslations("inventory");
   const tc = useTranslations("common");
+  const locale = useLocale();
   const qc = useQueryClient();
+  // Con decimales solo en tipos que los admiten (spec 016); los demás, piezas enteras.
+  const fractional = !!product?.product_type?.fractional;
 
-  const schema = z.object({
-    qty: z.coerce.number().int().min(1, t("quantityMin")),
-    note: z.string().optional(),
-  });
+  const schema = fractional
+    ? z.object({ qty: z.coerce.number().positive(t("quantityPositive")).multipleOf(0.001, t("quantityDecimals")), note: z.string().optional() })
+    : z.object({ qty: z.coerce.number().int(t("quantityWhole")).min(1, t("quantityMin")), note: z.string().optional() });
 
   type FormValues = {
     qty: number;
@@ -81,17 +84,21 @@ export function StockMovementDialog({
           <DialogTitle className="text-base">{title}</DialogTitle>
           {product && (
             <p className="text-xs text-muted-foreground mt-0.5">
-              {t("currentStock", { stock: product.stock })}
+              {t("currentStock", { stock: formatQuantity(product.stock, product.unit, locale) })}
             </p>
           )}
         </DialogHeader>
 
-        <form onSubmit={handleSubmit((v) => mutation.mutate(v))} className="space-y-4">
+        <form noValidate onSubmit={handleSubmit((v) => mutation.mutate(v))} className="space-y-4">
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium text-foreground">{t("quantity")}</Label>
+            <Label htmlFor="movement-qty" className="text-xs font-medium text-foreground">
+              {product?.unit ? t("quantityIn", { unit: product.unit.name }) : t("quantity")}
+            </Label>
             <Input
+              id="movement-qty"
               type="number"
-              min="1"
+              min={fractional ? "0.001" : "1"}
+              step={fractional ? "0.001" : "1"}
               {...register("qty")}
             />
             {errors.qty && (
