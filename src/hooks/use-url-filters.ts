@@ -15,6 +15,8 @@ export interface UseUrlFiltersOptions<K extends string> {
    * ausente (se usa el default). Sin lista, cualquier valor no vacío aplica.
    */
   allowed?: Partial<Record<K, readonly string[]>>;
+  /** Parámetros de la URL que `reset` conserva (p. ej. la pestaña activa de una página con pestañas). */
+  preserve?: readonly string[];
 }
 
 export interface UseUrlFilters<K extends string> {
@@ -40,7 +42,7 @@ export function useUrlFilters<K extends string>(
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { allowed } = options;
+  const { allowed, preserve } = options;
 
   const keys = useMemo(() => Object.keys(defaults) as K[], [defaults]);
   const query = searchParams.toString();
@@ -103,7 +105,15 @@ export function useUrlFilters<K extends string>(
     [query, navigate],
   );
 
-  const reset = useCallback(() => navigate(new URLSearchParams()), [navigate]);
+  const reset = useCallback(() => {
+    const params = new URLSearchParams();
+    const current = new URLSearchParams(query);
+    for (const key of preserve ?? []) {
+      const value = current.get(key);
+      if (value) params.set(key, value);
+    }
+    navigate(params);
+  }, [query, preserve, navigate]);
 
   const isFiltered = keys.some((key) => filters[key] !== defaults[key]);
 

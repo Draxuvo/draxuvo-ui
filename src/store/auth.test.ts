@@ -68,6 +68,91 @@ describe("roleFor", () => {
   });
 });
 
+describe("roleFor en la vista de empresa (spec 029)", () => {
+  const superAdmin = (companies: unknown[]) => makeUser({ role: "super_admin", companies });
+
+  it("sin vista de empresa el super admin es global aunque tenga membresía", () => {
+    expect(roleFor(superAdmin([{ id: 10, name: "Uno", role: "owner" }]), 10)).toBe("super_admin");
+  });
+
+  it("con vista de empresa usa el rol de su membresía en la empresa activa", () => {
+    expect(roleFor(superAdmin([{ id: 10, name: "Uno", role: "owner" }]), 10, true)).toBe("owner");
+    expect(roleFor(superAdmin([{ id: 10, name: "Uno", role: "admin" }]), 10, true)).toBe("admin");
+  });
+
+  it("con vista de empresa pero sin membresía en esa empresa sigue siendo super admin", () => {
+    expect(roleFor(superAdmin([{ id: 10, name: "Uno", role: "owner" }]), 99, true)).toBe("super_admin");
+    expect(roleFor(superAdmin([]), null, true)).toBe("super_admin");
+  });
+
+  it("la vista de empresa no cambia a quien no es super admin", () => {
+    expect(roleFor(makeUser(), 20, true)).toBe("staff");
+  });
+});
+
+describe("vista de empresa del super admin", () => {
+  const owner = { id: 10, name: "Uno", role: "owner" };
+  const staff = { id: 20, name: "Dos", role: "staff" };
+  const admin = { id: 30, name: "Tres", role: "admin" };
+
+  function login(companies: unknown[]) {
+    useAuthStore.getState().setSession({ token: "t", user: makeUser({ role: "super_admin", companies }) } as never);
+  }
+
+  it("entra a la primera empresa donde es admin o dueño y escribe el rol efectivo en la cookie", () => {
+    login([staff, admin, owner]);
+    expect(useAuthStore.getState().role).toBe("super_admin");
+
+    expect(useAuthStore.getState().enterCompanyView()).toBe("admin");
+
+    const s = useAuthStore.getState();
+    expect(s.companyView).toBe(true);
+    expect(s.selectedCompanyId).toBe(30);
+    expect(s.role).toBe("admin");
+    expect(cookieValue("user_role")).toBe("admin");
+    expect(localStorage.getItem("selected_company_id")).toBe("30");
+  });
+
+  it("no entra si solo tiene membresías de manager o staff, ni sin membresías", () => {
+    login([staff]);
+    expect(useAuthStore.getState().enterCompanyView()).toBeNull();
+    expect(useAuthStore.getState().companyView).toBe(false);
+
+    login([]);
+    expect(useAuthStore.getState().enterCompanyView()).toBeNull();
+    expect(useAuthStore.getState().role).toBe("super_admin");
+  });
+
+  it("leaveCompanyView vuelve al rol global y a su cookie", () => {
+    login([owner]);
+    useAuthStore.getState().enterCompanyView();
+    useAuthStore.getState().leaveCompanyView();
+
+    expect(useAuthStore.getState().companyView).toBe(false);
+    expect(useAuthStore.getState().role).toBe("super_admin");
+    expect(cookieValue("user_role")).toBe("super_admin");
+  });
+
+  it("cambiar de empresa dentro de la vista recalcula el rol con la membresía de la nueva", () => {
+    login([owner, admin]);
+    useAuthStore.getState().enterCompanyView();
+    expect(useAuthStore.getState().selectCompany(30)).toBe("admin");
+    expect(useAuthStore.getState().companyView).toBe(true);
+  });
+
+  it("iniciar y cerrar sesión apagan la vista de empresa", () => {
+    login([owner]);
+    useAuthStore.getState().enterCompanyView();
+    login([owner]);
+    expect(useAuthStore.getState().companyView).toBe(false);
+
+    useAuthStore.getState().enterCompanyView();
+    Object.defineProperty(window, "location", { value: { href: "" }, writable: true });
+    useAuthStore.getState().logout();
+    expect(useAuthStore.getState().companyView).toBe(false);
+  });
+});
+
 describe("useAuthStore", () => {
   it("setSession guarda token, cookies, empresa y rol, limpia la caché y aplica la apariencia", () => {
     const user = makeUser({ preferences: { theme: "mercado", color_mode: "dark" } });

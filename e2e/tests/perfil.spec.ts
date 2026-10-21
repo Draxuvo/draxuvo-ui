@@ -175,15 +175,15 @@ test.describe("manager de Volta", () => {
     };
 
     await page.goto("/es/inicio");
-    await expect(menuLink(page, t("nav.employees"))).toBeVisible();
+    await expect(menuLink(page, t("nav.people"))).toBeVisible();
     await page.getByRole("button", { name: "EN", exact: true }).click();
     await expect(page).toHaveURL(/\/en\/inicio$/);
     await expect(html(page)).toHaveAttribute("lang", "en");
     expect(await reloadAndReadLocale()).toBe("en");
 
-    await menuLink(page, english.nav.employees).click();
-    await expect(page).toHaveURL(/\/en\/empleados$/);
-    await expect(page.getByRole("heading", { name: english.employees.title, level: 1 })).toBeVisible();
+    await menuLink(page, english.nav.people).click();
+    await expect(page).toHaveURL(/\/en\/personal$/);
+    await expect(page.getByRole("heading", { name: english.people.title, level: 1 })).toBeVisible();
     await menuLink(page, english.nav.inventory).click();
     await expect(page).toHaveURL(/\/en\/inventario$/);
     await expect(page.getByRole("heading", { name: english.inventory.title, level: 1 })).toBeVisible();

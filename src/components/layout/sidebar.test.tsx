@@ -21,7 +21,52 @@ beforeEach(() => {
   });
 });
 
+function mount(role: string) {
+  useAuthStore.setState({
+    user: { id: 1, role, companies: [{ id: 1, role, name: "Sazón", order_mode: "order" }] } as never,
+    selectedCompanyId: 1,
+    role: role as never,
+    companyView: false,
+  });
+  renderWithProviders(
+    <SidebarProvider>
+      <Sidebar />
+    </SidebarProvider>,
+  );
+}
+
 describe("menú lateral", () => {
+  it.each(["admin", "owner"])("%s ve una sola opción Personal y ninguna Equipo (spec 029)", async (role) => {
+    mount(role);
+
+    const links = await screen.findAllByRole("link", { name: "Personal" });
+    expect(new Set(links.map((l) => l.getAttribute("href")))).toEqual(new Set(["/es/personal"]));
+    expect(screen.queryByRole("link", { name: "Equipo" })).not.toBeInTheDocument();
+  });
+
+  it("manager conserva Personal (solo Empleados) y no ve Equipo", async () => {
+    mount("manager");
+
+    expect((await screen.findAllByRole("link", { name: "Personal" })).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("link", { name: "Equipo" })).not.toBeInTheDocument();
+  });
+
+  it("el super admin dentro de su empresa tiene Volver al panel global; sin vista de empresa no", async () => {
+    useAuthStore.setState({
+      user: { id: 1, role: "super_admin", companies: [{ id: 1, role: "owner", name: "Sazón" }] } as never,
+      selectedCompanyId: 1,
+      role: "owner",
+      companyView: true,
+    });
+    renderWithProviders(
+      <SidebarProvider>
+        <Sidebar />
+      </SidebarProvider>,
+    );
+
+    expect((await screen.findAllByRole("link", { name: "Volver al panel global" })).length).toBeGreaterThan(0);
+  });
+
   it("trae Restaurante y ya no una entrada suelta de Tomar pedido (spec 019)", async () => {
     renderWithProviders(
       <SidebarProvider>

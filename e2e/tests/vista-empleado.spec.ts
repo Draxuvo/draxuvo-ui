@@ -274,7 +274,7 @@ test.describe("quien es staff en una empresa y dueño en otra", () => {
 
   test("[VEM-011] el rol cambia con la empresa activa, también en la API @pr", async ({ page, context }) => {
     await page.goto("/es/inicio");
-    await expect(menu(page).getByRole("link", { name: t("nav.team") })).toBeVisible();
+    await expect(menu(page).getByRole("link", { name: t("nav.people") })).toBeVisible();
     const ids = await page.evaluate(() => {
       const companies: Array<{ id: number; name: string }> = JSON.parse(localStorage.getItem("auth-storage") ?? "{}").state.user.companies;
       return Object.fromEntries(companies.map((c) => [c.name, c.id]));
@@ -304,7 +304,7 @@ test.describe("quien es staff en una empresa y dueño en otra", () => {
     await page.getByRole("button", { name: /Cambiar de empresa/ }).click();
     await page.getByRole("menuitemradio", { name: /Electricidad Volta/ }).click();
     await expect(page).toHaveURL(/\/es\/inicio$/);
-    await expect(menu(page).getByRole("link", { name: t("nav.team") })).toBeVisible();
+    await expect(menu(page).getByRole("link", { name: t("nav.people") })).toBeVisible();
   });
 });
 
