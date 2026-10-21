@@ -4,7 +4,7 @@
 import type { ProductIconKey } from "./catalog";
 
 export const SHAPES: Record<ProductIconKey, readonly string[]> = {
-  taco: ["M3 18a9 9 0 0 1 18 0z", "M6.5 14l2-2 2 2 2-2 2 2 2-2"],
+  taco: ["M3 18c0-6 4-10 9-10s9 4 9 10z", "M7.5 18c0-3 2-6 4.5-6s4.5 3 4.5 6", "M7 6l1.5 1.5L10 5.5l1.5 2L13 5.5l1.5 2L16 5.5l1.5 2"],
   burger: ["M4 11a8 6 0 0 1 16 0z", "M3 14h18", "M5 17h14v1a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"],
   torta: ["M4 10c0-3 3-5 8-5s8 2 8 5z", "M3 13c2 1.5 3-1.5 5 0s3 1.5 5 0 3-1.5 5 0 2 1 3 1", "M4 16h16v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"],
   tamal: ["M7 8c0-2 2-3 5-3s5 1 5 3v8c0 2-2 3-5 3s-5-1-5-3z", "M12 7v10", "M7 9L4 6", "M17 9l3-3", "M7 15l-3 3", "M17 15l3 3"],
@@ -40,7 +40,7 @@ export const SHAPES: Record<ProductIconKey, readonly string[]> = {
   wrench: ["M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"],
   hammer: ["M14 4l6 6-3 3-6-6z", "M12 9L4 17l3 3 8-8"],
   screwdriver: ["M5 19l7-7", "M12 12l6-6 3 3-6 6z", "M3 21l2-2"],
-  paint: ["M4 9a8 4 0 0 1 16 0", "M4 9l2 11h12l2-11"],
+  paint: ["M4 3h13v5H4z", "M17 5.5h3v5.5h-9v3", "M9.5 14h3v7h-3z"],
   bolt: ["M13 2L4 14h7l-1 8 9-12h-7z"],
   plug: ["M9 2v5", "M15 2v5", "M6 7h12v4a6 6 0 0 1-12 0z", "M12 17v5"],
   filter: ["M7 4h10l2 3v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7z", "M5 7h14", "M9 11v6", "M12 11v6", "M15 11v6"],
