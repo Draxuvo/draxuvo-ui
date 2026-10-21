@@ -892,6 +892,9 @@
       "orders": "Órdenes",
       "billed": "Facturado en órdenes",
       "attendance": "Asistencias registradas",
+    "collectedHint": "{count, plural, one {# ticket cobrado en el periodo} other {# tickets cobrados en el periodo}}",
+    "pendingHint": "{count, plural, one {# ticket creado en el periodo y sin cobrar} other {# tickets creados en el periodo y sin cobrar}}",
+    "expensesHint": "Nómina activa más entradas de inventario",
       "incomeChart": "Cobrado y por cobrar",
       "ordersChart": "Órdenes por estado",
       "expensesChart": "Gastos: nómina e inventario"

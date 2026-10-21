@@ -105,7 +105,17 @@ describe("Resumen", () => {
     });
     urlStore.set("comparar=1");
     renderWithProviders(<ReportContent />);
-    expect(await screen.findAllByText("Sin periodo anterior comparable")).toHaveLength(3);
+    expect(await screen.findAllByText("Sin periodo anterior comparable")).toHaveLength(2);
+  });
+
+  it("cada cifra explica de dónde sale y 'Por cobrar' no lleva variación", async () => {
+    urlStore.set("comparar=1");
+    renderWithProviders(<ReportContent />);
+    expect(await screen.findByText("5 tickets cobrados en el periodo")).toBeInTheDocument();
+    expect(screen.getByText("2 tickets creados en el periodo y sin cobrar")).toBeInTheDocument();
+    expect(screen.getByText("Nómina activa más entradas de inventario")).toBeInTheDocument();
+    // La variación solo acompaña a ingresos cobrados y gastos.
+    expect(screen.getAllByText(/vs\. periodo anterior/)).toHaveLength(2);
   });
 
   it("oculta los bloques de módulos fuera del plan en vez de mostrarlos en cero", async () => {

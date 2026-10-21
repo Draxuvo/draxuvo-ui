@@ -13,7 +13,7 @@ interface StatTileProps {
 
 export function StatTile({ label, value, children, hero = false, className }: StatTileProps) {
   return (
-    <div className={cn(CARD, hero && "flex flex-col justify-between bg-ceja text-tinta", className)}>
+    <div className={cn(CARD, hero && "bg-ceja text-tinta", className)}>
       <p className={cn(LABEL, hero && "text-tinta")}>{label}</p>
       <div>
         <p

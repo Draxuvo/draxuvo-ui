@@ -34,11 +34,12 @@ export function ExpensesTab({ period, companyId }: TabProps) {
   const employees = report?.payroll.employees ?? [];
   const movements = report?.inventory_cost.movements ?? [];
   const money = (v: number) => formatCurrency(v, locale);
+  const cents = (v: number) => formatCurrency(v, locale, true);
   const byPeriod = (report?.inventory_cost.by_period ?? []).map((g) => ({ period: periodLabel(g.period, locale), cost: g.cost }));
 
   const payrollColumns: Column<Employee>[] = [
     { key: "name", header: t("expenses.colEmployee"), render: (e) => e.name },
-    { key: "salary", header: t("expenses.colSalary"), align: "right", render: (e) => <span className="font-medium">{money(e.salary)}</span>, total: money(report?.payroll.total ?? 0) },
+    { key: "salary", header: t("expenses.colSalary"), align: "right", render: (e) => <span className="font-medium">{cents(e.salary)}</span>, total: cents(report?.payroll.total ?? 0) },
   ];
   const inventoryColumns: Column<Movement>[] = [
     {
@@ -52,8 +53,8 @@ export function ExpensesTab({ period, companyId }: TabProps) {
       ),
     },
     { key: "qty", header: t("expenses.colQty"), align: "right", render: (m) => m.qty },
-    { key: "unit", header: t("expenses.colUnitCost"), align: "right", render: (m) => money(m.unit_cost) },
-    { key: "cost", header: t("expenses.colTotalCost"), align: "right", render: (m) => <span className="font-medium">{money(m.cost)}</span>, total: money(report?.inventory_cost.total ?? 0) },
+    { key: "unit", header: t("expenses.colUnitCost"), align: "right", render: (m) => cents(m.unit_cost) },
+    { key: "cost", header: t("expenses.colTotalCost"), align: "right", render: (m) => <span className="font-medium">{cents(m.cost)}</span>, total: cents(report?.inventory_cost.total ?? 0) },
   ];
   const payrollCsv: CsvColumn<Employee>[] = [
     { header: t("expenses.colEmployee"), value: (e) => e.name },

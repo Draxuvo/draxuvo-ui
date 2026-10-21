@@ -892,6 +892,9 @@
       "orders": "Orders",
       "billed": "Billed in orders",
       "attendance": "Attendance records",
+    "collectedHint": "{count, plural, one {# ticket paid in the period} other {# tickets paid in the period}}",
+    "pendingHint": "{count, plural, one {# ticket created in the period and not yet paid} other {# tickets created in the period and not yet paid}}",
+    "expensesHint": "Active payroll plus inventory entries",
       "incomeChart": "Collected and pending",
       "ordersChart": "Orders by status",
       "expensesChart": "Expenses: payroll and inventory"
