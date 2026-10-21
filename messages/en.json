@@ -1720,6 +1720,12 @@
       "error": "Couldn't record the payment.",
       "pendingItems": "items not delivered yet.",
       "chargeAnyway": "Charge anyway"
-    }
+    },
+    "release": "Free table",
+    "released": "Table freed",
+    "releaseTitle": "Free this table?",
+    "releaseBody": "Items that haven't been sent yet will be discarded.",
+    "releaseConfirm": "Free table",
+    "releaseKeep": "Keep the order"
   }
 }

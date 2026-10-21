@@ -67,6 +67,10 @@ export const restaurantService = {
   openCheck: (body: { dining_table_id: number } | { takeout_name: string }): Promise<Check> =>
     apiClient.post(`${base}/checks`, body).then((r) => r.data),
 
+  /** Libera la mesa: cancela la cuenta mientras nada se haya mandado a cocina o a la barra. */
+  cancelCheck: (id: number): Promise<Check> =>
+    apiClient.post(`${base}/checks/${id}/cancel`, {}).then((r) => r.data),
+
   getCheck: (id: number): Promise<Check> => apiClient.get(`${base}/checks/${id}`).then((r) => r.data),
 
   addCheckItem: (checkId: number, body: { product_id: number; quantity: number; note?: string }): Promise<Check> =>

@@ -56,6 +56,21 @@ test.describe("Sazón (mesas)", () => {
     await expect(page.getByRole("button", { name: `${tableName}, ${tk("free")}` })).toBeVisible();
   });
 
+  test("[PED-004] una mesa abierta por error se libera sin ordenar nada @pr", async ({ page }) => {
+    await page.goto("/es/pedido");
+    const free = page.getByRole("button", { name: /, Libre$/ }).first();
+    await expect(free).toBeVisible();
+    const tableName = ((await free.getAttribute("aria-label")) ?? "").replace(/, Libre$/, "");
+
+    await free.click();
+    await expect(page.getByRole("button", { name: `${tableName}, ${tk("occupied")}`, exact: false })).toBeVisible();
+    await page.getByRole("button", { name: tk("release") }).click();
+
+    // Sin productos no pide confirmar: la mesa vuelve a estar libre.
+    await expect(page.getByRole("button", { name: `${tableName}, ${tk("free")}` })).toBeVisible();
+    await expect(page.getByText(tk("pickTable"))).toBeVisible();
+  });
+
   test("[PED-003] el menú lateral no tiene la entrada suelta y volver regresa a Restaurante @pr", async ({ page }) => {
     await page.goto("/es/restaurante");
     await expect(page.getByRole("link", { name: tk("title"), exact: true })).toHaveCount(1); // el botón de la página

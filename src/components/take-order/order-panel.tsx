@@ -2,7 +2,7 @@
 // La orden de la mesa elegida: renglones con + y −, nota, total fijo y las acciones que la API permite.
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Minus, Plus, StickyNote, Trash2 } from "lucide-react";
+import { DoorOpen, Minus, Plus, StickyNote, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { runningTotal, type Line } from "./lib";
@@ -20,6 +20,7 @@ export function OrderPanel({
   onAddMore,
   onSend,
   onCharge,
+  onRelease,
 }: {
   current: CurrentOrder | null;
   loading: boolean;
@@ -33,6 +34,7 @@ export function OrderPanel({
   onAddMore?: () => void;
   onSend: () => void;
   onCharge: () => void;
+  onRelease: () => void;
 }) {
   const t = useTranslations("takeOrder");
   const locale = useLocale();
@@ -120,7 +122,15 @@ export function OrderPanel({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <h2 className="mb-2 font-display text-xl font-extrabold">{current.title}</h2>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <h2 className="font-display text-xl font-extrabold">{current.title}</h2>
+        {current.canRelease && (
+          <Button type="button" variant="outline" size="sm" className="min-h-11 shrink-0 gap-1.5" onClick={onRelease}>
+            <DoorOpen size={16} aria-hidden />
+            {t("release")}
+          </Button>
+        )}
+      </div>
       <div className="min-h-0 flex-1 overflow-y-auto">
         {!live.length && <p className="py-3 text-sm text-muted-foreground">{t("orderEmpty")}</p>}
         {draft.length > 0 && (

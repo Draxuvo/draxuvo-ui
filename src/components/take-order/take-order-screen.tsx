@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import type { AxiosError } from "axios";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ChargeDialog } from "@/components/work-orders/charge-dialog";
 import { useAppRouter } from "@/hooks/use-router";
 import { useSaleMenu } from "@/hooks/use-restaurant";
@@ -55,6 +56,7 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
   const [tab, setTab] = useState<Tab>("tables");
   const [payOpen, setPayOpen] = useState(false);
   const [chargeOpen, setChargeOpen] = useState(false);
+  const [releaseOpen, setReleaseOpen] = useState(false);
   const source = useOrderSource(mode, selection);
   const menuQuery = useSaleMenu();
   const finish = useFinishOrder(selection?.kind === "order" ? selection.id : 0);
@@ -113,6 +115,20 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
     } catch {
       toast.error(t("saveError"));
     }
+  }
+
+  // Liberar la mesa: sin productos se cancela de una vez; con productos sin mandar se pide confirmar.
+  async function release(confirmed = false) {
+    const current = source.current;
+    if (!current?.canRelease) return;
+    if (!confirmed && current.lines.some((l) => !l.cancelled)) return setReleaseOpen(true);
+    setReleaseOpen(false);
+    await run(async () => {
+      await source.release();
+      setSelection(null);
+      setTab("tables");
+      toast.success(t("released"));
+    });
   }
 
   async function charge() {
@@ -201,6 +217,7 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
             onAddMore={() => setTab("menu")}
             onSend={() => void send()}
             onCharge={() => void charge()}
+            onRelease={() => void release()}
           />
         </section>
 
@@ -218,6 +235,23 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
           />
         </section>
       </div>
+
+      <Dialog open={releaseOpen} onOpenChange={setReleaseOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t("releaseTitle")}</DialogTitle>
+            <DialogDescription>{t("releaseBody")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="outline" className="min-h-11" onClick={() => setReleaseOpen(false)}>
+              {t("releaseKeep")}
+            </Button>
+            <Button type="button" className="min-h-11" onClick={() => void release(true)}>
+              {t("releaseConfirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {current?.check && (
         <CheckPaymentDialog

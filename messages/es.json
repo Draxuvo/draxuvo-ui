@@ -1720,6 +1720,12 @@
       "error": "No se pudo registrar el pago.",
       "pendingItems": "productos aún sin entregar.",
       "chargeAnyway": "Cobrar de todos modos"
-    }
+    },
+    "release": "Liberar mesa",
+    "released": "Mesa liberada",
+    "releaseTitle": "¿Liberar esta mesa?",
+    "releaseBody": "Se descartarán los productos que aún no se mandan.",
+    "releaseConfirm": "Liberar",
+    "releaseKeep": "Seguir con la orden"
   }
 }

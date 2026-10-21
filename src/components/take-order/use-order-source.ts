@@ -34,6 +34,8 @@ export interface CurrentOrder {
   canAdd: boolean;
   canSend: boolean;
   canCharge: boolean;
+  /** Cuenta de mesa que se puede cancelar para liberar la mesa (nada mandado todavía). */
+  canRelease: boolean;
   check?: Check;
   order?: WorkOrder;
 }
@@ -143,6 +145,7 @@ export function useOrderSource(mode: "restaurant" | "orders", selection: Selecti
       canAdd: open && c.allowed_actions.includes("add_item"),
       canSend: open && c.allowed_actions.includes("send") && c.items.some((i) => i.status === "draft"),
       canCharge: open && c.allowed_actions.includes("pay") && c.items.length > 0,
+      canRelease: open && c.allowed_actions.includes("cancel"),
       check: c,
     };
   } else if (!restaurant && order.data && selection?.kind === "order") {
@@ -158,6 +161,7 @@ export function useOrderSource(mode: "restaurant" | "orders", selection: Selecti
       canSend: false,
       canCharge:
         (o.items_count ?? 0) > 0 && (actions.includes("charge") || (open && actions.includes("finish"))),
+      canRelease: false,
       order: o,
     };
   }
@@ -199,6 +203,11 @@ export function useOrderSource(mode: "restaurant" | "orders", selection: Selecti
     return checkActions.update.mutateAsync({ itemId: line.id, note });
   }
 
+  /** Libera la mesa cancelando su cuenta; los productos sin mandar se descartan. */
+  async function release() {
+    return checkActions.cancel.mutateAsync();
+  }
+
   async function send(idempotencyKey: string) {
     return checkActions.send.mutateAsync(idempotencyKey);
   }
@@ -217,6 +226,7 @@ export function useOrderSource(mode: "restaurant" | "orders", selection: Selecti
     remove,
     setNote,
     send,
+    release,
     sending: checkActions.send.isPending,
     inOrder: (card: MenuCard) => (current ? inOrderCount(current.lines, card) : 0),
   };
