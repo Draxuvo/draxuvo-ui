@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { ProductIconBadge } from "@/components/product-icon";
 import { cn } from "@/lib/utils";
 import { categoryColor, filterMenu, type MenuCard, type MenuSection } from "./lib";
 
@@ -99,13 +100,7 @@ export function MenuGrid({
                     )}
                   >
                     <span className="flex w-full items-start gap-2">
-                      <span
-                        aria-hidden
-                        className="flex size-9 shrink-0 items-center justify-center rounded-md font-display text-base font-extrabold text-white"
-                        style={{ background: categoryColor(section.category) }}
-                      >
-                        {card.name.trim().charAt(0).toUpperCase()}
-                      </span>
+                      <ProductIconBadge product={card} color={categoryColor(section.category)} />
                       <span className="line-clamp-2 text-sm font-medium leading-tight">{card.name}</span>
                     </span>
                     <span className="flex w-full items-center justify-between gap-2 text-sm">

@@ -3,7 +3,7 @@
 // existencia, mínimo y unidad si se cuenta; decimales si el tipo los admite.
 "use client";
 import { useEffect, useMemo } from "react";
-import { useForm, useWatch, type Resolver } from "react-hook-form";
+import { Controller, useForm, useWatch, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { IconPicker } from "./icon-picker";
 import { inventoryService, type ProductPayload } from "@/services/inventory";
 import { useModuleGate } from "@/components/subscription/module-locked";
 import { useStations } from "@/hooks/use-restaurant";
@@ -30,6 +31,8 @@ interface ProductFormProps {
   product?: Product | null;
   /** Tipo propuesto al dar de alta (la pestaña abierta en Inventario). */
   defaultTypeId?: number | null;
+  /** Solo administrador y dueño cambian el icono (spec 026); la API también lo valida. */
+  canEditIcon?: boolean;
 }
 
 const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring";
@@ -47,11 +50,13 @@ type FormValues = {
   description?: string;
   available?: boolean;
   station_id?: string;
+  icon?: string;
 };
 
-export function ProductForm({ open, onOpenChange, product, defaultTypeId }: ProductFormProps) {
+export function ProductForm({ open, onOpenChange, product, defaultTypeId, canEditIcon = false }: ProductFormProps) {
   const t = useTranslations("inventory");
   const tc = useTranslations("common");
+  const ti = useTranslations("productIcons");
   const qc = useQueryClient();
   const isEdit = !!product;
 
@@ -73,13 +78,14 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId }: Prod
         description: z.string().optional(),
         available: z.boolean().optional(),
         station_id: z.string().optional(),
+        icon: z.string().optional(),
       }),
     [t],
   );
 
   const { register, handleSubmit, reset, setError, control, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema) as Resolver<FormValues>,
-    defaultValues: { product_type_id: "", sku: "", name: "", stock: 0, min_stock: 0, unit_cost: 0, price: 0, category: "", description: "", available: true, station_id: "", unit_key: "" },
+    defaultValues: { product_type_id: "", sku: "", name: "", stock: 0, min_stock: 0, unit_cost: 0, price: 0, category: "", description: "", available: true, station_id: "", unit_key: "", icon: "" },
   });
 
   const { data: productData } = useQuery({
@@ -105,6 +111,7 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId }: Prod
       description: source?.description ?? "",
       available: source?.available ?? true,
       station_id: source?.station_id ? String(source.station_id) : "",
+      icon: source?.icon ?? "",
     });
   }, [open, productData, isEdit, reset, defaultTypeId]);
 
@@ -126,6 +133,7 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId }: Prod
         category: values.category,
         description: values.description,
       };
+      if (canEditIcon && (values.icon || null) !== (product?.icon ?? null)) payload.icon = values.icon || null;
       if (type?.sellable) {
         Object.assign(payload, { price: values.price, available: values.available });
         if (restaurant) payload.station_id = values.station_id ? Number(values.station_id) : null;
@@ -164,7 +172,7 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId }: Prod
           </SheetTitle>
         </SheetHeader>
 
-        <form noValidate onSubmit={handleSubmit(submit)} className="flex flex-col flex-1">
+        <form noValidate onSubmit={handleSubmit(submit)} className="flex min-h-0 flex-1 flex-col">
           <div className="flex-1 px-6 py-6 space-y-5 overflow-y-auto">
 
             <div className="space-y-1.5">
@@ -233,6 +241,19 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId }: Prod
                 <Input id="category" placeholder={t("categoryPlaceholder")} {...register("category")} />
               </div>
             </div>
+
+            {canEditIcon && (
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-foreground">{ti("title")}</Label>
+                <Controller
+                  control={control}
+                  name="icon"
+                  render={({ field }) => (
+                    <IconPicker value={field.value} onChange={(key) => field.onChange(key ?? "")} fallback={type?.icon} />
+                  )}
+                />
+              </div>
+            )}
 
             <div className="space-y-1.5">
               <Label htmlFor="description" className="text-xs font-medium text-foreground">{t("description")}</Label>

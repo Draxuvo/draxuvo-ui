@@ -23,6 +23,7 @@ export interface ProductPayload {
   station_id?: number | null;
   product_type_id?: number;
   unit_key?: string | null;
+  icon?: string | null;
 }
 
 export interface StockMovementPayload {

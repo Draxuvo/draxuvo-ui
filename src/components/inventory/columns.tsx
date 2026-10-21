@@ -3,6 +3,7 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { AlertTriangle, ArrowDownToLine, ArrowUpFromLine, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ProductGlyph } from "@/components/product-icon";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -47,6 +48,7 @@ export function getProductColumns(
       header: t("name"),
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
+          <ProductGlyph product={row.original} className="text-muted-foreground" />
           <span className="font-medium text-foreground">{row.original.name}</span>
           {row.original.low_stock && (
             <Badge

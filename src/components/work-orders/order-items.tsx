@@ -8,7 +8,9 @@ import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ProductGlyph } from "@/components/product-icon";
 import { apiClient } from "@/lib/api";
+import { ProductPicker } from "./product-picker";
 import { useAddItem, useDeleteItem, useUpdateItem } from "@/hooks/use-work-orders";
 import type { Product, WorkOrder, WorkOrderAction } from "@/types";
 
@@ -64,6 +66,7 @@ export function OrderItems({ order }: { order: WorkOrder }) {
         <ul className="divide-y divide-border rounded-etiqueta border border-border bg-card">
           {items.map((item) => (
             <li key={item.id} className="flex min-w-0 items-center gap-3 px-3 py-2">
+              {item.product && <ProductGlyph product={item.product} size={20} className="text-muted-foreground" />}
               <div className="min-w-0 flex-1">
                 <p className="truncate text-base">{item.description}</p>
                 <p className="text-sm text-muted-foreground tabular-nums">
@@ -124,19 +127,7 @@ export function OrderItems({ order }: { order: WorkOrder }) {
       {can("add_item") && (
         <div className="space-y-3 rounded-etiqueta border border-dashed border-border p-3">
           <div className="flex gap-2">
-            <select
-              value={productId}
-              onChange={(e) => setProductId(e.target.value)}
-              aria-label={t("concepts.addFromCatalog")}
-              className="h-11 min-w-0 flex-1 rounded-etiqueta border border-input bg-card px-3 text-base foco-etiqueta"
-            >
-              <option value="">{t("concepts.productPlaceholder")}</option>
-              {products.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
+            <ProductPicker products={products} value={productId} onChange={setProductId} />
             <Button type="button" variant="outline" className="h-11 gap-1" onClick={addFromCatalog} disabled={!productId || add.isPending}>
               <Plus size={16} aria-hidden="true" />
               {t("concepts.add")}

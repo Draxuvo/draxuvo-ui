@@ -256,6 +256,7 @@ function InventarioContent() {
         onOpenChange={setFormOpen}
         product={editing}
         defaultTypeId={view?.id}
+        canEditIcon={canManageTypes}
       />
 
       {/* Tipos de producto (spec 016) */}

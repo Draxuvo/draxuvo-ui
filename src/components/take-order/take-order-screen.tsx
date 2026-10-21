@@ -75,6 +75,8 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
       id: p.id,
       name: p.name,
       price: Number(p.price ?? 0),
+      icon: p.icon,
+      product_type: p.product_type,
       sold_out: p.sold_out,
       low: p.low,
       available_qty: p.available_qty,

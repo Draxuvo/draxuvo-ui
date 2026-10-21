@@ -69,6 +69,30 @@ describe("MenuGrid", () => {
   });
 });
 
+describe("MenuGrid: iconos (spec 026)", () => {
+  const menu: MenuSection[] = [
+    {
+      category: "Antojitos",
+      items: [
+        { id: 1, name: "Taco", price: 30, icon: "taco" },
+        { id: 2, name: "Sope", price: 25, product_type: { icon: "utensils" } },
+        { id: 3, name: "Gordita", price: 25 },
+      ],
+    },
+  ];
+  const props = { menu, loading: false, error: false, disabled: false, countOf: () => 0, onTap: vi.fn() };
+
+  it("pinta el icono propio, el del tipo o la inicial, sin cambiar el nombre accesible", () => {
+    renderWithProviders(<MenuGrid {...props} />);
+    const taco = screen.getByRole("button", { name: /^Taco/ });
+    expect(taco.querySelector("svg")).not.toBeNull();
+    expect(screen.getByRole("button", { name: /^Sope/ }).querySelector("svg")).not.toBeNull();
+    const gordita = screen.getByRole("button", { name: /^Gordita/ });
+    expect(gordita.querySelector("svg")).toBeNull();
+    expect(within(gordita).getByText("G")).toBeInTheDocument();
+  });
+});
+
 describe("OrderPanel", () => {
   const line = (over: Partial<Line> = {}): Line => ({
     id: 1, product_id: null, name: "Tostada", quantity: 2, unit_price: 30, editable: true, sent: false, ...over,
