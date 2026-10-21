@@ -93,6 +93,32 @@ describe("EntryDialog", () => {
 });
 
 describe("AttendanceButton", () => {
+  it("si la API dice que ya no hay turno abierto, vuelve a pedir el estado", async () => {
+    vi.mocked(attendancesService.today)
+      .mockResolvedValueOnce(status({ state: "working", current: shift }))
+      .mockResolvedValue(status({ state: "done", last: closed })); // otro dispositivo cerró el turno antes
+    vi.mocked(attendancesService.checkOut).mockRejectedValue(Object.assign(new Error("422"), { isAxiosError: true, response: { status: 422 } }));
+    renderWithProviders(<AttendanceButton />);
+
+    fireEvent.click(await screen.findByRole("button", { name: /Marcar salida/ }));
+
+    expect(await screen.findByRole("button", { name: /Marcar entrada/ })).toBeTruthy();
+    expect(toast.error).toHaveBeenCalled();
+  });
+
+  it("sin red al marcar no vuelve a pedir el estado y sigue en turno", async () => {
+    vi.mocked(attendancesService.today).mockResolvedValue(status({ state: "working", current: shift }));
+    vi.mocked(attendancesService.checkOut).mockRejectedValue(Object.assign(new Error("red"), { isAxiosError: true }));
+    renderWithProviders(<AttendanceButton />);
+
+    fireEvent.click(await screen.findByRole("button", { name: /Marcar salida/ }));
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalled());
+    expect(attendancesService.today).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: /Marcar salida/ })).toBeTruthy();
+  });
+
+
   it("sin entrada ofrece Marcar entrada", async () => {
     vi.mocked(attendancesService.today).mockResolvedValue(status());
     vi.mocked(attendancesService.checkIn).mockResolvedValue(status({ state: "working", current: shift }));
