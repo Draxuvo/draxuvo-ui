@@ -1405,12 +1405,40 @@
     "empty": "No attendance records for these dates.",
     "emptyToday": "No one has checked in today.",
     "emptyHint": "Records appear when staff check in.",
-    "readOnlyHint": "Check-ins and check-outs are recorded from Staff.",
+    "readOnlyHint": "Each person clocks in and out from the header button.",
     "goToEmployees": "Go to Staff",
     "loadError": "Could not load attendance.",
     "notInPlanTitle": "Attendance is not in your plan",
     "notInPlanBody": "Change plans to see your staff's check-ins, check-outs and late arrivals.",
-    "notInPlanCta": "View plans"
+    "notInPlanCta": "View plans",
+    "entry": {
+      "title": "Clock in",
+      "body": "It's {time}. Do you want to clock in for today?",
+      "mark": "Clock in",
+      "later": "Not now",
+      "done": "Clocked in",
+      "error": "Couldn't clock in. Try again."
+    },
+    "status": {
+      "markIn": "Clock in",
+      "markOut": "Clock out",
+      "markOutLabel": "On shift since {time}. Clock out",
+      "working": "On shift since {time}",
+      "done": "Clocked out at {time}",
+      "checkedIn": "Clocked in",
+      "checkedOut": "Clocked out",
+      "error": "Couldn't save. Try again."
+    },
+    "logout": {
+      "title": "Clock out?",
+      "body": "You have an open shift. You can clock out before signing out.",
+      "markAndLogout": "Clock out and sign out",
+      "withoutMarking": "Sign out without clocking out",
+      "cancel": "Cancel",
+      "error": "Couldn't clock out. Try again."
+    },
+    "open": "Open",
+    "duration": "Duration"
   },
   "companySwitcher": {
     "label": "Active company",

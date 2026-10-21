@@ -95,11 +95,31 @@ export interface Attendance {
   attendance_type: AttendanceType;
   checkin_at: string;
   checkout_at: string | null;
+  open: boolean;
+  duration_minutes: number | null;
   lat: string | null;
   lng: string | null;
   created_at: string;
   updated_at: string;
   employee: { id: number; name: string; position: string | null };
+}
+
+/** Un turno de quien consulta (spec 026). */
+export interface MyShift {
+  id: number;
+  checkin_at: string;
+  checkout_at: string | null;
+  open: boolean;
+  duration_minutes: number | null;
+}
+
+/** Estado de hoy de quien consulta: GET /my_attendance/today (spec 026). */
+export interface MyAttendance {
+  eligible: boolean;
+  state: "none" | "working" | "done";
+  current: MyShift | null;
+  last: MyShift | null;
+  server_time: string;
 }
 
 // Tipos de producto de la empresa (spec 016): sus reglas deciden menú, existencia y decimales.

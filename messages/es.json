@@ -1405,12 +1405,40 @@
     "empty": "No hay registros de asistencia en estas fechas.",
     "emptyToday": "Nadie ha registrado asistencia hoy.",
     "emptyHint": "Los registros aparecen cuando el personal marca su entrada.",
-    "readOnlyHint": "Las entradas y salidas se registran desde Personal.",
+    "readOnlyHint": "Las entradas y salidas las marca cada persona desde el botón del encabezado.",
     "goToEmployees": "Ir a Personal",
     "loadError": "No se pudo cargar la asistencia.",
     "notInPlanTitle": "La asistencia no está en tu plan",
     "notInPlanBody": "Cambia de plan para ver las entradas, salidas y retardos de tu personal.",
-    "notInPlanCta": "Ver planes"
+    "notInPlanCta": "Ver planes",
+    "entry": {
+      "title": "Marcar entrada",
+      "body": "Son las {time}. ¿Marcas tu entrada de hoy?",
+      "mark": "Marcar entrada",
+      "later": "Ahora no",
+      "done": "Entrada marcada",
+      "error": "No se pudo marcar la entrada. Intenta de nuevo."
+    },
+    "status": {
+      "markIn": "Marcar entrada",
+      "markOut": "Marcar salida",
+      "markOutLabel": "En turno desde las {time}. Marcar salida",
+      "working": "En turno desde las {time}",
+      "done": "Salida marcada a las {time}",
+      "checkedIn": "Entrada marcada",
+      "checkedOut": "Salida marcada",
+      "error": "No se pudo marcar. Intenta de nuevo."
+    },
+    "logout": {
+      "title": "¿Marcas tu salida?",
+      "body": "Tienes una entrada abierta. Puedes marcar tu salida antes de cerrar sesión.",
+      "markAndLogout": "Marcar salida y cerrar sesión",
+      "withoutMarking": "Cerrar sin marcar",
+      "cancel": "Cancelar",
+      "error": "No se pudo marcar la salida. Intenta de nuevo."
+    },
+    "open": "Abierta",
+    "duration": "Duración"
   },
   "companySwitcher": {
     "label": "Empresa activa",

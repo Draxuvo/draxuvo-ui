@@ -28,6 +28,13 @@ export default async function globalSetup() {
           return;
         }
         const login = (await res.json()) as LoginResponse;
+        // Con una entrada abierta el modal "Marcar entrada" (spec 026) no tapa las pantallas. Quien no
+        // es empleado o no tiene el módulo responde 4xx: se ignora.
+        const company = login.user.companies?.[0]?.id;
+        await api.post("/api/v1/my_attendance/check_in", {
+          headers: { Authorization: `Bearer ${login.token}`, ...(company ? { "X-Company-Id": String(company) } : {}) },
+          failOnStatusCode: false,
+        });
         writeFileSync(authFile(s.key), JSON.stringify(buildStorageState(login), null, 2));
       }),
     );

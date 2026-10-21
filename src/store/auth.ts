@@ -35,6 +35,17 @@ function writeRoleCookie(role: Role | null) {
     : "user_role=; path=/; max-age=0";
 }
 
+// El modal de entrada se ofrece una vez por sesión (spec 026): al cerrar sesión se olvida.
+function clearAttendancePrompts() {
+  try {
+    Object.keys(sessionStorage)
+      .filter((k) => k.startsWith("attendance_prompted:"))
+      .forEach((k) => sessionStorage.removeItem(k));
+  } catch {
+    // sin sessionStorage no hay nada que limpiar
+  }
+}
+
 function writeCompany(id: number | null) {
   if (id) localStorage.setItem(COMPANY_KEY, String(id));
   else localStorage.removeItem(COMPANY_KEY);
@@ -98,6 +109,7 @@ export const useAuthStore = create<AuthState>()(
         localStorage.removeItem(COMPANY_KEY);
         document.cookie = "auth_token=; path=/; max-age=0";
         writeRoleCookie(null);
+        clearAttendancePrompts();
         queryClient.clear();
         set({ user: null, token: null, selectedCompanyId: null, role: null });
         window.location.href = "/login";

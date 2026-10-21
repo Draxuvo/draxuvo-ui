@@ -1,6 +1,8 @@
 // src/components/layout/header.tsx
 "use client";
 import { useAuthStore } from "@/store/auth";
+import { AttendanceButton } from "@/components/attendance/attendance-button";
+import { useLogoutFlow } from "@/components/attendance/logout-dialog";
 import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -28,7 +30,8 @@ function getInitials(firstName?: string, lastName?: string) {
 export function Header() {
   const t = useTranslations("nav");
   const tCommon = useTranslations("common");
-  const { user, logout, role } = useAuthStore();
+  const { user, role } = useAuthStore();
+  const { requestLogout, dialog: logoutDialog } = useLogoutFlow();
   // Con varias empresas el selector ocupa el lugar de la marca en celular.
   const multiCompany = role !== "super_admin" && (user?.companies?.length ?? 0) > 1;
   const { open, mobileOpen, toggle } = useSidebar();
@@ -74,6 +77,7 @@ export function Header() {
       <CompanySwitcher className="md:ml-1" />
 
       <div className="ml-auto flex items-center gap-1 sm:gap-3">
+        <AttendanceButton />
         <LocaleSwitcher />
 
         <DropdownMenu>
@@ -106,13 +110,14 @@ export function Header() {
               {t("profile")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onClick={logout} className="gap-2">
+            <DropdownMenuItem variant="destructive" onClick={requestLogout} className="gap-2">
               <LogOut size={16} strokeWidth={1.75} aria-hidden />
               {t("logout")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      {logoutDialog}
     </header>
   );
 }
