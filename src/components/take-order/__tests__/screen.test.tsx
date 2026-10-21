@@ -6,12 +6,15 @@ import { useAuthStore } from "@/store/auth";
 import type { Check, TablesResponse } from "@/types";
 
 const replace = vi.fn();
-vi.mock("@/hooks/use-router", () => ({ useAppRouter: () => ({ push: vi.fn(), replace, back: vi.fn() }) }));
+const push = vi.fn();
+let search = "";
+vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams(search) }));
+vi.mock("@/hooks/use-router", () => ({ useAppRouter: () => ({ push, replace, back: vi.fn() }) }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() } }));
 vi.mock("@/services/restaurant", () => ({
   restaurantService: {
     overview: vi.fn(), openCheck: vi.fn(), getCheck: vi.fn(), addCheckItem: vi.fn(),
-    updateCheckItem: vi.fn(), removeCheckItem: vi.fn(), sendRound: vi.fn(), addPayment: vi.fn(),
+    updateCheckItem: vi.fn(), cancelCheck: vi.fn(), removeCheckItem: vi.fn(), sendRound: vi.fn(), addPayment: vi.fn(),
   },
 }));
 vi.mock("@/services/inventory", () => ({ inventoryService: { menu: vi.fn() } }));
@@ -51,6 +54,7 @@ const check = (over: Partial<Check> = {}): Check => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  search = "";
   useAuthStore.setState({
     selectedCompanyId: 1, role: "staff",
     user: { companies: [{ id: 1, role: "staff", order_mode: "service" }] } as never,
@@ -83,10 +87,112 @@ describe("TakeOrderScreen (modo mesas)", () => {
   });
 });
 
+describe("TakeOrderScreen (liberar mesa)", () => {
+  const empty = check({ allowed_actions: ["add_item", "send", "pay", "cancel"] });
+
+  async function openFreeTable() {
+    vi.mocked(restaurantService.openCheck).mockResolvedValue(empty);
+    vi.mocked(restaurantService.getCheck).mockResolvedValue(empty);
+    renderWithProviders(<TakeOrderScreen />);
+    await userEvent.click(await screen.findByRole("button", { name: /^4, Libre/ }));
+  }
+
+  it("libera una mesa abierta sin productos de una vez, sin confirmar", async () => {
+    vi.mocked(restaurantService.cancelCheck).mockResolvedValue(check({ status: "cancelled" }));
+    await openFreeTable();
+
+    await userEvent.click(await screen.findByRole("button", { name: "Liberar mesa" }));
+
+    await waitFor(() => expect(restaurantService.cancelCheck).toHaveBeenCalledWith(10));
+    expect(screen.queryByText("¿Liberar esta mesa?")).not.toBeInTheDocument();
+    expect(await screen.findByText("Elige una mesa para ver su orden.")).toBeInTheDocument();
+  });
+
+  it("pide confirmar si hay productos sin mandar", async () => {
+    const withDraft = check({
+      total: "0.00",
+      items: [{ id: 1, name: "Tostada", quantity: 1, unit_price: "30.00", note: null, status: "draft" } as never],
+      allowed_actions: ["add_item", "send", "pay", "cancel"],
+    });
+    vi.mocked(restaurantService.openCheck).mockResolvedValue(withDraft);
+    vi.mocked(restaurantService.getCheck).mockResolvedValue(withDraft);
+    vi.mocked(restaurantService.cancelCheck).mockResolvedValue(check({ status: "cancelled" }));
+    renderWithProviders(<TakeOrderScreen />);
+    await userEvent.click(await screen.findByRole("button", { name: /^4, Libre/ }));
+
+    await userEvent.click(await screen.findByRole("button", { name: "Liberar mesa" }));
+    expect(await screen.findByText("¿Liberar esta mesa?")).toBeInTheDocument();
+    expect(restaurantService.cancelCheck).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole("button", { name: "Liberar" }));
+    await waitFor(() => expect(restaurantService.cancelCheck).toHaveBeenCalledWith(10));
+  });
+
+  it("no ofrece liberar cuando la API no permite cancelar (ya se mandó algo)", async () => {
+    vi.mocked(restaurantService.openCheck).mockResolvedValue(check());
+    vi.mocked(restaurantService.getCheck).mockResolvedValue(check());
+    renderWithProviders(<TakeOrderScreen />);
+    await userEvent.click(await screen.findByRole("button", { name: /^4, Libre/ }));
+
+    await screen.findByText("Toca un producto del menú para agregarlo.");
+    expect(screen.queryByRole("button", { name: "Liberar mesa" })).not.toBeInTheDocument();
+  });
+});
+
 describe("TakeOrderScreen (sin restaurante)", () => {
   it("vuelve al formulario de siempre en modo servicio", async () => {
     vi.mocked(restaurantService.overview).mockRejectedValue(new Error("module_not_in_plan"));
     renderWithProviders(<TakeOrderScreen />);
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/mis-ordenes"));
+  });
+});
+
+describe("TakeOrderScreen (abrir una cuenta desde la lista)", () => {
+  it("abre la cuenta de ?cuenta=<id> al entrar", async () => {
+    search = "cuenta=31&from=ordenes";
+    vi.mocked(restaurantService.getCheck).mockResolvedValue(check({ id: 31, table: { id: 1, name: "4" } }));
+    renderWithProviders(<TakeOrderScreen />);
+
+    await waitFor(() => expect(restaurantService.getCheck).toHaveBeenCalledWith(31));
+    expect(await screen.findByRole("heading", { name: "4" })).toBeInTheDocument();
+  });
+
+  it("ignora un valor de cuenta que no es un entero positivo", async () => {
+    search = "cuenta=abc";
+    renderWithProviders(<TakeOrderScreen />);
+
+    await screen.findByRole("button", { name: /^4, Libre/ });
+    expect(restaurantService.getCheck).not.toHaveBeenCalled();
+  });
+
+  it("volver regresa a Órdenes si se llegó desde ahí", async () => {
+    search = "from=ordenes";
+    renderWithProviders(<TakeOrderScreen />);
+    await userEvent.click(await screen.findByRole("button", { name: "Volver" }));
+    expect(push).toHaveBeenCalledWith("/ordenes");
+  });
+});
+
+describe("TakeOrderScreen (volver)", () => {
+  const back = () => screen.findByRole("button", { name: "Volver" });
+
+  it("vuelve a Restaurante si se llegó desde ahí", async () => {
+    search = "from=restaurante";
+    renderWithProviders(<TakeOrderScreen />);
+    await userEvent.click(await back());
+    expect(push).toHaveBeenCalledWith("/restaurante");
+  });
+
+  it("ignora un origen desconocido y vuelve a Mis órdenes", async () => {
+    search = "from=https://malo.example";
+    renderWithProviders(<TakeOrderScreen />);
+    await userEvent.click(await back());
+    expect(push).toHaveBeenCalledWith("/mis-ordenes");
+  });
+
+  it("sin origen vuelve a Mis órdenes", async () => {
+    renderWithProviders(<TakeOrderScreen />);
+    await userEvent.click(await back());
+    expect(push).toHaveBeenCalledWith("/mis-ordenes");
   });
 });

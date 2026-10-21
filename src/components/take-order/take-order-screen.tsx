@@ -1,12 +1,14 @@
 "use client";
 // Pantalla para tomar pedidos (spec 018): plano de mesas, orden y menú de tarjetas en una sola vista.
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import type { AxiosError } from "axios";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ChargeDialog } from "@/components/work-orders/charge-dialog";
 import { useAppRouter } from "@/hooks/use-router";
 import { useSaleMenu } from "@/hooks/use-restaurant";
@@ -22,6 +24,8 @@ import { useOrderSource, type Selection, type SourceTile } from "./use-order-sou
 import { useScreenMode } from "./use-screen-mode";
 
 type Tab = "tables" | "order" | "menu";
+
+const BACK_TO: Record<string, string> = { restaurante: "/restaurante", ordenes: "/ordenes", "mis-ordenes": "/mis-ordenes" };
 
 export function TakeOrderScreen() {
   const { mode, ready } = useScreenMode();
@@ -46,12 +50,21 @@ function errorCode(err: unknown): string | undefined {
 function Board({ mode }: { mode: "restaurant" | "orders" }) {
   const t = useTranslations("takeOrder");
   const router = useAppRouter();
+  const params = useSearchParams();
+  // Dónde vuelve "volver" según `from`; solo valores conocidos, cualquier otro se ignora.
+  const backTo = BACK_TO[params.get("from") ?? ""];
+  // `?cuenta=<id>` abre esa cuenta al entrar (spec 020); un valor que no sea entero positivo se ignora.
+  const [initialCheck] = useState(() => {
+    const id = Number(params.get("cuenta"));
+    return mode === "restaurant" && Number.isInteger(id) && id > 0 ? id : null;
+  });
   const client = useQueryClient();
   const role = useAuthStore((s) => s.role);
-  const [selection, setSelection] = useState<Selection>(null);
-  const [tab, setTab] = useState<Tab>("tables");
+  const [selection, setSelection] = useState<Selection>(initialCheck ? { kind: "check", id: initialCheck } : null);
+  const [tab, setTab] = useState<Tab>(initialCheck ? "order" : "tables");
   const [payOpen, setPayOpen] = useState(false);
   const [chargeOpen, setChargeOpen] = useState(false);
+  const [releaseOpen, setReleaseOpen] = useState(false);
   const source = useOrderSource(mode, selection);
   const menuQuery = useSaleMenu();
   const finish = useFinishOrder(selection?.kind === "order" ? selection.id : 0);
@@ -112,6 +125,20 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
     }
   }
 
+  // Liberar la mesa: sin productos se cancela de una vez; con productos sin mandar se pide confirmar.
+  async function release(confirmed = false) {
+    const current = source.current;
+    if (!current?.canRelease) return;
+    if (!confirmed && current.lines.some((l) => !l.cancelled)) return setReleaseOpen(true);
+    setReleaseOpen(false);
+    await run(async () => {
+      await source.release();
+      setSelection(null);
+      setTab("tables");
+      toast.success(t("released"));
+    });
+  }
+
   async function charge() {
     const current = source.current;
     if (!current) return;
@@ -140,7 +167,7 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
         <Button
           type="button" variant="ghost" size="icon" className="size-11"
           aria-label={t("back")}
-          onClick={() => router.push(role === "staff" ? "/mis-ordenes" : "/ordenes")}
+          onClick={() => router.push(backTo ?? (role === "staff" ? "/mis-ordenes" : "/ordenes"))}
         >
           <ArrowLeft size={18} aria-hidden />
         </Button>
@@ -198,6 +225,7 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
             onAddMore={() => setTab("menu")}
             onSend={() => void send()}
             onCharge={() => void charge()}
+            onRelease={() => void release()}
           />
         </section>
 
@@ -215,6 +243,23 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
           />
         </section>
       </div>
+
+      <Dialog open={releaseOpen} onOpenChange={setReleaseOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t("releaseTitle")}</DialogTitle>
+            <DialogDescription>{t("releaseBody")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="outline" className="min-h-11" onClick={() => setReleaseOpen(false)}>
+              {t("releaseKeep")}
+            </Button>
+            <Button type="button" className="min-h-11" onClick={() => void release(true)}>
+              {t("releaseConfirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {current?.check && (
         <CheckPaymentDialog

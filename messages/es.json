@@ -95,8 +95,7 @@
     "team": "Equipo",
     "myCompanies": "Mis empresas",
     "restaurant": "Restaurante",
-    "terminals": "Terminales",
-    "takeOrder": "Tomar pedido"
+    "terminals": "Terminales"
   },
   "home": {
     "welcome": "Bienvenido, {name}",
@@ -1590,7 +1589,9 @@
       },
       "advanceError": "Ese platillo ya cambió. Se actualizó la lista.",
       "pending": "{count, plural, one {# comanda} other {# comandas}}"
-    }
+    },
+    "takeOrder": "Tomar pedido",
+    "takeOrderHint": "Plano de mesas, orden y menú en una sola pantalla."
   },
   "terminals": {
     "title": "Terminales de cobro",
@@ -1719,6 +1720,18 @@
       "error": "No se pudo registrar el pago.",
       "pendingItems": "productos aún sin entregar.",
       "chargeAnyway": "Cobrar de todos modos"
-    }
+    },
+    "release": "Liberar mesa",
+    "released": "Mesa liberada",
+    "releaseTitle": "¿Liberar esta mesa?",
+    "releaseBody": "Se descartarán los productos que aún no se mandan.",
+    "releaseConfirm": "Liberar",
+    "releaseKeep": "Seguir con la orden",
+    "openChecks": "Cuentas abiertas",
+    "openChecksOpen": "Abrir cuenta de {name}",
+    "openChecksTakeout": "Para llevar: {name}",
+    "openChecksTable": "Mesa {name}",
+    "openChecksWaiter": "Atiende {name}",
+    "openChecksElapsed": "Abierta hace {time}"
   }
 }

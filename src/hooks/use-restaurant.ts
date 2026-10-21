@@ -174,6 +174,10 @@ export function useCheckActions(checkId: number) {
       mutationFn: (itemId: number) => restaurantService.removeCheckItem(checkId, itemId),
       onSuccess: apply,
     }),
+    cancel: useMutation({
+      mutationFn: () => restaurantService.cancelCheck(checkId),
+      onSuccess: apply,
+    }),
     send: useMutation({
       mutationFn: (idempotencyKey: string) => restaurantService.sendRound(checkId, idempotencyKey),
       onSuccess: (res) => apply(res.check),

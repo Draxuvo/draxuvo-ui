@@ -74,9 +74,9 @@ describe("OrderPanel", () => {
     id: 1, product_id: null, name: "Tostada", quantity: 2, unit_price: 30, editable: true, sent: false, ...over,
   });
   const current = (lines: Line[], over: Partial<CurrentOrder> = {}): CurrentOrder => ({
-    selection: { kind: "check", id: 9 }, title: "4", lines, total: 60, canAdd: true, canSend: true, canCharge: true, ...over,
+    selection: { kind: "check", id: 9 }, title: "4", lines, total: 60, canAdd: true, canSend: true, canCharge: true, canRelease: false, ...over,
   });
-  const handlers = { onQuantity: vi.fn(), onRemove: vi.fn(), onNote: vi.fn(), onSend: vi.fn(), onCharge: vi.fn() };
+  const handlers = { onQuantity: vi.fn(), onRemove: vi.fn(), onNote: vi.fn(), onSend: vi.fn(), onCharge: vi.fn(), onRelease: vi.fn() };
 
   it("sube, baja y quita un renglón", async () => {
     const l = line();
@@ -102,6 +102,17 @@ describe("OrderPanel", () => {
     await userEvent.click(screen.getByRole("button", { name: "Cobrar" }));
     expect(handlers.onSend).toHaveBeenCalled();
     expect(handlers.onCharge).toHaveBeenCalled();
+  });
+
+  it("ofrece Liberar mesa solo cuando la API permite cancelar la cuenta", async () => {
+    const { rerender } = renderWithProviders(
+      <OrderPanel current={current([], { canRelease: true })} loading={false} missing={false} canNote sending={false} {...handlers} />,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Liberar mesa" }));
+    expect(handlers.onRelease).toHaveBeenCalled();
+
+    rerender(<OrderPanel current={current([], { canRelease: false })} loading={false} missing={false} canNote sending={false} {...handlers} />);
+    expect(screen.queryByRole("button", { name: "Liberar mesa" })).not.toBeInTheDocument();
   });
 
   it("pide elegir una mesa cuando no hay orden", () => {
