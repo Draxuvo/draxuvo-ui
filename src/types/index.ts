@@ -438,70 +438,86 @@ export interface DashboardStats {
   active_modules: ModuleKey[];
 }
 
+/** Rango que devuelven los reportes (fechas ISO con hora). */
+export interface ReportRange {
+  from: string;
+  to: string;
+}
+
+/** Contrato real de `GET /reports/summary` (specs/028-reportes-rediseno/contracts/reports-api.md). */
 export interface ReportSummary {
-  income: {
-    paid_revenue: number;
-    pending_revenue: number;
-    total_revenue: number;
-  };
-  work_orders: {
-    total: number;
-    by_status: Record<string, number>;
-    total_billed: number;
-  };
-  expenses: {
-    payroll_total: number;
-    inventory_cost: number;
-    total: number;
-  };
-  attendance: {
-    normal: number;
-    late: number;
-    absent: number;
-    total: number;
+  period: ReportRange & { type: string };
+  income: { total_revenue: number; tickets_paid: number; pending_revenue: number; tickets_pending: number };
+  work_orders: { total: number; total_billed: number; by_status: Record<string, number> };
+  expenses: { payroll: number; inventory_cost: number; total: number };
+  attendance: { total: number; normal: number; late: number; absent: number };
+  /** Solo con `compare=true`: ingresos y gastos del periodo anterior de igual duración. */
+  previous?: {
+    period: ReportRange;
+    income: { total_revenue: number; pending_revenue: number };
+    expenses: { payroll: number; inventory_cost: number; total: number };
   };
 }
 
-export interface IncomePaidTicket {
+export interface IncomeBreakdownRow {
   id: number;
   folio: string;
   total: number;
   paid_at: string;
-  employee?: { id: number; name: string };
-  work_order?: { id: number; title: string };
+  work_order: { id: number | null; title: string; employee: string | null };
 }
 
 export interface IncomeReport {
-  groups: Array<{ period: string; total: number; count: number }>;
-  tickets: IncomePaidTicket[];
+  period: ReportRange;
+  total_revenue: number;
+  total_tickets: number;
+  by_period: Array<{ period: string; revenue: number; count: number }>;
+  breakdown: IncomeBreakdownRow[];
   /** Pagos no anulados del rango por método y, en tarjeta, por terminal (spec 015). */
   by_method?: Array<{ method: PaymentMethod; label: string; total: number; count: number }>;
   by_terminal?: Array<{ terminal: PaymentTerminalRef | null; total: number; count: number }>;
 }
 
 export interface ExpensesReport {
-  groups: Array<{ period: string; payroll: number; inventory: number; total: number }>;
-  payroll: Array<{ id: number; name: string; salary: number; status: string }>;
-  inventory_movements: Array<{
-    id: number;
-    product: { id: number; name: string; sku: string };
-    qty: number;
-    unit_cost: number;
-    total_cost: number;
-    created_at: string;
-  }>;
+  period: ReportRange;
+  total_expenses: number;
+  payroll: {
+    total: number;
+    headcount: number;
+    employees: Array<{ id: number; name: string; position: string | null; department: string | null; salary: number }>;
+  };
+  inventory_cost: {
+    total: number;
+    by_period: Array<{ period: string; cost: number; count: number }>;
+    movements: Array<{
+      id: number;
+      created_at: string;
+      product_name: string;
+      sku: string;
+      qty: number;
+      unit_cost: number;
+      cost: number;
+      note: string | null;
+    }>;
+  };
 }
 
 export interface PayrollEmployee {
   id: number;
   name: string;
+  position: string | null;
+  department: string | null;
   salary: number;
   days_present: number;
   hours_worked: number;
+  /** La API sigue enviándolos, pero Reportes no los muestra (no hay horario; spec 028). */
   attendance: { normal: number; late: number; absent: number };
 }
 
 export interface PayrollReport {
+  period: ReportRange;
+  total_payroll: number;
+  headcount: number;
   employees: PayrollEmployee[];
 }
 

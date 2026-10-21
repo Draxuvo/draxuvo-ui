@@ -115,7 +115,7 @@ TanStack Query hooks either inline in page components or in dedicated hook files
 Use `date-fns` with locale awareness: import `{ es, enUS } from "date-fns/locale"`, pick by `useLocale()`, and pass as `{ locale: dateLocale }` to `format()`.
 
 ### Charts
-`@nivo/bar` and `@nivo/pie` are used for charts in `/estadisticas` and `/dashboard`. On the dashboard every bar or slice keeps its raw API key, navigates to the filtered list on click, and has a `ChartLegendLinks` legend of real links underneath (keyboard access). Colors come from `--chart-1..5` via `useChartColors()`.
+`@nivo/bar` and `@nivo/pie` are used for charts in `/estadisticas` and `/dashboard`. On the dashboard every bar or slice keeps its raw API key, navigates to the filtered list on click, and has a `ChartLegendLinks` legend of real links underneath (keyboard access). Colors come from `--chart-1..5` via `useChartColors()`. Reportes (`src/components/reports/`) uses `ChartFrame` (description + "Ver datos" table) around every chart and one color per concept (`src/lib/reports/colors.ts`).
 
 ### URL filters
 List pages (`/empleados`, `/inventario`, `/ordenes`, `/tickets`, `/asistencia`) keep their filters in the URL with `useUrlFilters` (`src/hooks/use-url-filters.ts`), using the same param names as the API. Pages using it must wrap their content in `<Suspense>` (it reads `useSearchParams`). Dashboard and inicio cards are links to these filtered lists, shown only for modules in `active_modules` and roles allowed by the destination.

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Building2, FileBarChart2 } from "lucide-react";
@@ -64,7 +64,9 @@ export default function ReportesPage() {
           <p className="text-sm text-muted-foreground">{tc("selectCompanyPrompt")}</p>
         </div>
       ) : (
-        <ReportContent companyId={companyId ?? undefined} />
+        <Suspense>
+          <ReportContent companyId={companyId ?? undefined} />
+        </Suspense>
       )}
     </div>
   );

@@ -1,7 +1,6 @@
-import { expect, test, type Browser, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Browser, type Page } from "@playwright/test";
 import { createCompany, uniquePrefix, type NewCompany } from "../support/data";
 import { t } from "../support/i18n";
-import { knownFailure } from "../support/known-failure";
 import { setDisabledModules } from "../support/modules";
 import { createOrderViaUI } from "../support/orders";
 import { storageStatePath } from "../support/session";
@@ -11,9 +10,6 @@ const board = (key: string, values?: Record<string, string | number>) => t(`anal
 const rep = (key: string, values?: Record<string, string | number>) => t(`reports.${key}`, values);
 const menu = (page: Page) => page.getByRole("navigation", { name: t("nav.mainNav") });
 const tab = (page: Page, key: string) => page.getByRole("button", { name: rep(key), exact: true });
-/** Entrada de fecha o selector: la etiqueta es un texto hermano, no un <label for>. */
-const control = (page: Page, label: string, tag: "input" | "select"): Locator =>
-  page.getByText(label, { exact: true }).locator(`xpath=following-sibling::${tag}`);
 const legend = (page: Page, chart: string) => page.getByRole("list", { name: board("legendLabel", { chart: board(chart) }) });
 const stat = (page: Page, label: string) => page.getByText(label, { exact: true }).locator("xpath=..");
 
@@ -138,7 +134,7 @@ test.describe("staff de Volta", () => {
 test.describe("admin de Volta", () => {
   test.use({ storageState: storageStatePath("admin", "volta.demo") });
 
-  test("[REP-011] las cuatro pestañas de Reportes, el resumen por periodo y los rangos sin datos @regresion", async ({ page }) => {
+  test("[REP-011] las cuatro pestañas de Reportes, el periodo único y los rangos sin datos @regresion", async ({ page }) => {
     await page.goto("/es/inicio");
     await menu(page).getByRole("link", { name: t("nav.reports") }).click();
     await expect(page).toHaveURL(/\/es\/reportes$/);
@@ -147,53 +143,65 @@ test.describe("admin de Volta", () => {
       await expect(tab(page, key)).toBeVisible();
     }
 
-    // Resumen: cobrado, órdenes, gastos con nómina y asistencia; cambia de periodo y de fecha de referencia.
-    for (const label of ["income.paid", "workOrders.total", "expenses.total", "attendance.total"]) {
+    // Resumen: una cifra principal de lo cobrado y las demás debajo.
+    for (const label of ["summary.collected", "summary.expenses"]) {
       await expect(page.getByText(rep(label), { exact: true }).first()).toBeVisible();
     }
-    for (const period of ["periodWeekly", "periodAnnual"]) {
-      const summary = page.waitForResponse((r) => r.url().includes("/reports/summary"));
-      await page.getByRole("button", { name: rep(period), exact: true }).click();
-      expect((await summary).url()).toContain(`period=${period.slice(6).toLowerCase()}`);
-    }
-    const reference = page.waitForResponse((r) => r.url().includes("/reports/summary") && r.url().includes("date=2026-01-15"));
-    await control(page, rep("date"), "input").fill("2026-01-15");
-    await reference;
 
-    // Ingresos: el detalle de tickets pagados y la agrupación.
+    // Periodo único: un atajo cambia el rango de la consulta y queda en la URL.
+    const last = new Date();
+    last.setDate(0);
+    const firstOfLast = `${last.getFullYear()}-${String(last.getMonth() + 1).padStart(2, "0")}-01`;
+    const summary = page.waitForResponse((r) => r.url().includes("/reports/summary") && r.url().includes(`from=${firstOfLast}`));
+    await page.getByRole("button", { name: rep("period.mes-anterior"), exact: true }).click();
+    await summary;
+    await expect(page).toHaveURL(/rango=mes-anterior/);
+
+    // El periodo se conserva en las demás pestañas.
     await tab(page, "tabIncome").click();
-    await expect(page.getByText(rep("income.tableTitle"))).toBeVisible();
-    await expect(page.getByRole("columnheader", { name: rep("income.colFolio") }).or(page.getByText(rep("income.empty")))).toBeVisible();
-    for (const group of ["groupByWeek", "groupByYear", "groupByMonth"]) {
-      await control(page, rep("groupBy"), "select").selectOption({ label: rep(group) });
-    }
-    await control(page, rep("from"), "input").fill("2000-01-01");
-    await control(page, rep("to"), "input").fill("2000-01-31");
-    await expect(page.getByText(rep("income.empty"))).toBeVisible();
-    await expect(page.getByText(rep("noData"))).toBeVisible();
-
-    // Gastos y nómina.
+    await expect(page.getByText(rep("income.tableTitle")).or(page.getByText(rep("state.emptyTitle")))).toBeVisible();
+    await expect(page.getByRole("button", { name: rep("period.mes-anterior"), exact: true })).toHaveAttribute("aria-pressed", "true");
     await tab(page, "tabExpenses").click();
     await expect(page.getByText(rep("expenses.payrollTitle"))).toBeVisible();
     await expect(page.getByText(rep("expenses.inventoryTitle"))).toBeVisible();
     await tab(page, "tabPayroll").click();
     await expect(page.getByText(rep("payroll.subtitle"))).toBeVisible();
     await expect(page.getByRole("columnheader", { name: rep("payroll.colDays") })).toBeVisible();
-    // La nómina lista a los empleados activos con sus días y horas.
+    // La nómina lista a los empleados activos con sus días y horas; no muestra retardos ni faltas.
     await expect(page.getByRole("row").nth(1)).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: /tarde|ausente/i })).toHaveCount(0);
+
+    // Un rango personalizado sin datos queda vacío con guía.
+    await page.getByRole("button", { name: rep("period.personalizado"), exact: true }).click();
+    await page.getByLabel(rep("period.from"), { exact: true }).fill("2000-01-01");
+    await page.getByLabel(rep("period.to"), { exact: true }).fill("2000-01-31");
+    await tab(page, "tabIncome").click();
+    await expect(page.getByText(rep("state.emptyTitle"))).toBeVisible();
+  });
+
+  test("[REP-011] un fallo de la API muestra el error con Reintentar y reintentar recupera @regresion", async ({ page }) => {
+    await page.route("**/api/v1/reports/income**", (route) =>
+      route.fulfill({ status: 500, json: { error: { status: 500, message: "Falla simulada", details: null } } }),
+    );
+    await page.goto("/es/reportes");
+    await tab(page, "tabIncome").click();
+    await expect(page.getByText(rep("state.errorTitle"))).toBeVisible();
+
+    await page.unroute("**/api/v1/reports/income**");
+    await page.getByRole("button", { name: rep("state.retry") }).click();
+    await expect(page.getByText(rep("state.errorTitle"))).toHaveCount(0);
+    await expect(page.getByText(rep("income.tableTitle")).or(page.getByText(rep("state.emptyTitle")))).toBeVisible();
   });
 
   test("[REP-011] el resumen y los ingresos muestran lo cobrado y el detalle de tickets @regresion", async ({ page }) => {
-    knownFailure("H-25");
     await page.goto("/es/reportes");
-    await expect(stat(page, rep("income.paid")).first()).not.toContainText(/^\$0\b/);
+    await expect(stat(page, rep("summary.collected")).first()).not.toContainText(/^\$0\b/);
     await tab(page, "tabIncome").click();
     await expect(page.getByRole("row").filter({ hasText: /T-\d+/ }).first()).toBeVisible();
   });
 });
 
 test("[FLU-09] tras cobrar una orden, el dashboard y los reportes suman el ingreso @regresion", async ({ browser, request }, info) => {
-  knownFailure("H-26");
   test.setTimeout(120_000);
   const company = await createCompany(request, { workerIndex: info.workerIndex, plan: "pro" });
   const owner = await ownerOf(browser, company);
@@ -219,7 +227,7 @@ test("[FLU-09] tras cobrar una orden, el dashboard y los reportes suman el ingre
 
   // 3. El resumen del periodo trae el cobro y el reporte de ingresos lista el ticket (REP-001, REP-004).
   await page.goto("/es/reportes");
-  await expect(stat(page, rep("income.paid")).first()).toContainText("$100");
+  await expect(stat(page, rep("summary.collected")).first()).toContainText("$100");
   await tab(page, "tabIncome").click();
   const ticket = page.getByRole("row").filter({ hasText: title });
   await expect(ticket).toHaveCount(1);
@@ -227,8 +235,9 @@ test("[FLU-09] tras cobrar una orden, el dashboard y los reportes suman el ingre
   await expect(ticket).toContainText("$100");
 
   // 4. Un periodo sin cobros queda vacío (REP-007).
-  await control(page, rep("from"), "input").fill("2000-01-01");
-  await control(page, rep("to"), "input").fill("2000-01-31");
-  await expect(page.getByText(rep("income.empty"))).toBeVisible();
+  await page.getByRole("button", { name: rep("period.personalizado"), exact: true }).click();
+  await page.getByLabel(rep("period.from"), { exact: true }).fill("2000-01-01");
+  await page.getByLabel(rep("period.to"), { exact: true }).fill("2000-01-31");
+  await expect(page.getByText(rep("state.emptyTitle"))).toBeVisible();
   await owner.context.close();
 });
