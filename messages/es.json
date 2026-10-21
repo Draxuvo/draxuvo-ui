@@ -835,50 +835,88 @@
   "reports": {
     "title": "Reportes",
     "subtitle": "Análisis financiero y operacional",
+    "tabsLabel": "Reportes",
     "tabSummary": "Resumen",
     "tabIncome": "Ingresos",
     "tabExpenses": "Gastos",
     "tabPayroll": "Nómina",
-    "periodWeekly": "Semanal",
-    "periodMonthly": "Mensual",
-    "periodAnnual": "Anual",
-    "groupByWeek": "Por semana",
-    "groupByMonth": "Por mes",
-    "groupByYear": "Por año",
-    "from": "Desde",
-    "to": "Hasta",
-    "groupBy": "Agrupar por",
-    "date": "Fecha de referencia",
-    "noData": "No hay datos para el período seleccionado",
+    "refresh": "Actualizar reporte",
+    "total": "Total",
+    "period": {
+      "label": "Periodo",
+      "hoy": "Hoy",
+      "7d": "7 días",
+      "mes": "Este mes",
+      "mes-anterior": "Mes pasado",
+      "personalizado": "Personalizado",
+      "from": "Desde",
+      "to": "Hasta",
+      "invalidRange": "«Hasta» no puede ser anterior a «Desde».",
+      "viewing": "Viendo {range}",
+      "compare": "Comparar con el periodo anterior",
+      "previous": "Periodo anterior: {range}"
+    },
+    "state": {
+      "loading": "Cargando reporte…",
+      "errorTitle": "No se pudo cargar el reporte",
+      "errorBody": "Revisa tu conexión e inténtalo de nuevo.",
+      "retry": "Reintentar",
+      "staleError": "No se pudo actualizar. Se muestran los últimos datos cargados.",
+      "emptyTitle": "No hay datos en este periodo",
+      "emptyHint": "Prueba con un rango más amplio.",
+      "showMonth": "Ver este mes",
+      "showPrevious": "Ver el mes pasado"
+    },
+    "delta": {
+      "noBase": "Sin periodo anterior comparable",
+      "up": "Subió {pct}",
+      "down": "Bajó {pct}",
+      "flat": "Sin cambio",
+      "vs": "vs. periodo anterior"
+    },
+    "export": {
+      "csv": "Exportar CSV",
+      "csvFor": "Exportar CSV de {table}",
+      "empty": "No hay filas que exportar"
+    },
+    "chart": {
+      "viewData": "Ver datos",
+      "label": "{title}: {values}",
+      "value": "Valor"
+    },
+    "summary": {
+      "collected": "Ingresos cobrados",
+      "pending": "Por cobrar",
+      "expenses": "Gastos",
+      "orders": "Órdenes",
+      "billed": "Facturado en órdenes",
+      "attendance": "Asistencias registradas",
+      "incomeChart": "Cobrado y por cobrar",
+      "ordersChart": "Órdenes por estado",
+      "expensesChart": "Gastos: nómina e inventario"
+    },
     "income": {
       "title": "Ingresos",
-      "paid": "Cobrado",
-      "pending": "Pendiente",
-      "total": "Total facturado",
-      "chartTitle": "Ingresos por período",
+      "chartTitle": "Ingresos por periodo",
       "tableTitle": "Detalle de tickets pagados",
+      "table": "cobros",
       "colFolio": "Folio",
       "colWorkOrder": "Orden",
       "colEmployee": "Empleado",
       "colTotal": "Total",
       "colDate": "Fecha de pago",
-      "unassigned": "Sin asignar",
-      "empty": "No hay tickets pagados en este período"
-    },
-    "workOrders": {
-      "title": "Órdenes de trabajo",
-      "total": "Total",
-      "billed": "Total facturado",
-      "chartTitle": "Órdenes por estado"
+      "unassigned": "Sin asignar"
     },
     "expenses": {
       "title": "Gastos",
       "payroll": "Nómina",
       "inventory": "Inventario",
       "total": "Total gastos",
-      "chartTitle": "Gastos por período",
+      "chartTitle": "Costo de inventario por periodo",
       "payrollTitle": "Nómina activa",
       "inventoryTitle": "Entradas de inventario",
+      "payrollTable": "nomina-activa",
+      "inventoryTable": "inventario",
       "colEmployee": "Empleado",
       "colSalary": "Salario mensual",
       "colProduct": "Producto",
@@ -887,28 +925,17 @@
       "colUnitCost": "Costo unitario",
       "colTotalCost": "Costo total",
       "colDate": "Fecha",
-      "emptyPayroll": "No hay empleados activos",
-      "emptyInventory": "No hay entradas de inventario en este período"
-    },
-    "attendance": {
-      "title": "Asistencia",
-      "normal": "A tiempo",
-      "late": "Tarde",
-      "absent": "Ausente",
-      "total": "Total registros"
+      "payrollNote": "La nómina es la suma de los salarios activos y no cambia con el periodo."
     },
     "payroll": {
       "title": "Nómina",
       "subtitle": "Pago y horas trabajadas por empleado",
+      "table": "nomina",
       "colName": "Empleado",
       "colSalary": "Salario",
       "colDays": "Días presentes",
       "colHours": "Horas trabajadas",
-      "colNormal": "A tiempo",
-      "colLate": "Tarde",
-      "colAbsent": "Ausente",
-      "hoursUnit": "hrs",
-      "empty": "No hay datos de nómina para el período seleccionado"
+      "hoursUnit": "hrs"
     },
     "payments": {
       "byMethod": "Por método",
