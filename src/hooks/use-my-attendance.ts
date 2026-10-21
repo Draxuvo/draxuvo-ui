@@ -1,6 +1,7 @@
 // src/hooks/use-my-attendance.ts
 // Estado de hoy y marcas de entrada y salida de quien tiene la sesión (spec 026).
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 import { useModuleGate } from "@/components/subscription/module-locked";
 import { attendancesService } from "@/services/attendances";
 import { useAuthStore } from "@/store/auth";
@@ -24,8 +25,13 @@ export function useMyAttendance() {
     qc.setQueryData(key, data);
     qc.invalidateQueries({ queryKey: ["attendances"] });
   };
-  const checkIn = useMutation({ mutationFn: attendancesService.checkIn, onSuccess });
-  const checkOut = useMutation({ mutationFn: attendancesService.checkOut, onSuccess });
+  // Si la API respondió que ya no aplica (otro dispositivo marcó antes), el estado mostrado quedó viejo: se vuelve a pedir.
+  // Sin respuesta (sin red) no se toca: pedirlo de nuevo fallaría y ocultaría el acceso.
+  const onError = (error: unknown) => {
+    if (isAxiosError(error) && error.response) qc.invalidateQueries({ queryKey: key });
+  };
+  const checkIn = useMutation({ mutationFn: attendancesService.checkIn, onSuccess, onError });
+  const checkOut = useMutation({ mutationFn: attendancesService.checkOut, onSuccess, onError });
 
   // Con error (sin red, módulo fuera del plan) no se afirma ningún estado.
   const data = query.isError ? undefined : query.data;
