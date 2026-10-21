@@ -15,6 +15,7 @@ const ADMIN_ROUTES = [
   "/tickets",
   "/asistencia",
   "/equipo",
+  "/personal",
   "/mis-empresas",
   "/restaurante",
   "/terminales",

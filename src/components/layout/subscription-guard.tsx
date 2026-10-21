@@ -38,7 +38,8 @@ export function SubscriptionGuard() {
   const { user, logout, selectedCompanyId, role } = useAuthStore();
   const switchCompany = useSwitchCompany();
 
-  const isSuperAdmin = role === "super_admin";
+  // También dentro de la vista de empresa: la API no le exige suscripción (spec 029).
+  const isSuperAdmin = role === "super_admin" || user?.role === "super_admin";
   const canBill = !!role && BILLING_ROLES.includes(role);
 
   const { data: subscription } = useQuery({

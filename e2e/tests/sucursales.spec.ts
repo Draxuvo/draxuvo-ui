@@ -88,7 +88,7 @@ test.describe("quien llega a Mis empresas sin ser dueño de un plan Empresa", ()
 
     test("[SUC-012] el menú no la incluye y por URL ofrece el plan Empresa @regresion", async ({ page }) => {
       await page.goto("/es/inicio");
-      await expect(menu(page).getByRole("link", { name: t("nav.team") })).toBeVisible();
+      await expect(menu(page).getByRole("link", { name: t("nav.people") })).toBeVisible();
       await expect(menu(page).getByRole("link", { name: t("nav.myCompanies") })).toHaveCount(0);
       await page.goto("/es/mis-empresas");
       await expect(page.getByText(mine("upgradeTitle"))).toBeVisible();

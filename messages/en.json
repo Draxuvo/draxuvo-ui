@@ -74,7 +74,6 @@
   "nav": {
     "home": "Home",
     "dashboard": "Dashboard",
-    "employees": "Staff",
     "inventory": "Inventory",
     "orders": "Orders",
     "tickets": "Tickets",
@@ -92,7 +91,9 @@
     "collapseMenu": "Collapse menu",
     "expandMenu": "Expand menu",
     "superAdminRole": "Super Admin",
-    "team": "Team",
+    "people": "Staff",
+    "myCompany": "My company",
+    "backToGlobal": "Back to the global panel",
     "myCompanies": "My companies",
     "restaurant": "Restaurant",
     "terminals": "Terminals"
@@ -1477,6 +1478,14 @@
     "branch": "Branch",
     "switched": "You are now working in {company}"
   },
+  "people": {
+    "title": "Staff",
+    "tabsLabel": "Staff sections",
+    "tabs": {
+      "employees": "Employees",
+      "access": "Access"
+    }
+  },
   "team": {
     "title": "Team",
     "subtitle": "{count, plural, =0 {No people} one {# person} other {# people}} in {company}",
@@ -1501,6 +1510,9 @@
     "remove": "Remove",
     "removeLabel": "Remove {name} from the team",
     "removeTitle": "Remove from the team?",
+    "lastOwnerTitle": "Leave the company without an owner?",
+    "lastOwnerBody": "{name} is the only owner of {company}. Without an owner nobody can pay the subscription or manage the team until you assign another.",
+    "lastOwnerConfirm": "Continue",
     "removeConfirm": "{name} loses access to {company}. Their account and other companies don't change.",
     "removing": "Removing...",
     "removed": "{name} is no longer on the team",

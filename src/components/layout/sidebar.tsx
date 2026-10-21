@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import {
+  ArrowLeft,
   Users,
   Package,
   ClipboardList,
@@ -13,7 +14,6 @@ import {
   FileBarChart2,
   CreditCard,
   CalendarCheck,
-  UsersRound,
   UtensilsCrossed,
   Building2,
   Landmark,
@@ -34,11 +34,14 @@ const REPORTS_ROLES = new Set(["admin", "owner"]);
 const RESTAURANT_ROLES = new Set(["admin", "owner", "manager"]);
 const SUBSCRIPTION_ROLES = new Set(["admin", "owner"]);
 const TEAM_ROLES = new Set(["admin", "owner"]);
+const PEOPLE_ROLES = new Set(["admin", "owner", "manager"]);
 
 export interface NavItem {
   href: string;
   label: string;
   icon: LucideIcon;
+  /** Acción previa a la navegación (p. ej. entrar o salir de la vista de empresa del super admin). */
+  onSelect?: () => void;
 }
 
 /** Lista de navegación del panel; también la usa el menú del personal (EmployeeSidebar). */
@@ -55,13 +58,16 @@ export function NavList({
 }) {
   return (
     <ul className="flex flex-col gap-1">
-      {items.map(({ href, label, icon: Icon }) => {
+      {items.map(({ href, label, icon: Icon, onSelect }) => {
         const active = pathname === href || pathname.startsWith(`${href}/`);
         return (
           <li key={href}>
             <Link
               href={href}
-              onClick={onNavigate}
+              onClick={() => {
+                onSelect?.();
+                onNavigate?.();
+              }}
               aria-current={active ? "page" : undefined}
               title={expanded ? undefined : label}
               className={cn(
@@ -97,7 +103,7 @@ export function Sidebar() {
   const tSub = useTranslations("subscription");
   const tCommon = useTranslations("common");
   const locale = useLocale();
-  const { user, selectedCompanyId, role } = useAuthStore();
+  const { user, selectedCompanyId, role, companyView, leaveCompanyView } = useAuthStore();
   const { open, mobileOpen, setMobileOpen } = useSidebar();
 
   const showAnalytics = !!role && ANALYTICS_ROLES.has(role);
@@ -106,6 +112,7 @@ export function Sidebar() {
   const showRestaurant = !!role && RESTAURANT_ROLES.has(role);
   const showSubscription = !!role && SUBSCRIPTION_ROLES.has(role);
   const showTeam = !!role && TEAM_ROLES.has(role);
+  const showPeople = !!role && PEOPLE_ROLES.has(role);
 
   const { data: subscription } = useQuery({
     queryKey: ["subscription", selectedCompanyId],
@@ -127,8 +134,10 @@ export function Sidebar() {
     ...(showAnalytics
       ? [{ href: `/${locale}/dashboard`, label: t("dashboard"), icon: BarChart2 }]
       : []),
-    ...(hasModule("employees")
-      ? [{ href: `/${locale}/empleados`, label: t("employees"), icon: Users }]
+    // Personal (spec 029): empleados y acceso en una sola opción. Admin y dueño siempre (el acceso no
+    // depende de módulos); manager solo con el módulo de empleados, y solo ve esa pestaña.
+    ...(showPeople && (showTeam || hasModule("employees"))
+      ? [{ href: `/${locale}/personal`, label: t("people"), icon: Users }]
       : []),
     ...(showAttendance && hasModule("attendance")
       ? [
@@ -160,15 +169,23 @@ export function Sidebar() {
           },
         ]
       : []),
-    ...(showTeam
-      ? [{ href: `/${locale}/equipo`, label: t("team"), icon: UsersRound }]
-      : []),
     // Terminales de cobro (spec 015): las administran admin y dueño, igual que el equipo.
     ...(showTeam
       ? [{ href: `/${locale}/terminales`, label: t("terminals"), icon: Landmark }]
       : []),
     ...(showMyCompanies
       ? [{ href: `/${locale}/mis-empresas`, label: t("myCompanies"), icon: Building2 }]
+      : []),
+    // Super admin dentro de su empresa (spec 029): vuelve a su panel global.
+    ...(companyView && user?.role === "super_admin"
+      ? [
+          {
+            href: `/${locale}/empresas`,
+            label: t("backToGlobal"),
+            icon: ArrowLeft,
+            onSelect: leaveCompanyView,
+          },
+        ]
       : []),
     ...(showSubscription
       ? [
