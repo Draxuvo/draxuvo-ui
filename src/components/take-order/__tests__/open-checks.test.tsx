@@ -54,6 +54,15 @@ describe("OpenChecks", () => {
     expect(screen.getAllByRole("link")).toHaveLength(3);
   });
 
+  it("no repite la palabra Mesa cuando la mesa ya se llama así", async () => {
+    vi.mocked(restaurantService.overview).mockResolvedValue({ ...overview, results: [{ ...overview.results[0], name: "Mesa 4" }] });
+    renderWithProviders(<Harness scope="all" />);
+
+    const link = await screen.findByRole("link", { name: "Abrir cuenta de Mesa 4" });
+    expect(link).toHaveTextContent("Mesa 4");
+    expect(link).not.toHaveTextContent("Mesa Mesa 4");
+  });
+
   it("no pinta nada si no hay cuentas abiertas", async () => {
     vi.mocked(restaurantService.overview).mockResolvedValue({ ...overview, results: [{ ...overview.results[2] }], takeouts: [] });
     renderWithProviders(<Harness scope="all" />);

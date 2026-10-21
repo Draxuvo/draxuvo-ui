@@ -30,7 +30,8 @@ export function OpenChecks({ checks, from }: { checks: OpenCheck[]; from: "orden
       </h2>
       <ul className="grid gap-3 sm:grid-cols-2">
         {checks.map((check) => {
-          const name = check.takeout ? t("openChecksTakeout", { name: check.name }) : t("openChecksTable", { name: check.name });
+          // Si la mesa ya se llama "Mesa 1", no se le antepone otra vez "Mesa".
+          const name = check.takeout ? t("openChecksTakeout", { name: check.name }) : /^(mesa|table)\b/i.test(check.name.trim()) ? check.name : t("openChecksTable", { name: check.name });
           const elapsed = formatDistanceToNowStrict(new Date(check.openedAt), { locale: locale === "en" ? enUS : es });
           return (
             <li key={check.id}>
