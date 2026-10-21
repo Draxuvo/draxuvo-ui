@@ -367,7 +367,7 @@
     "importBtn": "Load template",
     "importTitle": "Import products from template",
     "importTemplateLabel": "Download template",
-    "importTemplateHint": "Download the Excel file with the required format",
+    "importTemplateHint": "Download the Excel file with the required format. The ICON column is optional and only admins and owners can apply it.",
     "importDownload": "Download",
     "importDropHint": "Drag the file here or click to select",
     "importConfirm": "Import",

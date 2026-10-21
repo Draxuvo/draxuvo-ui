@@ -367,7 +367,7 @@
     "importBtn": "Cargar plantilla",
     "importTitle": "Importar productos desde plantilla",
     "importTemplateLabel": "Descargar plantilla",
-    "importTemplateHint": "Descarga el archivo Excel con el formato requerido",
+    "importTemplateHint": "Descarga el archivo Excel con el formato requerido. La columna ICONO es opcional y solo la aplican administrador y dueño.",
     "importDownload": "Descargar",
     "importDropHint": "Arrastrá el archivo aquí o hacé clic para seleccionar",
     "importConfirm": "Importar",

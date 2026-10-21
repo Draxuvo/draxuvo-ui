@@ -128,7 +128,8 @@ test("[ORD-024] conceptos, pasos, notas, fotos e historia de una orden @regresio
   const total = () => page.getByText(wo("concepts.total"), { exact: true }).locator("xpath=..");
 
   // Conceptos: uno del catálogo, uno libre; se edita un precio y se quita uno.
-  await page.getByLabel(wo("concepts.addFromCatalog")).selectOption({ index: 1 });
+  await page.getByLabel(wo("concepts.addFromCatalog")).click();
+  await page.getByRole("dialog").getByRole("listitem").first().getByRole("button").click();
   await page.getByRole("button", { name: wo("concepts.add"), exact: true }).click();
   await expect(page.getByRole("listitem").filter({ hasText: "×" })).toHaveCount(2);
   await page.getByLabel(wo("concepts.freeDescription")).fill("Material");
