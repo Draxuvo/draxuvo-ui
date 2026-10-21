@@ -1416,7 +1416,7 @@
     "notInPlanCta": "Ver planes",
     "entry": {
       "title": "Marcar entrada",
-      "body": "Son las {time}. ¿Marcas tu entrada de hoy?",
+      "body": "Son las {time}, ¿marcas tu entrada de hoy?",
       "mark": "Marcar entrada",
       "later": "Ahora no",
       "done": "Entrada marcada",
