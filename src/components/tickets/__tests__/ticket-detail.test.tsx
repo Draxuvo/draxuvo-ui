@@ -8,6 +8,11 @@ vi.mock("@/hooks/use-tickets", () => ({
   useSendTicketWhatsapp: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 vi.mock("@/lib/ticket-pdf", () => ({ downloadTicketPDF: vi.fn() }));
+// Spec 030: el módulo Terminales está apagado; el historial del cobro no depende de él.
+vi.mock("@/components/subscription/module-locked", () => ({
+  useModuleLocked: () => true,
+  useModuleGate: () => ({ enabled: false, isLocked: () => true }),
+}));
 vi.mock("@/store/auth", () => ({
   useAuthStore: (selector: (s: { role: string }) => unknown) => selector({ role: "owner" }),
 }));
@@ -55,6 +60,16 @@ describe("detalle de un ticket de cuenta", () => {
     expect(screen.getByText("Efectivo")).toBeInTheDocument();
     expect(screen.getByText(/Tarjeta · Referencia: A8812/)).toBeInTheDocument();
     expect(screen.getByText("$300.00")).toBeInTheDocument();
+  });
+
+  it("sigue mostrando la terminal de un cobro ya hecho aunque el módulo Terminales esté apagado (spec 030)", () => {
+    const conTerminal: Ticket = {
+      ...checkTicket,
+      payments: [{ method: "card", amount: "300.00", reference: "A8812", terminal: { id: 3, name: "BBVA caja 1", provider: "bbva" }, amount_received: null, change_given: null }],
+    };
+    renderWithProviders(<TicketDetail ticket={conTerminal} open onClose={() => {}} />);
+
+    expect(screen.getByText(/Tarjeta · BBVA caja 1/)).toBeInTheDocument();
   });
 
   it("lista lo vendido aunque los renglones no tengan id", () => {

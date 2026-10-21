@@ -1408,7 +1408,8 @@
     "reports": "Reports",
     "whatsapp": "WhatsApp",
     "multi_company": "Multiple companies or branches",
-    "restaurant": "Restaurant"
+    "restaurant": "Restaurant",
+    "terminals": "Terminals"
   },
   "attendance": {
     "title": "Attendance",

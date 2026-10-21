@@ -74,4 +74,29 @@ describe("módulos de la suscripción en solo lectura (spec 017)", () => {
       view.unmount();
     }
   });
+
+  // --- spec 030: Terminales es un módulo de Pro y Empresa ---
+
+  it("Terminales aparece como Activo en un plan Pro y no figura en Básico", async () => {
+    subscription([...pro, "terminals"], [...pro, "terminals"]);
+    const { unmount } = renderWithProviders(<ModuleSettings />);
+
+    expect(await screen.findByText("Terminales")).toBeInTheDocument();
+    expect(screen.getAllByText("Activo")).toHaveLength(8);
+    unmount();
+
+    subscription(base, base);
+    renderWithProviders(<ModuleSettings />);
+    expect(await screen.findByText("Inventario")).toBeInTheDocument();
+    expect(screen.queryByText("Terminales")).not.toBeInTheDocument();
+  });
+
+  it("un Terminales desactivado por el super admin aparece como Desactivado", async () => {
+    const all = [...pro, "terminals"];
+    subscription(all, all.filter((module) => module !== "terminals"));
+    renderWithProviders(<ModuleSettings />);
+
+    expect(await screen.findByText("Terminales")).toBeInTheDocument();
+    expect(screen.getAllByText("Desactivado")).toHaveLength(1);
+  });
 });

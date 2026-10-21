@@ -1,19 +1,19 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
 import { useAuthStore } from "@/store/auth";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/es/restaurante" }));
+const plan = vi.hoisted(() => ({ modules: ["employees", "inventory", "work_orders", "tickets", "restaurant"] as string[] }));
 vi.mock("@/services/subscription", () => ({
-  getSubscription: vi.fn().mockResolvedValue({
-    active_modules: ["employees", "inventory", "work_orders", "tickets", "restaurant"],
-  }),
+  getSubscription: vi.fn().mockImplementation(() => Promise.resolve({ active_modules: plan.modules })),
 }));
 
 import { SidebarProvider } from "./sidebar-context";
 import { Sidebar } from "./sidebar";
 
 beforeEach(() => {
+  plan.modules = ["employees", "inventory", "work_orders", "tickets", "restaurant"];
   useAuthStore.setState({
     user: { id: 1, role: "manager", companies: [{ id: 1, role: "manager", name: "Sazón", order_mode: "order" }] } as never,
     selectedCompanyId: 1,
@@ -34,6 +34,31 @@ function mount(role: string) {
     </SidebarProvider>,
   );
 }
+
+describe("menú lateral: Terminales es un módulo de Pro y Empresa (spec 030)", () => {
+  it.each(["owner", "admin"])("%s de una empresa sin el módulo no ve Terminales", async (role) => {
+    mount(role);
+
+    await screen.findAllByRole("link", { name: "Personal" });
+    // Mientras carga la suscripción el menú no filtra módulos; al llegar, sin el módulo desaparece.
+    await waitFor(() => expect(screen.queryByRole("link", { name: "Terminales" })).not.toBeInTheDocument());
+  });
+
+  it.each(["owner", "admin"])("%s de una empresa con el módulo ve Terminales", async (role) => {
+    plan.modules = [...plan.modules, "terminals"];
+    mount(role);
+
+    expect((await screen.findAllByRole("link", { name: "Terminales" })).length).toBeGreaterThan(0);
+  });
+
+  it("manager no ve Terminales aunque el módulo esté activo", async () => {
+    plan.modules = [...plan.modules, "terminals"];
+    mount("manager");
+
+    await screen.findAllByRole("link", { name: "Personal" });
+    expect(screen.queryByRole("link", { name: "Terminales" })).not.toBeInTheDocument();
+  });
+});
 
 describe("menú lateral", () => {
   it.each(["admin", "owner"])("%s ve una sola opción Personal y ninguna Equipo (spec 029)", async (role) => {

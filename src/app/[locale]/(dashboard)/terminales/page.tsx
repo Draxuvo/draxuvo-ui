@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TerminalForm } from "@/components/terminals/terminal-form";
 import { TerminalList } from "@/components/terminals/terminal-list";
+import { ModuleLocked, useModuleLocked } from "@/components/subscription/module-locked";
 import { usePaymentTerminals } from "@/hooks/use-payment-terminals";
 import { useAppRouter } from "@/hooks/use-router";
 import { useAuthStore } from "@/store/auth";
@@ -29,9 +30,12 @@ export default function TerminalesPage() {
     if (role && !canManage) router.replace(role === "staff" ? "/mis-ordenes" : "/inicio");
   }, [role, canManage, router]);
 
-  const { data, isLoading, isError } = usePaymentTerminals({ includeInactive: true, enabled: canManage });
+  const { data, isLoading, isError, error } = usePaymentTerminals({ includeInactive: true, enabled: canManage });
+  // Terminales es un módulo de Pro y Empresa (spec 030): fuera del plan se muestra el bloqueo.
+  const locked = useModuleLocked("terminals", error);
 
   if (!canManage) return null;
+  if (locked) return <ModuleLocked module="terminals" />;
 
   function openForm(terminal: PaymentTerminal | null) {
     setEditing(terminal);

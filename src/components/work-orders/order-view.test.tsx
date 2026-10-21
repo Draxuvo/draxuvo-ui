@@ -32,7 +32,7 @@ vi.mock("@/hooks/use-work-orders", () => ({
   useUpdateItem: () => mut.base,
   useDeleteItem: () => mut.base,
 }));
-vi.mock("@/lib/api", () => ({ apiClient: { get: vi.fn().mockResolvedValue({ data: [] }) } }));
+vi.mock("@/lib/api", () => ({ apiClient: { get: vi.fn().mockResolvedValue({ data: [] }) }, expectModuleLock: () => () => {} }));
 vi.mock("@/hooks/use-router", () => ({ useAppRouter: () => ({ push: vi.fn(), replace, back: vi.fn() }) }));
 vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 

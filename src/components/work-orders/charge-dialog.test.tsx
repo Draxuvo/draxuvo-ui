@@ -120,7 +120,19 @@ describe("ChargeDialog", () => {
     ]);
   });
 
-  it("sin cubrir el total no deja cobrar y muestra lo que falta", async () => {
+  // --- spec 030: sin el módulo Terminales (lista vacía) el cobro con tarjeta sale sin terminal ---
+
+  it("sin terminales no hay selector y el pago con tarjeta se manda sin terminal_id", async () => {
+    abre({ ...pendiente, total: 500 } as WorkOrder);
+    await userEvent.click(screen.getByRole("radio", { name: "Tarjeta" }));
+    expect(screen.queryByLabelText("Terminal")).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Confirmar cobro" }));
+    expect(chargeMutate.mock.calls[0][0].payments).toEqual([{ method: "card", amount: 500 }]);
+    expect(toastError).not.toHaveBeenCalled();
+  });
+
+  it("sin sobrar nada que mostrar: sin cubrir el total no deja cobrar y muestra lo que falta", async () => {
     abre({ ...pendiente, total: 500 } as WorkOrder);
     await userEvent.click(screen.getByRole("radio", { name: "Tarjeta" }));
     await userEvent.click(screen.getByRole("button", { name: "Agregar otro pago" }));
