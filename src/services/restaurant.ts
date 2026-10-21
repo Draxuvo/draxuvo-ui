@@ -1,6 +1,8 @@
 // src/services/restaurant.ts
 import { apiClient } from "@/lib/api";
-import type { DiningTable, Station, StationBoard, StockAlert } from "@/types";
+import type {
+  Check, DiningTable, PaymentMethod, PaymentResponse, RoundResponse, Station, StationBoard, StockAlert, TablesResponse,
+} from "@/types";
 
 const base = "/api/v1/restaurant";
 
@@ -15,6 +17,15 @@ export interface TablePayload {
   name: string;
   active?: boolean;
   position?: number;
+}
+
+export interface CheckPaymentBody {
+  method: PaymentMethod;
+  amount: string;
+  reference?: string;
+  amount_received?: string;
+  confirm_incomplete?: boolean;
+  terminal_id?: number;
 }
 
 export const restaurantService = {
@@ -49,4 +60,32 @@ export const restaurantService = {
 
   stockAlerts: (): Promise<StockAlert[]> =>
     apiClient.get(`${base}/stock_alerts`).then((r) => r.data.results),
+
+  // Operación del servicio (spec 018): plano de mesas y cuentas.
+  overview: (): Promise<TablesResponse> => apiClient.get(`${base}/tables`).then((r) => r.data),
+
+  openCheck: (body: { dining_table_id: number } | { takeout_name: string }): Promise<Check> =>
+    apiClient.post(`${base}/checks`, body).then((r) => r.data),
+
+  getCheck: (id: number): Promise<Check> => apiClient.get(`${base}/checks/${id}`).then((r) => r.data),
+
+  addCheckItem: (checkId: number, body: { product_id: number; quantity: number; note?: string }): Promise<Check> =>
+    apiClient.post(`${base}/checks/${checkId}/items`, body).then((r) => r.data),
+
+  updateCheckItem: (checkId: number, itemId: number, body: { quantity?: number; note?: string }): Promise<Check> =>
+    apiClient.patch(`${base}/checks/${checkId}/items/${itemId}`, body).then((r) => r.data),
+
+  removeCheckItem: (checkId: number, itemId: number): Promise<Check> =>
+    apiClient.delete(`${base}/checks/${checkId}/items/${itemId}`).then((r) => r.data),
+
+  /** La misma llave en un reintento nunca duplica la comanda. */
+  sendRound: (checkId: number, idempotencyKey: string): Promise<RoundResponse> =>
+    apiClient
+      .post(`${base}/checks/${checkId}/rounds`, {}, { headers: { "Idempotency-Key": idempotencyKey } })
+      .then((r) => r.data),
+
+  addPayment: (checkId: number, body: CheckPaymentBody, idempotencyKey: string): Promise<PaymentResponse> =>
+    apiClient
+      .post(`${base}/checks/${checkId}/payments`, body, { headers: { "Idempotency-Key": idempotencyKey } })
+      .then((r) => r.data),
 };

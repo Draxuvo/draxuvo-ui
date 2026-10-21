@@ -1,8 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { uniquePrefix } from "../../support/data";
 import { t } from "../../support/i18n";
-import { createOrderViaUI } from "../../support/orders";
-import { storageStatePath } from "../../support/session";
+import { API_URL, storageStatePath } from "../../support/session";
 
 test.describe("Sazón (modo pedido, plan Empresa)", () => {
   test.use({ storageState: storageStatePath("manager", "sazon.demo") });
@@ -11,12 +10,21 @@ test.describe("Sazón (modo pedido, plan Empresa)", () => {
     test.setTimeout(120_000);
     const table = `${uniquePrefix(testInfo.workerIndex)} Mesa 8`;
 
-    // [ORD-003] El pedido pide "Mesa o cliente", no pasos, y usa productos del menú.
-    const id = await createOrderViaUI(
-      page,
-      { title: table, products: [{ name: "Café", quantity: 2 }, { name: "Refresco", quantity: 2 }] },
-      "order",
+    // [ORD-003] El pedido usa productos del menú y no tiene pasos. Con mesas dadas de alta, "Nuevo pedido" abre
+    // la pantalla de cuentas (spec 018); la orden de trabajo en modo pedido se arma por API y se cobra desde su detalle.
+    const { token, companyId } = await page.goto("/es/inicio").then(() =>
+      page.evaluate(() => ({ token: localStorage.getItem("auth_token") ?? "", companyId: localStorage.getItem("selected_company_id") ?? "" })),
     );
+    const headers = { Authorization: `Bearer ${token}`, "X-Company-Id": companyId };
+    const menu = await (await page.request.get(`${API_URL}/api/v1/products/menu`, { headers })).json();
+    const products = menu.menu.flatMap((g: { items: { id: number; sold_out?: boolean }[] }) => g.items).filter((p: { sold_out?: boolean }) => !p.sold_out);
+    const created = await page.request.post(`${API_URL}/api/v1/work_orders`, {
+      headers,
+      data: { work_order: { title: table }, items: products.slice(0, 2).map((p: { id: number }) => ({ product_id: p.id, quantity: 2 })) },
+    });
+    expect(created.status()).toBe(201);
+    const id = (await created.json()).id as number;
+    await page.goto(`/es/ordenes/${id}`);
     await expect(page.getByText(table).first()).toBeVisible();
     await expect(page.getByText(t("workOrders.steps.title"), { exact: true })).toHaveCount(0);
 

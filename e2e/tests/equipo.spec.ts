@@ -312,8 +312,10 @@ test("[EMP-020] el dueño cambia el modo de órdenes a Pedido y el admin ya no v
   await expect(page.getByText(t("workOrders.mode.saved"))).toBeVisible();
 
   await expect(page.getByRole("button", { name: t("workOrders.labels.order.new") })).toBeVisible();
+  // En modo pedido, "Nuevo pedido" abre la pantalla visual de tomar pedido (spec 018), no el formulario.
   await page.getByRole("button", { name: t("workOrders.labels.order.new") }).click();
-  await expect(page.getByRole("dialog").getByPlaceholder(/Mesa 4/)).toBeVisible();
+  await expect(page).toHaveURL(/\/es\/pedido$/);
+  await expect(page.getByRole("heading", { name: t("takeOrder.title") })).toBeVisible();
   await owner.context.close();
 
   // El admin ve el modo nuevo pero no el botón para cambiarlo. Su contraseña la fija el enlace de alta.

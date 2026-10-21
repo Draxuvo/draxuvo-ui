@@ -35,19 +35,22 @@ test("[COB-001] el operador crea su orden y la cobra con tarjeta en una terminal
   const context = await browser.newContext({ storageState: storageStatePath("staff", "aroma.demo") });
   const page = await context.newPage();
   await page.goto("/es/mis-ordenes");
+  // Aroma está en modo pedido y sin mesas: "Nueva orden" abre la pantalla visual (spec 018).
   await page.getByRole("button", { name: wo("staff.newOrder") }).click();
-  const sheet = page.getByRole("dialog");
-  await sheet.getByPlaceholder(/Mesa 4/).fill("Mostrador");
-  await sheet.getByRole("button", { name: wo("form.addItem") }).click();
-  const product = sheet.getByLabel(wo("concepts.product"));
-  await expect(product.locator("option").nth(1)).toBeAttached();
-  await product.selectOption({ index: 1 });
-  await sheet.getByRole("button", { name: wo("form.create") }).click();
-  await expect(page).toHaveURL(/\/es\/mis-ordenes\/\d+$/);
-  const id = /\/mis-ordenes\/(\d+)$/.exec(page.url())![1];
+  await expect(page).toHaveURL(/\/es\/pedido$/);
+  const title = `${uniquePrefix(info.workerIndex)} Mostrador`;
+  await page.getByRole("button", { name: t("takeOrder.newOrder"), exact: true }).click();
+  await page.getByLabel(t("takeOrder.newNameOrderPlaceholder")).fill(title);
+  await page.getByRole("button", { name: t("takeOrder.newCreate"), exact: true }).click();
+  const card = page.locator('button[aria-label$="agregar"]:not([disabled])').first();
+  await card.click();
+  await expect(card.locator("span[aria-label$='en la orden']")).toBeVisible();
+  const headers = await apiHeaders(page);
+  const found = await (await page.request.get(`${API_URL}/api/v1/work_orders`, { headers, params: { search: title } })).json();
+  const id = String(found.results[0].id);
+  await page.goto(`/es/mis-ordenes/${id}`);
 
   // 3. La termina (por API, para no depender de los botones del modo pedido) y lee su total.
-  const headers = await apiHeaders(page);
   expect((await page.request.post(`${API_URL}/api/v1/work_orders/${id}/finish`, { headers })).ok()).toBe(true);
   const total = Number((await (await page.request.get(`${API_URL}/api/v1/work_orders/${id}`, { headers })).json()).total);
   expect(total).toBeGreaterThan(1);

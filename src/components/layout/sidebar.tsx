@@ -15,12 +15,14 @@ import {
   CalendarCheck,
   UsersRound,
   UtensilsCrossed,
+  ConciergeBell,
   Building2,
   Landmark,
   X,
   type LucideIcon,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
+import { useScreenMode } from "@/components/take-order/use-screen-mode";
 import { getSubscription } from "@/services/subscription";
 import type { ModuleKey } from "@/types";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
@@ -100,6 +102,7 @@ export function Sidebar() {
   const { user, selectedCompanyId, role } = useAuthStore();
   const { open, mobileOpen, setMobileOpen } = useSidebar();
 
+  const takeOrder = useScreenMode();
   const showAnalytics = !!role && ANALYTICS_ROLES.has(role);
   const showAttendance = !!role && ATTENDANCE_ROLES.has(role);
   const showReports = !!role && REPORTS_ROLES.has(role);
@@ -144,6 +147,10 @@ export function Sidebar() {
       : []),
     ...(hasModule("work_orders")
       ? [{ href: `/${locale}/ordenes`, label: t("orders"), icon: ClipboardList }]
+      : []),
+    // Tomar pedido (spec 018): con restaurante en el plan, o con la empresa en modo pedido.
+    ...(takeOrder.ready && takeOrder.mode !== "none"
+      ? [{ href: `/${locale}/pedido`, label: t("takeOrder"), icon: ConciergeBell }]
       : []),
     ...(hasModule("tickets")
       ? [{ href: `/${locale}/tickets`, label: t("tickets"), icon: Receipt }]
