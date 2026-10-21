@@ -1,6 +1,6 @@
 // src/app/[locale]/(dashboard)/asistencia/page.tsx
-// Pantalla nueva de asistencia (R9, contracts/ui-routes.md). Solo lectura: las entradas y
-// salidas se siguen registrando desde Personal.
+// Pantalla de asistencia (R9, contracts/ui-routes.md). Solo lectura: cada persona marca su
+// entrada y salida desde el botón del encabezado (spec 026).
 "use client";
 import { Suspense, useState } from "react";
 import Link from "next/link";
@@ -238,18 +238,19 @@ function AsistenciaContent() {
                 <TableHead>{t("date")}</TableHead>
                 <TableHead>{t("checkin")}</TableHead>
                 <TableHead>{t("checkout")}</TableHead>
+                <TableHead>{t("duration")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
                     {tc("loading")}
                   </TableCell>
                 </TableRow>
               ) : records.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-12 text-center">
+                  <TableCell colSpan={6} className="py-12 text-center">
                     <CalendarCheck size={28} strokeWidth={1.75} aria-hidden className="mx-auto mb-3 text-muted-foreground" />
                     <p className="font-medium text-foreground">
                       {isToday && !employeeId && !type ? t("emptyToday") : t("empty")}
@@ -289,6 +290,17 @@ function AsistenciaContent() {
                         timeFmt.format(new Date(r.checkout_at))
                       ) : (
                         <span className="text-muted-foreground">{t("noCheckout")}</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="tabular-nums">
+                      {r.open ? (
+                        <span className="inline-flex rounded-full bg-ceja px-2 py-0.5 text-xs font-semibold text-foreground">
+                          {t("open")}
+                        </span>
+                      ) : r.duration_minutes != null ? (
+                        `${Math.floor(r.duration_minutes / 60)} h ${String(r.duration_minutes % 60).padStart(2, "0")} min`
+                      ) : (
+                        "—"
                       )}
                     </TableCell>
                   </TableRow>

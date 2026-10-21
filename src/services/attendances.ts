@@ -1,6 +1,6 @@
 // src/services/attendances.ts
 import { apiClient } from "@/lib/api";
-import type { Attendance, AttendanceFilters, ListParams, PaginatedResponse } from "@/types";
+import type { Attendance, AttendanceFilters, ListParams, MyAttendance, PaginatedResponse } from "@/types";
 
 export type AttendanceListParams = AttendanceFilters & ListParams;
 
@@ -18,4 +18,9 @@ export const attendancesService = {
         params: { page, page_size, from, to, employee_id, type },
       })
       .then((r) => r.data),
+
+  // Marca propia de entrada y salida (spec 026).
+  today: (): Promise<MyAttendance> => apiClient.get("/api/v1/my_attendance/today").then((r) => r.data),
+  checkIn: (): Promise<MyAttendance> => apiClient.post("/api/v1/my_attendance/check_in").then((r) => r.data),
+  checkOut: (): Promise<MyAttendance> => apiClient.post("/api/v1/my_attendance/check_out").then((r) => r.data),
 };

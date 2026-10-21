@@ -3,6 +3,8 @@
 import { useTranslations } from "next-intl";
 import { LogOut, Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
+import { AttendanceButton } from "@/components/attendance/attendance-button";
+import { useLogoutFlow } from "@/components/attendance/logout-dialog";
 import { Logo } from "@/components/brand/logo";
 import { CompanySwitcher } from "./company-switcher";
 import { LocaleSwitcher } from "./locale-switcher";
@@ -15,7 +17,8 @@ const ICON_BUTTON =
 export function EmployeeHeader() {
   const t = useTranslations("nav");
   const tc = useTranslations("common");
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
+  const { requestLogout, dialog: logoutDialog } = useLogoutFlow();
   const multiCompany = (user?.companies?.length ?? 0) > 1;
   const { open, mobileOpen, toggle } = useSidebar();
 
@@ -62,10 +65,11 @@ export function EmployeeHeader() {
         <span className="hidden max-w-48 truncate text-sm font-semibold text-foreground lg:block">
           {user?.first_name} {user?.last_name}
         </span>
+        <AttendanceButton />
         <LocaleSwitcher />
         <button
           type="button"
-          onClick={logout}
+          onClick={requestLogout}
           aria-label={t("logout")}
           className={cn(ICON_BUTTON, "sm:w-auto sm:gap-2 sm:px-3 sm:text-sm sm:font-medium")}
         >
@@ -73,6 +77,7 @@ export function EmployeeHeader() {
           <span className="hidden sm:inline">{t("logout")}</span>
         </button>
       </div>
+      {logoutDialog}
     </header>
   );
 }
