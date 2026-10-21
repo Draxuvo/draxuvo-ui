@@ -225,6 +225,7 @@ export type ModuleKey =
   | "tickets"
   | "reports"
   | "restaurant"
+  | "terminals"
   | "whatsapp"
   | "multi_company";
 export type SubscriptionStatus = "trialing" | "active" | "past_due" | "cancelled" | "expired";

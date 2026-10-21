@@ -1,6 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
-import { uniquePrefix } from "../support/data";
+import { createCompany, uniquePrefix } from "../support/data";
 import { t } from "../support/i18n";
+import { setDisabledModules } from "../support/modules";
+import { createOrderViaUI } from "../support/orders";
 import { API_URL, storageStatePath } from "../support/session";
 
 // Spec 015: el admin da de alta una terminal, el operador crea su orden y la cobra con tarjeta + efectivo.
@@ -75,5 +77,62 @@ test("[COB-001] el operador crea su orden y la cobra con tarjeta en una terminal
   expect(charged.ticket.payments.map((p: { method: string }) => p.method)).toEqual(["card", "cash"]);
   expect(charged.ticket.payments[0].terminal.name).toBe(terminal);
   expect(charged.ticket.payments[0].authorization_code).toBe("123456");
+  await context.close();
+});
+
+// Spec 030: Terminales es un módulo de Pro y Empresa.
+test.describe("dueño de Don Chuy (plan Básico)", () => {
+  test.use({ storageState: storageStatePath("owner", "donchuy.demo") });
+
+  test("[COB-002] sin el módulo Terminales no hay menú, la página muestra el bloqueo y la API responde 403 @regresion", async ({ page }) => {
+    await page.goto("/es/inicio");
+    await expect(page.getByRole("navigation", { name: t("nav.mainNav") }).getByRole("link", { name: t("nav.terminals") })).toHaveCount(0);
+
+    await page.goto("/es/terminales");
+    await expect(page.getByText(t("subscription.moduleLocked"))).toBeVisible();
+
+    const res = await page.request.get(`${API_URL}/api/v1/payment_terminals`, { headers: await apiHeaders(page) });
+    expect(res.status()).toBe(403);
+    expect((await res.json()).error.details).toMatchObject({ code: "module_not_in_plan", module: "terminals" });
+  });
+});
+
+test("[COB-003] con Terminales apagado por el super admin el cobro con tarjeta se guarda sin terminal y sin avisos de error @regresion", async ({ browser, request }, info) => {
+  test.setTimeout(120_000);
+  const company = await createCompany(request, { workerIndex: info.workerIndex, plan: "pro" });
+  const context = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+  const page = await context.newPage();
+  await page.goto("/es/login");
+  await page.getByLabel(t("auth.email"), { exact: true }).fill(company.email);
+  await page.getByLabel(t("auth.password"), { exact: true }).fill(company.password);
+  await page.getByRole("button", { name: t("auth.submit") }).click();
+  await expect(page).toHaveURL(/\/es\/inicio$/);
+  const companyId = await page.evaluate(() => localStorage.getItem("selected_company_id") ?? "");
+
+  // El super admin apaga el módulo y el menú pierde la entrada.
+  await setDisabledModules(request, companyId, ["terminals"]);
+  await page.reload();
+  await expect(page.getByRole("navigation", { name: t("nav.mainNav") }).getByRole("link", { name: t("nav.terminals") })).toHaveCount(0);
+
+  // Crea una orden, la termina y la cobra con tarjeta: no hay selector de terminal ni avisos de error.
+  const title = `${uniquePrefix(info.workerIndex)} cobro tarjeta`;
+  await createOrderViaUI(page, { title, items: [{ description: "Mano de obra", quantity: 1, price: 100 }] });
+  const action = (key: string) => page.getByRole("button", { name: wo(`actions.${key}`) });
+  await action("start").click();
+  await expect(page.getByText(wo("started"))).toBeVisible();
+  await action("finish").click();
+  await expect(page.getByText(wo("finished"))).toBeVisible();
+  await action("charge").click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByText(wo("charge.methods.card"), { exact: true }).click();
+  await expect(dialog.getByLabel(wo("charge.terminal"))).toHaveCount(0);
+  await dialog.getByRole("button", { name: wo("charge.confirm") }).click();
+  await expect(page.getByText(/Cobrado con folio T-\d+/)).toBeVisible();
+
+  const headers = await apiHeaders(page);
+  const found = await (await page.request.get(`${API_URL}/api/v1/work_orders`, { headers, params: { search: title } })).json();
+  const charged = await (await page.request.get(`${API_URL}/api/v1/work_orders/${found.results[0].id}`, { headers })).json();
+  expect(charged.ticket.payments[0].method).toBe("card");
+  expect(charged.ticket.payments[0].terminal).toBeNull();
   await context.close();
 });

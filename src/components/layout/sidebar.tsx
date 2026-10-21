@@ -169,8 +169,8 @@ export function Sidebar() {
           },
         ]
       : []),
-    // Terminales de cobro (spec 015): las administran admin y dueño, igual que el equipo.
-    ...(showTeam
+    // Terminales de cobro (spec 015): las administran admin y dueño, igual que el equipo; módulo de Pro y Empresa (spec 030).
+    ...(showTeam && hasModule("terminals")
       ? [{ href: `/${locale}/terminales`, label: t("terminals"), icon: Landmark }]
       : []),
     ...(showMyCompanies
