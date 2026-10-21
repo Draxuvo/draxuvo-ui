@@ -1,6 +1,7 @@
 "use client";
 // Pantalla para tomar pedidos (spec 018): plano de mesas, orden y menú de tarjetas en una sola vista.
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -46,6 +47,8 @@ function errorCode(err: unknown): string | undefined {
 function Board({ mode }: { mode: "restaurant" | "orders" }) {
   const t = useTranslations("takeOrder");
   const router = useAppRouter();
+  // Quien llegó desde Restaurante vuelve a Restaurante; cualquier otro valor de `from` se ignora.
+  const fromRestaurant = useSearchParams().get("from") === "restaurante";
   const client = useQueryClient();
   const role = useAuthStore((s) => s.role);
   const [selection, setSelection] = useState<Selection>(null);
@@ -140,7 +143,7 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
         <Button
           type="button" variant="ghost" size="icon" className="size-11"
           aria-label={t("back")}
-          onClick={() => router.push(role === "staff" ? "/mis-ordenes" : "/ordenes")}
+          onClick={() => router.push(fromRestaurant ? "/restaurante" : role === "staff" ? "/mis-ordenes" : "/ordenes")}
         >
           <ArrowLeft size={18} aria-hidden />
         </Button>

@@ -95,8 +95,7 @@
     "team": "Equipo",
     "myCompanies": "Mis empresas",
     "restaurant": "Restaurante",
-    "terminals": "Terminales",
-    "takeOrder": "Tomar pedido"
+    "terminals": "Terminales"
   },
   "home": {
     "welcome": "Bienvenido, {name}",
@@ -1590,7 +1589,9 @@
       },
       "advanceError": "Ese platillo ya cambió. Se actualizó la lista.",
       "pending": "{count, plural, one {# comanda} other {# comandas}}"
-    }
+    },
+    "takeOrder": "Tomar pedido",
+    "takeOrderHint": "Plano de mesas, orden y menú en una sola pantalla."
   },
   "terminals": {
     "title": "Terminales de cobro",

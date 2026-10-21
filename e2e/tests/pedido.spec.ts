@@ -10,7 +10,11 @@ test.describe("Sazón (mesas)", () => {
 
   test("[PED-001] elegir una mesa, armar la orden con tarjetas, mandar y cobrar @pr", async ({ page }) => {
     test.setTimeout(120_000);
-    await page.goto("/es/pedido");
+    // Tomar pedido vive dentro de Restaurante (spec 019): menú lateral → Restaurante → botón.
+    await page.goto("/es/inicio");
+    await page.getByRole("link", { name: t("nav.restaurant"), exact: true }).first().click();
+    await page.getByRole("link", { name: tk("title"), exact: true }).click();
+    await expect(page).toHaveURL(/\/es\/pedido\?from=restaurante$/);
 
     // Plano: una mesa libre con su estado en texto. Al tocarla se abre su cuenta en la misma pantalla.
     const free = page.getByRole("button", { name: /, Libre$/ }).first();
@@ -50,6 +54,22 @@ test.describe("Sazón (mesas)", () => {
 
     // La mesa quedó libre de nuevo.
     await expect(page.getByRole("button", { name: `${tableName}, ${tk("free")}` })).toBeVisible();
+  });
+
+  test("[PED-003] el menú lateral no tiene la entrada suelta y volver regresa a Restaurante @pr", async ({ page }) => {
+    await page.goto("/es/restaurante");
+    await expect(page.getByRole("link", { name: tk("title"), exact: true })).toHaveCount(1); // el botón de la página
+    await expect(page.getByRole("navigation").getByRole("link", { name: tk("title"), exact: true })).toHaveCount(0);
+
+    await page.getByRole("link", { name: tk("title"), exact: true }).click();
+    await page.getByRole("button", { name: tk("back") }).click();
+    await expect(page).toHaveURL(/\/es\/restaurante$/);
+
+    // La dirección escrita a mano sigue funcionando y vuelve a Órdenes.
+    await page.goto("/es/pedido");
+    await expect(page.getByRole("heading", { name: tk("title") })).toBeVisible();
+    await page.getByRole("button", { name: tk("back") }).click();
+    await expect(page).toHaveURL(/\/es\/ordenes$/);
   });
 
   test.describe("teléfono", () => {

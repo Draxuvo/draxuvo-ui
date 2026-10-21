@@ -95,8 +95,7 @@
     "team": "Team",
     "myCompanies": "My companies",
     "restaurant": "Restaurant",
-    "terminals": "Terminals",
-    "takeOrder": "Take order"
+    "terminals": "Terminals"
   },
   "home": {
     "welcome": "Welcome, {name}",
@@ -1590,7 +1589,9 @@
       },
       "advanceError": "That item already changed. The list was refreshed.",
       "pending": "{count, plural, one {# order} other {# orders}}"
-    }
+    },
+    "takeOrder": "Take order",
+    "takeOrderHint": "Table plan, order and menu on one screen."
   },
   "terminals": {
     "title": "Payment terminals",

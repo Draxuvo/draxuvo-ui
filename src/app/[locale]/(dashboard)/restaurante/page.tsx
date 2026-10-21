@@ -3,13 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { ExternalLink, Pencil, Plus } from "lucide-react";
+import { ConciergeBell, ExternalLink, Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ModuleLocked, useModuleGate } from "@/components/subscription/module-locked";
 import { StationForm } from "@/components/restaurant/station-form";
 import { TableForm } from "@/components/restaurant/table-form";
 import { StockAlerts } from "@/components/restaurant/stock-alerts";
+import { useScreenMode } from "@/components/take-order/use-screen-mode";
 import { useRestaurantTables, useStations } from "@/hooks/use-restaurant";
 import type { DiningTable, Station } from "@/types";
 
@@ -19,6 +20,8 @@ export default function RestaurantePage() {
   const t = useTranslations("restaurant");
   const locale = useLocale();
   const gate = useModuleGate("restaurant");
+  // Tomar pedido vive aquí (spec 019); solo aplica con mesas dadas de alta.
+  const takeOrder = useScreenMode();
   const stations = useStations({ enabled: gate.enabled });
   const tables = useRestaurantTables({ enabled: gate.enabled });
   const [station, setStation] = useState<Station | null>(null);
@@ -39,9 +42,19 @@ export default function RestaurantePage() {
 
   return (
     <div className="space-y-10">
-      <header>
-        <h1 className="font-display text-3xl font-extrabold">{t("title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-3xl font-extrabold">{t("title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+        </div>
+        {takeOrder.ready && takeOrder.mode === "restaurant" && (
+          <Button asChild className="min-h-11 gap-2">
+            <Link href={`/${locale}/pedido?from=restaurante`} title={t("takeOrderHint")}>
+              <ConciergeBell size={18} aria-hidden />
+              {t("takeOrder")}
+            </Link>
+          </Button>
+        )}
       </header>
 
       <section aria-labelledby="stations-title" className="space-y-3">

@@ -2,12 +2,14 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
+import { useAuthStore } from "@/store/auth";
 import type { DiningTable, Station } from "@/types";
 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("@/services/restaurant", () => ({
   restaurantService: {
     stations: vi.fn(),
+    overview: vi.fn(),
     createStation: vi.fn(),
     updateStation: vi.fn(),
     tables: vi.fn(),
@@ -36,12 +38,30 @@ beforeEach(() => {
   vi.mocked(restaurantService.stations).mockResolvedValue([station(1, "Cocina", { is_default: true }), station(2, "Barra", { active: false })]);
   vi.mocked(restaurantService.tables).mockResolvedValue([table(1, "1"), table(2, "2", false)]);
   vi.mocked(restaurantService.stockAlerts).mockResolvedValue([]);
+  vi.mocked(restaurantService.overview).mockResolvedValue({ results: [{ ...table(1, "1"), check: null }], takeouts: [], ready_items: [] });
   vi.mocked(restaurantService.createStation).mockResolvedValue(station(3, "Parrilla"));
   vi.mocked(restaurantService.createTable).mockResolvedValue(table(3, "3"));
   vi.mocked(restaurantService.updateStation).mockResolvedValue(station(2, "Barra"));
 });
 
 describe("configuración del restaurante", () => {
+  beforeEach(() => useAuthStore.setState({ selectedCompanyId: 1, role: "manager" } as never));
+
+  it("ofrece Tomar pedido con mesas activas y lo lleva con el origen", async () => {
+    renderWithProviders(<RestaurantePage />);
+
+    const link = await screen.findByRole("link", { name: "Tomar pedido" });
+    expect(link).toHaveAttribute("href", "/es/pedido?from=restaurante");
+  });
+
+  it("no ofrece Tomar pedido si no hay mesas activas", async () => {
+    vi.mocked(restaurantService.overview).mockResolvedValue({ results: [], takeouts: [], ready_items: [] });
+    renderWithProviders(<RestaurantePage />);
+
+    expect(await screen.findByText("Cocina")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Tomar pedido" })).not.toBeInTheDocument();
+  });
+
   it("lista las estaciones con su insignia y el enlace a su pantalla", async () => {
     renderWithProviders(<RestaurantePage />);
 

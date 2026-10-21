@@ -6,7 +6,10 @@ import { useAuthStore } from "@/store/auth";
 import type { Check, TablesResponse } from "@/types";
 
 const replace = vi.fn();
-vi.mock("@/hooks/use-router", () => ({ useAppRouter: () => ({ push: vi.fn(), replace, back: vi.fn() }) }));
+const push = vi.fn();
+let search = "";
+vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams(search) }));
+vi.mock("@/hooks/use-router", () => ({ useAppRouter: () => ({ push, replace, back: vi.fn() }) }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() } }));
 vi.mock("@/services/restaurant", () => ({
   restaurantService: {
@@ -51,6 +54,7 @@ const check = (over: Partial<Check> = {}): Check => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  search = "";
   useAuthStore.setState({
     selectedCompanyId: 1, role: "staff",
     user: { companies: [{ id: 1, role: "staff", order_mode: "service" }] } as never,
@@ -88,5 +92,29 @@ describe("TakeOrderScreen (sin restaurante)", () => {
     vi.mocked(restaurantService.overview).mockRejectedValue(new Error("module_not_in_plan"));
     renderWithProviders(<TakeOrderScreen />);
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/mis-ordenes"));
+  });
+});
+
+describe("TakeOrderScreen (volver)", () => {
+  const back = () => screen.findByRole("button", { name: "Volver" });
+
+  it("vuelve a Restaurante si se llegó desde ahí", async () => {
+    search = "from=restaurante";
+    renderWithProviders(<TakeOrderScreen />);
+    await userEvent.click(await back());
+    expect(push).toHaveBeenCalledWith("/restaurante");
+  });
+
+  it("ignora un origen desconocido y vuelve a Mis órdenes", async () => {
+    search = "from=https://malo.example";
+    renderWithProviders(<TakeOrderScreen />);
+    await userEvent.click(await back());
+    expect(push).toHaveBeenCalledWith("/mis-ordenes");
+  });
+
+  it("sin origen vuelve a Mis órdenes", async () => {
+    renderWithProviders(<TakeOrderScreen />);
+    await userEvent.click(await back());
+    expect(push).toHaveBeenCalledWith("/mis-ordenes");
   });
 });
