@@ -1726,6 +1726,12 @@
     "releaseTitle": "Free this table?",
     "releaseBody": "Items that haven't been sent yet will be discarded.",
     "releaseConfirm": "Free table",
-    "releaseKeep": "Keep the order"
+    "releaseKeep": "Keep the order",
+    "openChecks": "Open checks",
+    "openChecksOpen": "Open the check for {name}",
+    "openChecksTakeout": "Takeout: {name}",
+    "openChecksTable": "Table {name}",
+    "openChecksWaiter": "Served by {name}",
+    "openChecksElapsed": "Open for {time}"
   }
 }

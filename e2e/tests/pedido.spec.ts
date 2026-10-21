@@ -1,8 +1,19 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { t } from "../support/i18n";
 import { storageStatePath } from "../support/session";
 
 // Spec 018: la pantalla visual para tomar pedido. Restaurante Sazón tiene mesas, así que trabaja con cuentas.
+/** Abre la primera mesa libre en Tomar pedido y devuelve su nombre. */
+async function openFreeTable(page: Page): Promise<string> {
+  await page.goto("/es/pedido");
+  const free = page.getByRole("button", { name: /, Libre$/ }).first();
+  await expect(free).toBeVisible();
+  const name = ((await free.getAttribute("aria-label")) ?? "").replace(/, Libre$/, "");
+  await free.click();
+  await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
+  return name;
+}
+
 const tk = (key: string, values?: Record<string, string | number>) => t(`takeOrder.${key}`, values);
 
 test.describe("Sazón (mesas)", () => {
@@ -69,6 +80,36 @@ test.describe("Sazón (mesas)", () => {
     // Sin productos no pide confirmar: la mesa vuelve a estar libre.
     await expect(page.getByRole("button", { name: `${tableName}, ${tk("free")}` })).toBeVisible();
     await expect(page.getByText(tk("pickTable"))).toBeVisible();
+  });
+
+  test("[PED-005] las cuentas abiertas se ven en Órdenes (todas) y en Mis órdenes (las del operador) @pr", async ({ page, browser }) => {
+    test.setTimeout(120_000);
+    // El encargado abre una mesa y el operador otra.
+    const managerTable = await openFreeTable(page);
+    const staffContext = await browser.newContext({ storageState: storageStatePath("staff", "sazon.demo") });
+    const staff = await staffContext.newPage();
+    const staffTable = await openFreeTable(staff);
+
+    // Mis órdenes del operador: solo la suya.
+    await staff.goto("/es/mis-ordenes");
+    await expect(staff.getByRole("link", { name: tk("openChecksOpen", { name: staffTable }) })).toBeVisible();
+    await expect(staff.getByRole("link", { name: tk("openChecksOpen", { name: managerTable }) })).toHaveCount(0);
+
+    // Órdenes del encargado: las dos; abrir una lleva a Tomar pedido con esa cuenta y volver regresa a Órdenes.
+    await page.goto("/es/ordenes");
+    await expect(page.getByRole("link", { name: tk("openChecksOpen", { name: staffTable }) })).toBeVisible();
+    await page.getByRole("link", { name: tk("openChecksOpen", { name: managerTable }) }).click();
+    await expect(page).toHaveURL(/\/es\/pedido\?cuenta=\d+&from=ordenes$/);
+    await expect(page.getByRole("heading", { name: managerTable, exact: true })).toBeVisible();
+    await page.getByRole("button", { name: tk("release") }).click(); // limpia su mesa
+    await page.getByRole("button", { name: tk("back") }).click();
+    await expect(page).toHaveURL(/\/es\/ordenes$/);
+
+    // Limpia la mesa del operador para no dejar cuentas abiertas.
+    await staff.getByRole("link", { name: tk("openChecksOpen", { name: staffTable }) }).click();
+    await staff.getByRole("button", { name: tk("release") }).click();
+    await expect(staff.getByRole("button", { name: `${staffTable}, ${tk("free")}` })).toBeVisible();
+    await staffContext.close();
   });
 
   test("[PED-003] el menú lateral no tiene la entrada suelta y volver regresa a Restaurante @pr", async ({ page }) => {

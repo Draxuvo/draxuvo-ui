@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  categoryColor, filterMenu, inOrderCount, normalize, runningTotal, screenMode, tapProduct, type Line,
+  categoryColor, filterMenu, inOrderCount, normalize, openChecksOf, runningTotal, screenMode, tapProduct, type Line,
 } from "../lib";
 
 const line = (over: Partial<Line> = {}): Line => ({
@@ -59,4 +59,26 @@ describe("runningTotal e inOrderCount", () => {
 describe("categoryColor", () => {
   it("es estable", () => expect(categoryColor("Bebidas")).toBe(categoryColor("Bebidas")));
   it("usa la paleta de gráficas", () => expect(categoryColor("x")).toMatch(/^var\(--chart-[1-5]\)$/));
+});
+
+describe("openChecksOf", () => {
+  const waiter = { name: "Ana" };
+  const overview = {
+    results: [
+      { name: "1", check: { id: 10, waiter, opened_at: "2026-10-21T10:00:00Z", total: "90.00", mine: true } },
+      { name: "2", check: { id: 11, waiter: { name: "Luis" }, opened_at: "2026-10-21T10:05:00Z", total: "40.50", mine: false } },
+      { name: "3", check: null },
+    ],
+    takeouts: [{ id: 12, takeout_name: "Mario", waiter, opened_at: "2026-10-21T10:10:00Z", total: "20.00", mine: true }],
+  };
+
+  it("une mesas y para llevar, sin las mesas libres", () => {
+    const all = openChecksOf(overview, "all");
+    expect(all.map((c) => [c.id, c.name, c.takeout])).toEqual([[10, "1", false], [11, "2", false], [12, "Mario", true]]);
+    expect(all[1].total).toBe(40.5);
+  });
+  it("con scope mine solo trae las propias", () => {
+    expect(openChecksOf(overview, "mine").map((c) => c.id)).toEqual([10, 12]);
+  });
+  it("sin datos devuelve lista vacía", () => expect(openChecksOf(undefined, "all")).toEqual([]));
 });

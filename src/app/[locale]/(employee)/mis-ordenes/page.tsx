@@ -18,6 +18,7 @@ import { ProgressBar } from "@/components/work-orders/progress-bar";
 import { StatusBadge } from "@/components/work-orders/status-badge";
 import { OrderForm } from "@/components/work-orders/order-form";
 import { useScreenMode } from "@/components/take-order/use-screen-mode";
+import { OpenChecks, useOpenChecks } from "@/components/take-order/open-checks";
 import { useAppRouter } from "@/hooks/use-router";
 import type { WorkOrder } from "@/types";
 
@@ -103,6 +104,8 @@ export default function MisOrdenesPage() {
   const router = useAppRouter();
   // Con restaurante o en modo pedido, "nueva orden" abre la pantalla visual (spec 018).
   const { mode: screen } = useScreenMode();
+  // Con mesas, sus cuentas abiertas viven aquí junto a sus órdenes (spec 020).
+  const openChecks = useOpenChecks("mine");
   const newOrder = () => (screen !== "none" ? router.push("/pedido") : setFormOpen(true));
 
   // sort_by=urgency es el orden por defecto de staff en la API: lo urgente y lo que vence hoy, primero.
@@ -128,6 +131,7 @@ export default function MisOrdenesPage() {
         </Button>
       </header>
       <OrderForm open={formOpen} onOpenChange={setFormOpen} staff />
+      <OpenChecks checks={openChecks} from="mis-ordenes" />
 
       {isLoading ? (
         <div className="space-y-3" aria-busy="true">
@@ -139,7 +143,7 @@ export default function MisOrdenesPage() {
         <p role="alert" className="text-destructive">
           {t("loadError")}
         </p>
-      ) : todo.length === 0 && finished.length === 0 ? (
+      ) : todo.length === 0 && finished.length === 0 && openChecks.length === 0 ? (
         <div className="py-16 text-center">
           <ClipboardList size={36} className="mx-auto mb-3 text-muted-foreground/50" aria-hidden="true" />
           <p className="font-medium">{ts("empty")}</p>

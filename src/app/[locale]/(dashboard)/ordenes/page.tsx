@@ -16,6 +16,7 @@ import { StatusBadge } from "@/components/work-orders/status-badge";
 import { ProgressBar } from "@/components/work-orders/progress-bar";
 import { OrderForm } from "@/components/work-orders/order-form";
 import { useScreenMode } from "@/components/take-order/use-screen-mode";
+import { OpenChecks, useOpenChecks } from "@/components/take-order/open-checks";
 import { useAppRouter } from "@/hooks/use-router";
 import { OrderModeDialog } from "@/components/work-orders/order-mode-dialog";
 import { ModuleLocked, useModuleGate } from "@/components/subscription/module-locked";
@@ -144,6 +145,8 @@ function OrdenesContent() {
   const router = useAppRouter();
   // Con restaurante o en modo pedido, "nueva orden" abre la pantalla visual (spec 018).
   const { mode: screen } = useScreenMode();
+  // Con mesas, todas las cuentas abiertas de la empresa se ven aquí (spec 020).
+  const openChecks = useOpenChecks("all");
   const newOrder = () => (screen !== "none" ? router.push("/pedido") : setFormOpen(true));
   const [modeOpen, setModeOpen] = useState(false);
 
@@ -216,6 +219,8 @@ function OrdenesContent() {
           </Button>
         </div>
       </div>
+
+      <OpenChecks checks={openChecks} from="ordenes" />
 
       <div role="group" aria-label={t("filters.status")} className="flex flex-wrap gap-2">
         {statusChips.map((s) => (

@@ -25,6 +25,8 @@ import { useScreenMode } from "./use-screen-mode";
 
 type Tab = "tables" | "order" | "menu";
 
+const BACK_TO: Record<string, string> = { restaurante: "/restaurante", ordenes: "/ordenes", "mis-ordenes": "/mis-ordenes" };
+
 export function TakeOrderScreen() {
   const { mode, ready } = useScreenMode();
   const role = useAuthStore((s) => s.role);
@@ -48,12 +50,18 @@ function errorCode(err: unknown): string | undefined {
 function Board({ mode }: { mode: "restaurant" | "orders" }) {
   const t = useTranslations("takeOrder");
   const router = useAppRouter();
-  // Quien llegó desde Restaurante vuelve a Restaurante; cualquier otro valor de `from` se ignora.
-  const fromRestaurant = useSearchParams().get("from") === "restaurante";
+  const params = useSearchParams();
+  // Dónde vuelve "volver" según `from`; solo valores conocidos, cualquier otro se ignora.
+  const backTo = BACK_TO[params.get("from") ?? ""];
+  // `?cuenta=<id>` abre esa cuenta al entrar (spec 020); un valor que no sea entero positivo se ignora.
+  const [initialCheck] = useState(() => {
+    const id = Number(params.get("cuenta"));
+    return mode === "restaurant" && Number.isInteger(id) && id > 0 ? id : null;
+  });
   const client = useQueryClient();
   const role = useAuthStore((s) => s.role);
-  const [selection, setSelection] = useState<Selection>(null);
-  const [tab, setTab] = useState<Tab>("tables");
+  const [selection, setSelection] = useState<Selection>(initialCheck ? { kind: "check", id: initialCheck } : null);
+  const [tab, setTab] = useState<Tab>(initialCheck ? "order" : "tables");
   const [payOpen, setPayOpen] = useState(false);
   const [chargeOpen, setChargeOpen] = useState(false);
   const [releaseOpen, setReleaseOpen] = useState(false);
@@ -159,7 +167,7 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
         <Button
           type="button" variant="ghost" size="icon" className="size-11"
           aria-label={t("back")}
-          onClick={() => router.push(fromRestaurant ? "/restaurante" : role === "staff" ? "/mis-ordenes" : "/ordenes")}
+          onClick={() => router.push(backTo ?? (role === "staff" ? "/mis-ordenes" : "/ordenes"))}
         >
           <ArrowLeft size={18} aria-hidden />
         </Button>

@@ -86,3 +86,33 @@ export function categoryColor(category: string): string {
   for (const ch of category) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
   return PALETTE[hash % PALETTE.length];
 }
+
+export interface OpenCheck {
+  id: number;
+  /** Nombre de la mesa o del cliente (para llevar). */
+  name: string;
+  takeout: boolean;
+  waiter: string | null;
+  total: number;
+  openedAt: string;
+  mine: boolean;
+}
+
+interface OverviewLike {
+  results: { name: string; active?: boolean; check: { id: number; waiter: { name: string } | null; opened_at: string; total: string; mine: boolean } | null }[];
+  takeouts: { id: number; takeout_name: string; waiter: { name: string } | null; opened_at: string; total: string; mine: boolean }[];
+}
+
+/** Cuentas abiertas del plano: las de las mesas y las para llevar; con `scope="mine"` solo las que atiende la persona. */
+export function openChecksOf(overview: OverviewLike | undefined, scope: "all" | "mine"): OpenCheck[] {
+  if (!overview) return [];
+  const tables = overview.results.flatMap((t) =>
+    t.check
+      ? [{ id: t.check.id, name: t.name, takeout: false, waiter: t.check.waiter?.name ?? null, total: Number(t.check.total) || 0, openedAt: t.check.opened_at, mine: t.check.mine }]
+      : [],
+  );
+  const takeouts = overview.takeouts.map((c) => ({
+    id: c.id, name: c.takeout_name, takeout: true, waiter: c.waiter?.name ?? null, total: Number(c.total) || 0, openedAt: c.opened_at, mine: c.mine,
+  }));
+  return [...tables, ...takeouts].filter((c) => scope === "all" || c.mine);
+}

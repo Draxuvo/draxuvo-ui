@@ -147,6 +147,32 @@ describe("TakeOrderScreen (sin restaurante)", () => {
   });
 });
 
+describe("TakeOrderScreen (abrir una cuenta desde la lista)", () => {
+  it("abre la cuenta de ?cuenta=<id> al entrar", async () => {
+    search = "cuenta=31&from=ordenes";
+    vi.mocked(restaurantService.getCheck).mockResolvedValue(check({ id: 31, table: { id: 1, name: "4" } }));
+    renderWithProviders(<TakeOrderScreen />);
+
+    await waitFor(() => expect(restaurantService.getCheck).toHaveBeenCalledWith(31));
+    expect(await screen.findByRole("heading", { name: "4" })).toBeInTheDocument();
+  });
+
+  it("ignora un valor de cuenta que no es un entero positivo", async () => {
+    search = "cuenta=abc";
+    renderWithProviders(<TakeOrderScreen />);
+
+    await screen.findByRole("button", { name: /^4, Libre/ });
+    expect(restaurantService.getCheck).not.toHaveBeenCalled();
+  });
+
+  it("volver regresa a Órdenes si se llegó desde ahí", async () => {
+    search = "from=ordenes";
+    renderWithProviders(<TakeOrderScreen />);
+    await userEvent.click(await screen.findByRole("button", { name: "Volver" }));
+    expect(push).toHaveBeenCalledWith("/ordenes");
+  });
+});
+
 describe("TakeOrderScreen (volver)", () => {
   const back = () => screen.findByRole("button", { name: "Volver" });
 

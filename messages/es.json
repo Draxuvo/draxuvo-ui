@@ -1726,6 +1726,12 @@
     "releaseTitle": "¿Liberar esta mesa?",
     "releaseBody": "Se descartarán los productos que aún no se mandan.",
     "releaseConfirm": "Liberar",
-    "releaseKeep": "Seguir con la orden"
+    "releaseKeep": "Seguir con la orden",
+    "openChecks": "Cuentas abiertas",
+    "openChecksOpen": "Abrir cuenta de {name}",
+    "openChecksTakeout": "Para llevar: {name}",
+    "openChecksTable": "Mesa {name}",
+    "openChecksWaiter": "Atiende {name}",
+    "openChecksElapsed": "Abierta hace {time}"
   }
 }
