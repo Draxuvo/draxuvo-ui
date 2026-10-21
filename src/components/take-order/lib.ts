@@ -18,6 +18,8 @@ export interface MenuCard {
   id: number;
   name: string;
   price: number;
+  icon?: string | null;
+  product_type?: { icon?: string | null } | null;
   sold_out?: boolean;
   low?: boolean;
   available_qty?: number | null;
@@ -42,6 +44,8 @@ export interface Line {
   id: number;
   product_id?: number | null;
   name: string;
+  icon?: string | null;
+  type_icon?: string | null;
   quantity: number;
   note?: string | null;
   unit_price: number;

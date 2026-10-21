@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { ProductGlyph } from "@/components/product-icon";
+import { IconPicker } from "./icon-picker";
 import {
   useCreateProductType,
   useDeleteProductType,
@@ -28,7 +30,7 @@ import type { ProductType } from "@/types";
 
 const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring";
 
-type Values = { name: string; sellable: boolean; counted: boolean; fractional: boolean; default_unit_key: string; active: boolean };
+type Values = { name: string; sellable: boolean; counted: boolean; fractional: boolean; default_unit_key: string; active: boolean; icon: string };
 
 function apiCode(error: unknown): string | undefined {
   return isAxiosError(error) ? error.response?.data?.error?.details?.code : undefined;
@@ -58,6 +60,7 @@ export function ProductTypesSheet({ open, onOpenChange, canManage }: { open: boo
               <ul className="divide-y divide-border rounded-etiqueta border border-border bg-card">
                 {(types.data ?? []).map((type) => (
                   <li key={type.id} className="flex items-center gap-3 px-4 py-3">
+                    {type.icon && <ProductGlyph product={{ icon: type.icon }} size={20} className="text-muted-foreground" />}
                     <div className="min-w-0 flex-1">
                       <p className={cn("truncate text-sm font-medium", !type.active && "text-muted-foreground")}>
                         {type.name}
@@ -104,6 +107,7 @@ function rulesText(t: ReturnType<typeof useTranslations>, type: ProductType) {
 function TypeForm({ type, onDone }: { type: ProductType | null; onDone: () => void }) {
   const t = useTranslations("inventory.types");
   const tc = useTranslations("common");
+  const ti = useTranslations("productIcons");
   const create = useCreateProductType();
   const update = useUpdateProductType();
   const units = useUnits();
@@ -117,6 +121,7 @@ function TypeForm({ type, onDone }: { type: ProductType | null; onDone: () => vo
         fractional: z.boolean(),
         default_unit_key: z.string().min(1),
         active: z.boolean(),
+        icon: z.string(),
       }),
     [t],
   );
@@ -129,12 +134,13 @@ function TypeForm({ type, onDone }: { type: ProductType | null; onDone: () => vo
       fractional: type?.fractional ?? false,
       default_unit_key: type?.default_unit?.key ?? "pza",
       active: type?.active ?? true,
+      icon: type?.icon ?? "",
     },
   });
   const counted = useWatch({ control, name: "counted" });
 
   async function onSubmit(values: Values) {
-    const data = { ...values, name: values.name.trim(), fractional: values.counted && values.fractional };
+    const data = { ...values, name: values.name.trim(), fractional: values.counted && values.fractional, icon: values.icon || null };
     try {
       if (type) await update.mutateAsync({ id: type.id, data });
       else await create.mutateAsync(data);
@@ -193,6 +199,10 @@ function TypeForm({ type, onDone }: { type: ProductType | null; onDone: () => vo
             <option key={unit.key} value={unit.key}>{unit.name}</option>
           ))}
         </select>
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-xs font-medium text-foreground">{ti("title")}</Label>
+        <Controller control={control} name="icon" render={({ field }) => <IconPicker value={field.value} onChange={(key) => field.onChange(key ?? "")} />} />
       </div>
       {type && toggle("active", t("active"))}
       <div className="flex justify-end gap-2">

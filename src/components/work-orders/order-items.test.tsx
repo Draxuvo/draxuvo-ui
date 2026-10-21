@@ -35,7 +35,7 @@ beforeEach(() => {
   updateMutate.mockReset();
   removeMutate.mockReset();
   get.mockReset();
-  get.mockResolvedValue({ data: { results: [{ id: 9, name: "Aceite" }] } });
+  get.mockResolvedValue({ data: { results: [{ id: 9, name: "Aceite", sku: "AC-1", price: 120, icon: "bolt" }] } });
 });
 
 describe("OrderItems", () => {
@@ -59,9 +59,8 @@ describe("OrderItems", () => {
     expect(screen.queryByLabelText("Precio")).toBeNull();
     expect(screen.queryByLabelText("Descripción")).toBeNull();
     expect(screen.queryAllByLabelText("Editar precio")).toHaveLength(0);
-    const select = screen.getByLabelText("Producto del catálogo");
-    expect(await screen.findByRole("option", { name: "Aceite" })).toBeInTheDocument();
-    await userEvent.selectOptions(select, "9");
+    await userEvent.click(screen.getByLabelText("Producto del catálogo"));
+    await userEvent.click(await screen.findByRole("button", { name: /Aceite/ }));
     await userEvent.click(screen.getByRole("button", { name: "Agregar concepto" }));
     expect(addMutate).toHaveBeenCalledWith({ product_id: 9, quantity: 1 }, expect.any(Object));
   });

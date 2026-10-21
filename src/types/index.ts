@@ -112,6 +112,8 @@ export interface ProductTypeRules {
 export interface ProductTypeRef extends ProductTypeRules {
   id: number;
   name: string;
+  /** Icono sugerido del tipo: clave del catálogo (spec 026). */
+  icon?: string | null;
 }
 
 export interface UnitRef {
@@ -132,6 +134,7 @@ export interface ProductTypePayload extends Partial<ProductTypeRules> {
   default_unit_key?: string;
   active?: boolean;
   position?: number;
+  icon?: string | null;
 }
 
 export interface Product {
@@ -148,6 +151,8 @@ export interface Product {
   price?: number;
   category?: string;
   description?: string;
+  /** Icono propio: clave del catálogo (spec 026); sin él se usa el del tipo. */
+  icon?: string | null;
   available?: boolean;
   /** Restaurante: estación que prepara el producto y si descuenta inventario al cerrar la cuenta. */
   station_id?: number | null;
@@ -301,7 +306,7 @@ export interface WorkOrderItem {
   subtotal?: number;
   position: number;
   product_id?: number;
-  product?: Pick<Product, "id" | "name" | "sku">;
+  product?: Pick<Product, "id" | "name" | "sku" | "icon"> & { type_icon?: string | null };
 }
 
 export interface WorkOrderStep {
@@ -605,6 +610,9 @@ export interface DiningTable {
 export interface CheckItem {
   id: number;
   name: string;
+  product_id?: number | null;
+  icon?: string | null;
+  type_icon?: string | null;
   quantity: number;
   unit_price: string;
   note: string | null;

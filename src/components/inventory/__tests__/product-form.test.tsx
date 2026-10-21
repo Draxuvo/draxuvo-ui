@@ -107,3 +107,27 @@ describe("formulario de producto según su tipo (spec 016)", () => {
     expect(inventoryService.create).not.toHaveBeenCalled();
   });
 });
+
+describe("icono del producto (spec 026)", () => {
+  it("sin permiso no hay selector de icono ni se manda el campo", async () => {
+    renderWithProviders(<ProductForm open onOpenChange={() => {}} />);
+    const user = userEvent.setup();
+    await fill(user, "Platillo");
+    expect(screen.queryByRole("button", { name: "Elegir icono" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Guardar cambios" }));
+    await waitFor(() => expect(inventoryService.create).toHaveBeenCalled());
+    expect(vi.mocked(inventoryService.create).mock.calls[0][0]).not.toHaveProperty("icon");
+  });
+
+  it("administrador y dueño eligen el icono y se manda con el producto", async () => {
+    renderWithProviders(<ProductForm open onOpenChange={() => {}} canEditIcon />);
+    const user = userEvent.setup();
+    await fill(user, "Platillo");
+    await user.click(screen.getByRole("button", { name: "Elegir icono" }));
+    await user.click(screen.getByRole("button", { name: "Taco" }));
+    await user.click(screen.getByRole("button", { name: "Guardar cambios" }));
+    await waitFor(() => expect(inventoryService.create).toHaveBeenCalled());
+    expect(vi.mocked(inventoryService.create).mock.calls[0][0]).toMatchObject({ icon: "taco" });
+  });
+});
+

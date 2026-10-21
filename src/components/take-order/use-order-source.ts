@@ -45,8 +45,10 @@ const num = (value: string | number | null | undefined) => Number(value ?? 0) ||
 export function checkLines(check: Check): Line[] {
   return check.items.map((i) => ({
     id: i.id,
-    product_id: null,
+    product_id: i.product_id ?? null,
     name: i.name,
+    icon: i.icon,
+    type_icon: i.type_icon,
     quantity: i.quantity,
     note: i.note,
     unit_price: num(i.unit_price),
@@ -62,6 +64,8 @@ export function orderLines(order: WorkOrder): Line[] {
     id: i.id,
     product_id: i.product_id ?? null,
     name: i.description,
+    icon: i.product?.icon,
+    type_icon: i.product?.type_icon,
     quantity: Number(i.quantity),
     unit_price: num(i.unit_price),
     editable,

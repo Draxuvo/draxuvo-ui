@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { DoorOpen, Minus, Plus, StickyNote, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ProductGlyph } from "@/components/product-icon";
 import { runningTotal, type Line } from "./lib";
 import type { CurrentOrder } from "./use-order-source";
 
@@ -59,6 +60,7 @@ export function OrderPanel({
     return (
       <li key={line.id} className="flex flex-col gap-1 border-b border-border py-2 last:border-0">
         <div className="flex items-center gap-2">
+          <ProductGlyph product={line} className="text-muted-foreground" />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium">{line.name}</p>
             <p className="text-xs text-muted-foreground">
