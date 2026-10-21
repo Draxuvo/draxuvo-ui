@@ -172,7 +172,7 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId, canEdi
           </SheetTitle>
         </SheetHeader>
 
-        <form noValidate onSubmit={handleSubmit(submit)} className="flex flex-col flex-1">
+        <form noValidate onSubmit={handleSubmit(submit)} className="flex min-h-0 flex-1 flex-col">
           <div className="flex-1 px-6 py-6 space-y-5 overflow-y-auto">
 
             <div className="space-y-1.5">
