@@ -14,12 +14,27 @@ const COOKIE_MAX_AGE = 60 * 60 * 24;
  * rol de su membresía en la empresa activa. Si la sesión guardada es de antes del rol por empresa,
  * cae en `user.role`.
  */
-export function roleFor(user: User | null, companyId: number | null): Role | null {
+export function roleFor(
+  user: User | null,
+  companyId: number | null,
+  companyView = false,
+): Role | null {
   if (!user) return null;
-  if (user.role === "super_admin") return "super_admin";
+  if (user.role === "super_admin") {
+    // Vista de empresa (spec 028): el super admin con membresía ve el panel con el rol que tiene ahí.
+    // La API lo sigue tratando como super admin, así que conserva sus poderes.
+    const own = companyView ? user.companies?.find((c) => c.id === companyId) : undefined;
+    return own?.role ?? "super_admin";
+  }
   const membership =
     user.companies?.find((c) => c.id === companyId) ?? user.companies?.[0];
   return membership?.role ?? user.role ?? null;
+}
+
+/** Empresas donde el usuario es administrador o dueño: a ellas puede entrar el super admin. */
+export function companyViewTargets(user: User | null) {
+  if (user?.role !== "super_admin") return [];
+  return (user.companies ?? []).filter((c) => c.role === "admin" || c.role === "owner");
 }
 
 /** Empresa activa válida: la pedida si el usuario pertenece a ella, si no la primera. */
@@ -57,6 +72,8 @@ interface AuthState {
   selectedCompanyId: number | null;
   /** Rol en la empresa activa (o `super_admin`). Úsalo en lugar de `user.role`. */
   role: Role | null;
+  /** Solo super admin (spec 028): trabaja dentro de su empresa con el rol de su membresía. */
+  companyView: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   setSession: (session: AuthResponse) => void;
@@ -66,6 +83,10 @@ interface AuthState {
   setUser: (user: User) => void;
   /** Cambia la empresa activa: rol, cookie `user_role` y caché de consultas. Devuelve el rol nuevo. */
   selectCompany: (id: number) => Role | null;
+  /** Entra a la vista de empresa (la activa si es suya como admin/dueño, si no la primera). Null si no puede. */
+  enterCompanyView: () => Role | null;
+  /** Vuelve al panel global del super admin. */
+  leaveCompanyView: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -75,6 +96,7 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       selectedCompanyId: null,
       role: null,
+      companyView: false,
       isLoading: false,
 
       login: async (email, password) => {
@@ -101,7 +123,7 @@ export const useAuthStore = create<AuthState>()(
         queryClient.clear();
         // La preferencia de la cuenta manda sobre la del dispositivo (FR-008).
         applyAppearance(fromPreferences(user.preferences));
-        set({ token, user, selectedCompanyId, role, isLoading: false });
+        set({ token, user, selectedCompanyId, role, companyView: false, isLoading: false });
       },
 
       logout: () => {
@@ -111,7 +133,7 @@ export const useAuthStore = create<AuthState>()(
         writeRoleCookie(null);
         clearAttendancePrompts();
         queryClient.clear();
-        set({ user: null, token: null, selectedCompanyId: null, role: null });
+        set({ user: null, token: null, selectedCompanyId: null, role: null, companyView: false });
         window.location.href = "/login";
       },
 
@@ -122,23 +144,45 @@ export const useAuthStore = create<AuthState>()(
 
       setUser: (user) => {
         const selectedCompanyId = companyFor(user, get().selectedCompanyId);
-        const role = roleFor(user, selectedCompanyId);
+        const role = roleFor(user, selectedCompanyId, get().companyView);
         writeCompany(selectedCompanyId);
         writeRoleCookie(role);
         if (user.preferences) applyAppearance(fromPreferences(user.preferences));
-        set({ user, selectedCompanyId, role });
+        // Sin membresía en la empresa activa ya no hay vista de empresa que mantener.
+        set({ user, selectedCompanyId, role, companyView: get().companyView && role !== "super_admin" });
       },
 
       selectCompany: (id) => {
         const { user } = get();
         const selectedCompanyId = companyFor(user, id);
-        const role = roleFor(user, selectedCompanyId);
+        const role = roleFor(user, selectedCompanyId, get().companyView);
         writeCompany(selectedCompanyId);
         writeRoleCookie(role);
         // Todo lo cacheado es de la empresa anterior.
         queryClient.clear();
-        set({ selectedCompanyId, role });
+        set({ selectedCompanyId, role, companyView: get().companyView && role !== "super_admin" });
         return role;
+      },
+
+      enterCompanyView: () => {
+        const { user, selectedCompanyId } = get();
+        const targets = companyViewTargets(user);
+        if (targets.length === 0) return null;
+        const target = targets.find((c) => c.id === selectedCompanyId) ?? targets[0];
+        const role = roleFor(user, target.id, true);
+        writeCompany(target.id);
+        writeRoleCookie(role);
+        queryClient.clear();
+        set({ selectedCompanyId: target.id, role, companyView: true });
+        return role;
+      },
+
+      leaveCompanyView: () => {
+        const { user, selectedCompanyId } = get();
+        const role = roleFor(user, selectedCompanyId, false);
+        writeRoleCookie(role);
+        queryClient.clear();
+        set({ role, companyView: false });
       },
     }),
     {
@@ -148,11 +192,12 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         selectedCompanyId: state.selectedCompanyId,
         role: state.role,
+        companyView: state.companyView,
       }),
       // Sesiones guardadas antes del rol por empresa no traen `role`: se deriva al hidratar.
       merge: (persisted, current) => {
         const merged = { ...current, ...(persisted as Partial<AuthState>) };
-        return { ...merged, role: roleFor(merged.user, merged.selectedCompanyId) };
+        return { ...merged, role: roleFor(merged.user, merged.selectedCompanyId, merged.companyView) };
       },
     },
   ),

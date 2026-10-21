@@ -55,7 +55,7 @@ test.describe("permisos por rol en empleados y asistencia", () => {
 
       test(`[EPL-013] ${role} ve Personal y Asistencia en el menú y abre las dos pantallas @regresion`, async ({ page }) => {
         await page.goto("/es/inicio");
-        await expect(menu(page).getByRole("link", { name: t("nav.employees") })).toBeVisible();
+        await expect(menu(page).getByRole("link", { name: t("nav.people") })).toBeVisible();
         await expect(menu(page).getByRole("link", { name: t("nav.attendance") })).toBeVisible();
         await page.goto("/es/empleados");
         await expect(page.getByRole("heading", { name: emp("title"), level: 1 })).toBeVisible();

@@ -18,8 +18,9 @@ export function TrialBanner() {
   const t = useTranslations("subscription");
   const locale = useLocale();
   const pathname = usePathname();
-  const { selectedCompanyId, role } = useAuthStore();
-  const canBill = !!role && BILLING_ROLES.includes(role);
+  const { user, selectedCompanyId, role } = useAuthStore();
+  // El super admin no paga, tampoco dentro de la vista de su empresa (spec 028).
+  const canBill = !!role && BILLING_ROLES.includes(role) && user?.role !== "super_admin";
   const [openingPortal, setOpeningPortal] = useState(false);
 
   // GET /subscription solo responde a owner, admin y super_admin; el banner no aplica al super admin.

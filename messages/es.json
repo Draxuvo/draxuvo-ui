@@ -74,7 +74,6 @@
   "nav": {
     "home": "Inicio",
     "dashboard": "Dashboard",
-    "employees": "Personal",
     "inventory": "Inventario",
     "orders": "Órdenes de trabajo",
     "tickets": "Tickets",
@@ -92,7 +91,9 @@
     "collapseMenu": "Contraer menú",
     "expandMenu": "Expandir menú",
     "superAdminRole": "Super Admin",
-    "team": "Equipo",
+    "people": "Personal",
+    "myCompany": "Mi empresa",
+    "backToGlobal": "Volver al panel global",
     "myCompanies": "Mis empresas",
     "restaurant": "Restaurante",
     "terminals": "Terminales"
@@ -1450,6 +1451,14 @@
     "branch": "Sucursal",
     "switched": "Ahora trabajas en {company}"
   },
+  "people": {
+    "title": "Personal",
+    "tabsLabel": "Secciones de Personal",
+    "tabs": {
+      "employees": "Empleados",
+      "access": "Acceso"
+    }
+  },
   "team": {
     "title": "Equipo",
     "subtitle": "{count, plural, =0 {Sin personas} one {# persona} other {# personas}} en {company}",
@@ -1474,6 +1483,9 @@
     "remove": "Quitar",
     "removeLabel": "Quitar a {name} del equipo",
     "removeTitle": "¿Quitar del equipo?",
+    "lastOwnerTitle": "¿Dejar la empresa sin dueño?",
+    "lastOwnerBody": "{name} es el único dueño de {company}. Sin dueño nadie podrá pagar la suscripción ni administrar al equipo hasta que asignes otro.",
+    "lastOwnerConfirm": "Continuar",
     "removeConfirm": "{name} deja de tener acceso a {company}. Su cuenta y sus otras empresas no cambian.",
     "removing": "Quitando...",
     "removed": "{name} ya no está en el equipo",

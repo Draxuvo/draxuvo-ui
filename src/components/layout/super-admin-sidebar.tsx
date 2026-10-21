@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import {
   BarChart2,
+  Briefcase,
   Building2,
   CreditCard,
   FileBarChart2,
@@ -15,6 +16,7 @@ import { SIDEBAR_DRAWER_ID, useSidebar } from "./sidebar-context";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/brand/logo";
 import { NavList, type NavItem } from "./sidebar";
+import { companyViewTargets, useAuthStore } from "@/store/auth";
 
 export function SuperAdminSidebar() {
   const pathname = usePathname();
@@ -22,6 +24,10 @@ export function SuperAdminSidebar() {
   const tCommon = useTranslations("common");
   const locale = useLocale();
   const { open, mobileOpen, setMobileOpen } = useSidebar();
+  const user = useAuthStore((s) => s.user);
+  const enterCompanyView = useAuthStore((s) => s.enterCompanyView);
+  // Mi empresa (spec 028): solo si es administrador o dueño de alguna.
+  const canEnterCompany = companyViewTargets(user).length > 0;
 
   const NAV: NavItem[] = [
     { href: `/${locale}/estadisticas`, label: t("dashboard"), icon: BarChart2 },
@@ -29,6 +35,9 @@ export function SuperAdminSidebar() {
     { href: `/${locale}/usuarios`, label: t("users"), icon: Users },
     { href: `/${locale}/suscripciones`, label: t("subscriptions"), icon: CreditCard },
     { href: `/${locale}/reportes`, label: t("reports"), icon: FileBarChart2 },
+    ...(canEnterCompany
+      ? [{ href: `/${locale}/inicio`, label: t("myCompany"), icon: Briefcase, onSelect: enterCompanyView }]
+      : []),
   ];
 
   const brand = (expanded: boolean) => (

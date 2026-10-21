@@ -30,7 +30,7 @@ export function moduleNotInPlan(error: unknown): ModuleKey | null {
  * `<ModuleLocked />`.
  */
 export function useModuleGate(module: ModuleKey) {
-  const { selectedCompanyId, role } = useAuthStore();
+  const { user, selectedCompanyId, role } = useAuthStore();
   const canReadSubscription = !!role && BILLING_ROLES.has(role) && !!selectedCompanyId;
 
   const { data: subscription, isError } = useQuery({
@@ -42,7 +42,8 @@ export function useModuleGate(module: ModuleKey) {
 
   useEffect(() => expectModuleLock(module), [module]);
 
-  const superAdmin = role === "super_admin";
+  // La API no le aplica el plan al super admin, tampoco dentro de la vista de su empresa (spec 028).
+  const superAdmin = role === "super_admin" || user?.role === "super_admin";
   const lockedByPlan =
     !superAdmin && canReadSubscription && !!subscription && !subscription.active_modules.includes(module);
   // Sin rol todavía (primer render de hidratación: zustand da el estado inicial) no se consulta.

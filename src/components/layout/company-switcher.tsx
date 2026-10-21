@@ -35,7 +35,10 @@ export function CompanySwitcher({ className }: { className?: string }) {
   const selectedCompanyId = useAuthStore((s) => s.selectedCompanyId);
   const switchCompany = useSwitchCompany();
 
-  const companies = user?.companies ?? [];
+  // El super admin dentro de su empresa (spec 028) solo cambia entre las que administra.
+  const companies = (user?.companies ?? []).filter(
+    (c) => user?.role !== "super_admin" || c.role === "admin" || c.role === "owner",
+  );
   if (role === "super_admin" || companies.length < 2) return null;
 
   const active = companies.find((c) => c.id === selectedCompanyId) ?? companies[0];
