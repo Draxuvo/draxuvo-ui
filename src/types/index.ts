@@ -709,6 +709,19 @@ export interface TakeoutSummary extends CheckSummary {
   takeout_name: string;
 }
 
+export interface RoundResponse {
+  kitchen_order: { id: number; number: number; sent_at: string };
+  sent: { id: number; name: string; quantity: number; station: { id: number; name: string } | null }[];
+  rejected: { id: number; name: string; reason: string; available_qty: number | null }[];
+  check: Check;
+}
+
+export interface PaymentResponse {
+  payment: CheckPayment;
+  check: { status: CheckStatus; total: string; paid: string; balance: string };
+  ticket: Ticket | null;
+}
+
 export interface ReadyItem {
   id: number;
   name: string;

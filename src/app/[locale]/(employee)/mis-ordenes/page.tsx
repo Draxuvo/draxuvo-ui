@@ -17,6 +17,8 @@ import { PriorityBadge } from "@/components/work-orders/priority-badge";
 import { ProgressBar } from "@/components/work-orders/progress-bar";
 import { StatusBadge } from "@/components/work-orders/status-badge";
 import { OrderForm } from "@/components/work-orders/order-form";
+import { useScreenMode } from "@/components/take-order/use-screen-mode";
+import { useAppRouter } from "@/hooks/use-router";
 import type { WorkOrder } from "@/types";
 
 function OrderCard({ order }: { order: WorkOrder }) {
@@ -98,6 +100,10 @@ export default function MisOrdenesPage() {
   const gate = useModuleGate("work_orders");
   const today = format(new Date(), "yyyy-MM-dd");
   const [formOpen, setFormOpen] = useState(false);
+  const router = useAppRouter();
+  // Con restaurante o en modo pedido, "nueva orden" abre la pantalla visual (spec 018).
+  const { mode: screen } = useScreenMode();
+  const newOrder = () => (screen !== "none" ? router.push("/pedido") : setFormOpen(true));
 
   // sort_by=urgency es el orden por defecto de staff en la API: lo urgente y lo que vence hoy, primero.
   const { data, isLoading, error } = useWorkOrders({ sort_by: "urgency" }, { page_size: 100 }, { enabled: gate.enabled });
@@ -116,7 +122,7 @@ export default function MisOrdenesPage() {
           <h1 className="font-heading text-2xl font-semibold">{t("myOrders")}</h1>
           <p className="text-sm text-muted-foreground">{t("myOrdersSubtitle", { count: todo.length })}</p>
         </div>
-        <Button className="min-h-11 shrink-0 gap-1.5" onClick={() => setFormOpen(true)}>
+        <Button className="min-h-11 shrink-0 gap-1.5" onClick={newOrder}>
           <Plus size={16} aria-hidden="true" />
           {ts("newOrder")}
         </Button>

@@ -15,6 +15,8 @@ import { PriorityBadge } from "@/components/work-orders/priority-badge";
 import { StatusBadge } from "@/components/work-orders/status-badge";
 import { ProgressBar } from "@/components/work-orders/progress-bar";
 import { OrderForm } from "@/components/work-orders/order-form";
+import { useScreenMode } from "@/components/take-order/use-screen-mode";
+import { useAppRouter } from "@/hooks/use-router";
 import { OrderModeDialog } from "@/components/work-orders/order-mode-dialog";
 import { ModuleLocked, useModuleGate } from "@/components/subscription/module-locked";
 import { FilterNotice } from "@/components/filters/filter-notice";
@@ -139,6 +141,10 @@ function OrdenesContent() {
   const employeeId = ID_PATTERN.test(filters.employee_id) ? filters.employee_id : "";
 
   const [formOpen, setFormOpen] = useState(false);
+  const router = useAppRouter();
+  // Con restaurante o en modo pedido, "nueva orden" abre la pantalla visual (spec 018).
+  const { mode: screen } = useScreenMode();
+  const newOrder = () => (screen !== "none" ? router.push("/pedido") : setFormOpen(true));
   const [modeOpen, setModeOpen] = useState(false);
 
   const gate = useModuleGate("work_orders");
@@ -204,7 +210,7 @@ function OrdenesContent() {
               {t("mode.open")}
             </Button>
           )}
-          <Button className="h-10 gap-2" onClick={() => setFormOpen(true)}>
+          <Button className="h-10 gap-2" onClick={newOrder}>
             <Plus size={15} aria-hidden="true" />
             {t(`labels.${mode}.new`)}
           </Button>

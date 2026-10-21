@@ -5,7 +5,9 @@ import {
   type StationPayload,
   type TablePayload,
 } from "@/services/restaurant";
-import type { StationBoard } from "@/types";
+import { inventoryService } from "@/services/inventory";
+import { useAuthStore } from "@/store/auth";
+import type { Check, StationBoard } from "@/types";
 
 /** La estación sondea cada 3 s (research R2); se pausa con la pestaña oculta. */
 export const BOARD_POLL_MS = 3000;
@@ -98,6 +100,83 @@ export function useTableMutations() {
       mutationFn: ({ id, data }: { id: number; data: Partial<TablePayload> }) =>
         restaurantService.updateTable(id, data),
       onSuccess: refresh,
+    }),
+  };
+}
+
+/** El plano y la cuenta abierta se consultan cada 4 s con la pestaña visible (spec 018, R6). */
+export const PEDIDO_POLL_MS = 4000;
+
+export function useTablesOverview({ enabled = true }: { enabled?: boolean } = {}) {
+  const companyId = useAuthStore((s) => s.selectedCompanyId);
+  return useQuery({
+    queryKey: ["restaurant", "overview", companyId],
+    queryFn: restaurantService.overview,
+    enabled,
+    retry: false,
+    refetchInterval: PEDIDO_POLL_MS,
+    refetchIntervalInBackground: false,
+  });
+}
+
+export function useCheck(id: number | null) {
+  return useQuery({
+    queryKey: ["restaurant", "check", id],
+    queryFn: () => restaurantService.getCheck(id as number),
+    enabled: !!id,
+    refetchInterval: PEDIDO_POLL_MS,
+    refetchIntervalInBackground: false,
+  });
+}
+
+export function useSaleMenu({ enabled = true }: { enabled?: boolean } = {}) {
+  const companyId = useAuthStore((s) => s.selectedCompanyId);
+  return useQuery({
+    queryKey: ["restaurant", "menu", companyId],
+    queryFn: () => inventoryService.menu().then((r) => r.menu),
+    enabled,
+    staleTime: 15_000,
+  });
+}
+
+/** Deja en caché la cuenta que devolvió la API y marca el plano y el menú para recargar. */
+export function useApplyCheck() {
+  const client = useQueryClient();
+  return (check: Check) => {
+    client.setQueryData(["restaurant", "check", check.id], check);
+    void client.invalidateQueries({ queryKey: ["restaurant", "overview"] });
+    void client.invalidateQueries({ queryKey: ["restaurant", "menu"] });
+  };
+}
+
+export function useOpenCheck() {
+  const apply = useApplyCheck();
+  return useMutation({
+    mutationFn: (body: { dining_table_id: number } | { takeout_name: string }) => restaurantService.openCheck(body),
+    onSuccess: apply,
+  });
+}
+
+export function useCheckActions(checkId: number) {
+  const apply = useApplyCheck();
+  return {
+    add: useMutation({
+      mutationFn: (body: { product_id: number; quantity: number; note?: string }) =>
+        restaurantService.addCheckItem(checkId, body),
+      onSuccess: apply,
+    }),
+    update: useMutation({
+      mutationFn: ({ itemId, ...body }: { itemId: number; quantity?: number; note?: string }) =>
+        restaurantService.updateCheckItem(checkId, itemId, body),
+      onSuccess: apply,
+    }),
+    remove: useMutation({
+      mutationFn: (itemId: number) => restaurantService.removeCheckItem(checkId, itemId),
+      onSuccess: apply,
+    }),
+    send: useMutation({
+      mutationFn: (idempotencyKey: string) => restaurantService.sendRound(checkId, idempotencyKey),
+      onSuccess: (res) => apply(res.check),
     }),
   };
 }
