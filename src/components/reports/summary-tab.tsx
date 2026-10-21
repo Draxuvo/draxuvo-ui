@@ -61,15 +61,17 @@ export function SummaryTab({ period, companyId }: TabProps) {
     >
       {s && (
         <>
+          <StatTile hero label={t("summary.collected")} value={money(s.income.total_revenue)}>
+            <p>{t("summary.collectedHint", { count: s.income.tickets_paid })}</p>
+            {previous && <DeltaBadge value={variation(s.income.total_revenue, previous.income.total_revenue, "up")} className="mt-1" />}
+          </StatTile>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatTile hero label={t("summary.collected")} value={money(s.income.total_revenue)} className="lg:col-span-2 lg:row-span-2">
-              {previous && <DeltaBadge value={variation(s.income.total_revenue, previous.income.total_revenue, "up")} />}
-            </StatTile>
             <StatTile label={t("summary.pending")} value={money(s.income.pending_revenue)}>
-              {previous && <DeltaBadge value={variation(s.income.pending_revenue, previous.income.pending_revenue, "down")} />}
+              {t("summary.pendingHint", { count: s.income.tickets_pending })}
             </StatTile>
             <StatTile label={t("summary.expenses")} value={money(s.expenses.total)}>
-              {previous && <DeltaBadge value={variation(s.expenses.total, previous.expenses.total, "down")} />}
+              <p>{t("summary.expensesHint")}</p>
+              {previous && <DeltaBadge value={variation(s.expenses.total, previous.expenses.total, "down")} className="mt-1" />}
             </StatTile>
             {modules.workOrders && (
               <StatTile label={t("summary.orders")} value={s.work_orders.total} className={modules.attendance ? undefined : "sm:col-span-2"}>

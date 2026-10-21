@@ -55,7 +55,7 @@ describe("exportar a CSV", () => {
     await open("Ingresos");
     expect(await screen.findByText("T-0001")).toBeInTheDocument();
     const total = within(screen.getByRole("columnheader", { name: "Folio" }).closest("table")!).getAllByRole("row").at(-1)!;
-    expect(total).toHaveTextContent("$351"); // 350.5 sin decimales en pantalla
+    expect(total).toHaveTextContent("$350.50"); // el detalle lleva centavos para cuadrar
 
     act(() => screen.getByRole("button", { name: "Exportar CSV de cobros" }).click());
     expect(downloads).toEqual(["reportes-cobros-2026-10-01_2026-10-21.csv"]);
@@ -97,7 +97,7 @@ describe("Nómina", () => {
       expect(screen.getByRole("columnheader", { name: header })).toBeInTheDocument();
     }
     expect(screen.queryByRole("columnheader", { name: /tarde|ausente|retardo|falta/i })).not.toBeInTheDocument();
-    expect(screen.getByRole("row", { name: /Total/ })).toHaveTextContent("$5,000");
+    expect(screen.getByRole("row", { name: /Total/ })).toHaveTextContent("$5,000.00");
 
     act(() => screen.getByRole("button", { name: "Exportar CSV de nomina" }).click());
     const text = await blobs[0].text();
@@ -112,7 +112,7 @@ describe("gráficas accesibles", () => {
     expect(within(figure).getByRole("img")).toHaveAttribute("aria-label", expect.stringContaining("10 oct"));
     const data = within(figure).getByText("Ver datos").closest("details")!;
     expect(within(data).getByRole("rowheader", { name: "10 oct" })).toBeInTheDocument();
-    expect(within(data).getByRole("cell", { name: "$351" })).toBeInTheDocument();
+    expect(within(data).getByRole("cell", { name: "$351" })).toBeInTheDocument(); // la gráfica va en pesos enteros
   });
 
   it("Resumen: la dona de gastos trae su leyenda con valor y porcentaje, y las órdenes su tabla", async () => {

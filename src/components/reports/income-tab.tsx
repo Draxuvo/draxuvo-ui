@@ -31,13 +31,14 @@ export function IncomeTab({ period, companyId }: TabProps) {
   const report = query.data;
   const rows = report?.breakdown ?? [];
   const money = (v: number) => formatCurrency(v, locale);
+  const cents = (v: number) => formatCurrency(v, locale, true);
   const chartRows = (report?.by_period ?? []).map((g) => ({ label: periodLabel(g.period, locale), value: money(g.revenue) }));
 
   const columns: Column<IncomeBreakdownRow>[] = [
     { key: "folio", header: t("income.colFolio"), render: (r) => <span className="font-mono text-xs text-muted-foreground">{r.folio}</span> },
     { key: "order", header: t("income.colWorkOrder"), render: (r) => r.work_order.title },
     { key: "employee", header: t("income.colEmployee"), render: (r) => <span className="text-muted-foreground">{r.work_order.employee ?? t("income.unassigned")}</span> },
-    { key: "total", header: t("income.colTotal"), align: "right", render: (r) => <span className="font-medium">{money(r.total)}</span>, total: money(report?.total_revenue ?? 0) },
+    { key: "total", header: t("income.colTotal"), align: "right", render: (r) => <span className="font-medium">{cents(r.total)}</span>, total: cents(report?.total_revenue ?? 0) },
     { key: "date", header: t("income.colDate"), align: "right", render: (r) => <span className="text-muted-foreground">{formatDay(r.paid_at, locale)}</span> },
   ];
   const csvColumns: CsvColumn<IncomeBreakdownRow>[] = [

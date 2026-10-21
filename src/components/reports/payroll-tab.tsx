@@ -28,7 +28,7 @@ export function PayrollTab({ period, companyId }: TabProps) {
 
   const columns: Column<PayrollEmployee>[] = [
     { key: "name", header: t("payroll.colName"), render: (e) => <span className="font-medium">{e.name}</span> },
-    { key: "salary", header: t("payroll.colSalary"), align: "right", render: (e) => formatCurrency(e.salary, locale), total: formatCurrency(report?.total_payroll ?? 0, locale) },
+    { key: "salary", header: t("payroll.colSalary"), align: "right", render: (e) => formatCurrency(e.salary, locale, true), total: formatCurrency(report?.total_payroll ?? 0, locale, true) },
     { key: "days", header: t("payroll.colDays"), align: "right", render: (e) => e.days_present, total: rows.reduce((s, e) => s + e.days_present, 0) },
     {
       key: "hours",

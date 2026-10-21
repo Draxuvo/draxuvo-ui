@@ -52,6 +52,7 @@ export function BarsChart({ data, indexBy, keys, colorFor, format, left = 44, in
       axisLeft={{
         tickSize: 0,
         tickPadding: 6,
+        tickValues: integerAxis ? undefined : 5,
         format: (v) => (integerAxis && !Number.isInteger(Number(v)) ? "" : format(Number(v))),
       }}
       label={(d) => format(Number(d.value))}

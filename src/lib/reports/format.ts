@@ -1,11 +1,13 @@
 import { format } from "date-fns";
 import { enUS, es } from "date-fns/locale";
 
-export function formatCurrency(value: number, locale = "es"): string {
+/** Cifras y gráficas en pesos enteros; las tablas de detalle (cobros, salarios, costos) con centavos para cuadrar. */
+export function formatCurrency(value: number, locale = "es", cents = false): string {
   return new Intl.NumberFormat(locale === "en" ? "en-US" : "es-MX", {
     style: "currency",
     currency: "MXN",
-    maximumFractionDigits: 0,
+    minimumFractionDigits: cents ? 2 : 0,
+    maximumFractionDigits: cents ? 2 : 0,
   }).format(value);
 }
 

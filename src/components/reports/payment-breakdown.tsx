@@ -39,7 +39,7 @@ export function PaymentBreakdown({ report }: { report?: IncomeReport }) {
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="overflow-hidden rounded-xl border border-border bg-card">
+    <section className="overflow-hidden rounded-etiqueta bg-card shadow-etiqueta">
       <h3 className="border-b border-border px-4 py-3 text-sm font-medium text-foreground">{title}</h3>
       <ul className="divide-y divide-border">{children}</ul>
     </section>
