@@ -1,12 +1,62 @@
 "use client";
 // Menú de tarjetas agrupadas por categoría, con buscador y barra para saltar de categoría.
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Search, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ProductIconBadge } from "@/components/product-icon";
 import { cn } from "@/lib/utils";
 import { categoryColor, filterMenu, type MenuCard, type MenuSection } from "./lib";
+
+/** Fila de categorías con desplazamiento: si no caben, aparecen flechas y ninguna queda cortada sin salida. */
+function CategoryChips({ sections, onJump }: { sections: MenuSection[]; onJump: (category: string) => void }) {
+  const t = useTranslations("takeOrder");
+  const row = useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = useState({ left: false, right: false });
+
+  const measure = useCallback(() => {
+    const el = row.current;
+    if (!el) return;
+    setEdges({ left: el.scrollLeft > 1, right: el.scrollLeft + el.clientWidth < el.scrollWidth - 1 });
+  }, []);
+
+  useEffect(() => {
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [measure, sections]);
+
+  const scroll = (direction: -1 | 1) =>
+    row.current?.scrollBy?.({ left: direction * Math.max(160, row.current.clientWidth * 0.7), behavior: "smooth" });
+
+  return (
+    <nav aria-label={t("categories")} className="flex items-center gap-1">
+      {edges.left && (
+        <button type="button" aria-label={t("categoriesBack")} onClick={() => scroll(-1)} className="foco-etiqueta flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card">
+          <ChevronLeft size={16} aria-hidden />
+        </button>
+      )}
+      <div ref={row} onScroll={measure} className="flex min-w-0 flex-1 gap-2 overflow-x-auto scroll-smooth py-1 [scrollbar-width:none]">
+        {sections.map((s) => (
+          <button
+            key={s.category}
+            type="button"
+            onClick={() => onJump(s.category)}
+            className="foco-etiqueta inline-flex min-h-9 shrink-0 items-center gap-2 rounded-full border border-border bg-card px-3 text-sm hover:bg-muted"
+          >
+            <span aria-hidden className="size-2 rounded-full" style={{ background: categoryColor(s.category) }} />
+            {s.category}
+          </button>
+        ))}
+      </div>
+      {edges.right && (
+        <button type="button" aria-label={t("categoriesForward")} onClick={() => scroll(1)} className="foco-etiqueta flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card">
+          <ChevronRight size={16} aria-hidden />
+        </button>
+      )}
+    </nav>
+  );
+}
 
 export function MenuGrid({
   menu,
@@ -56,21 +106,7 @@ export function MenuGrid({
         )}
       </div>
 
-      {sections.length > 1 && (
-        <nav aria-label={t("categories")} className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
-          {sections.map((s) => (
-            <button
-              key={s.category}
-              type="button"
-              onClick={() => jump(s.category)}
-              className="inline-flex min-h-9 shrink-0 items-center gap-2 rounded-full border border-input px-3 text-sm hover:bg-accent"
-            >
-              <span aria-hidden className="size-2 rounded-full" style={{ background: categoryColor(s.category) }} />
-              {s.category}
-            </button>
-          ))}
-        </nav>
-      )}
+      {sections.length > 1 && <CategoryChips sections={sections} onJump={jump} />}
 
       {error && <p role="alert" className="text-sm text-destructive">{t("menuLoadError")}</p>}
       {!loading && !error && !menu.length && <p className="text-sm text-muted-foreground">{t("menuEmpty")}</p>}

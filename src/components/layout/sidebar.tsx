@@ -26,6 +26,7 @@ import type { ModuleKey } from "@/types";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { SIDEBAR_DRAWER_ID, useSidebar } from "./sidebar-context";
 import { Logo } from "@/components/brand/logo";
+import { useScreenMode } from "@/components/take-order/use-screen-mode";
 import { cn } from "@/lib/utils";
 
 const ANALYTICS_ROLES = new Set(["admin", "owner", "manager"]);
@@ -105,6 +106,8 @@ export function Sidebar() {
   const locale = useLocale();
   const { user, selectedCompanyId, role, companyView, leaveCompanyView } = useAuthStore();
   const { open, mobileOpen, setMobileOpen } = useSidebar();
+  // Con mesas dadas de alta la lista de órdenes habla el lenguaje del restaurante (spec 032).
+  const { mode: screen } = useScreenMode();
 
   const showAnalytics = !!role && ANALYTICS_ROLES.has(role);
   const showAttendance = !!role && ATTENDANCE_ROLES.has(role);
@@ -152,7 +155,7 @@ export function Sidebar() {
       ? [{ href: `/${locale}/inventario`, label: t("inventory"), icon: Package }]
       : []),
     ...(hasModule("work_orders")
-      ? [{ href: `/${locale}/ordenes`, label: t("orders"), icon: ClipboardList }]
+      ? [{ href: `/${locale}/ordenes`, label: screen === "restaurant" ? t("accounts") : t("orders"), icon: ClipboardList }]
       : []),
     ...(hasModule("tickets")
       ? [{ href: `/${locale}/tickets`, label: t("tickets"), icon: Receipt }]

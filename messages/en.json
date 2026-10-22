@@ -76,6 +76,7 @@
     "dashboard": "Dashboard",
     "inventory": "Inventory",
     "orders": "Orders",
+    "accounts": "Checks",
     "tickets": "Tickets",
     "profile": "My profile",
     "reports": "Reports",
@@ -432,6 +433,9 @@
         "counted": "Counted",
         "notCounted": "Not counted",
         "fractional": "Decimals",
+        "offMenu": "Off the menu",
+        "inMenuLabel": "Shows in the restaurant menu",
+        "inMenuHint": "If you turn it off, its products stay in Inventory but are not offered when taking orders.",
         "sellableLabel": "Sold",
         "sellableHint": "Shows in the menu and in orders with a sale price.",
         "countedLabel": "Counted",
@@ -969,6 +973,16 @@
       "noCard": "No card payments in the range",
       "count": "{count, plural, one {# payment} other {# payments}}"
     }
+  },
+  "cuentas": {
+    "title": "Checks",
+    "subtitle": "{open, plural, one {# open} other {# open}} · {toPay} to collect",
+    "new": "New check",
+    "open": "Open",
+    "toPay": "To collect",
+    "paidToday": "Paid today",
+    "empty": "No open checks.",
+    "walkIns": "Orders without a table"
   },
   "workOrders": {
     "title": "Work orders",
@@ -1661,6 +1675,8 @@
     "saveError": "Could not save",
     "nameRequired": "Enter a name",
     "station": {
+      "summary": "Station summary",
+      "kind": {"kitchen": "Kitchen", "bar": "Bar", "other": "Station"},
       "empty": "No orders",
       "emptyHint": "New orders show up here on their own.",
       "loadError": "Could not refresh. Retrying…",
@@ -1683,7 +1699,48 @@
         "cancelled": "Cancelled"
       },
       "advanceError": "That item already changed. The list was refreshed.",
-      "pending": "{count, plural, one {# order} other {# orders}}"
+      "pending": "{count, plural, one {# order} other {# orders}}",
+      "preparing": "{count, plural, =0 {Nothing in preparation} one {# in preparation} other {# in preparation}}",
+      "slowest": "Slowest: {time}",
+      "kindKitchen": "Kitchen",
+      "kindBar": "Bar",
+      "kindOther": "Station"
+    },
+    "tabService": "Service",
+    "tabSettings": "Settings",
+    "stationKindLabel": "Station type",
+    "stationKindHint": "Sets the icon and color of its screen.",
+    "stationKind": {
+      "kitchen": "Kitchen",
+      "bar": "Bar",
+      "other": "Other"
+    },
+    "moveBefore": "Move earlier",
+    "moveAfter": "Move later",
+    "firstTableHint": "Add your first table to see the service plan and take orders by table.",
+    "tile": {
+      "free": "Free",
+      "occupied": "Occupied",
+      "to_pay": "To pay",
+      "mine": "Yours",
+      "table": "Table {name}",
+      "openFor": "open for {time}"
+    },
+    "summary": {
+      "title": "Service summary",
+      "openChecks": "Open checks",
+      "toPay": "To collect",
+      "pending": "Pending tickets",
+      "oldest": "Oldest"
+    },
+    "service": {
+      "plan": "Service plan",
+      "takeouts": "Takeout",
+      "takeoutCaption": "Takeout",
+      "stale": "Could not refresh. Showing the last data received.",
+      "noTables": "No tables yet",
+      "noTablesHint": "The service shows up here as soon as you add tables.",
+      "configure": "Set up tables"
     },
     "takeOrder": "Take order",
     "takeOrderHint": "Table plan, order and menu on one screen."
@@ -1735,6 +1792,13 @@
   },
   "takeOrder": {
     "title": "Take order",
+    "planScope": "Which tables to show",
+    "scopeAll": "All",
+    "scopeMine": "My tables",
+    "noMine": "You have no open checks yet. Tap a free table to open one.",
+    "pickTableHint": "Its order, what was sent and the total show up here.",
+    "categoriesBack": "Previous categories",
+    "categoriesForward": "More categories",
     "back": "Back",
     "tables": "Tables",
     "order": "Order",

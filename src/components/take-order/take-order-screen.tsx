@@ -192,13 +192,13 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
 
       <div
         className={cn(
-          "grid min-h-0 flex-1 gap-4 p-3",
-          tab === "menu" ? "sm:grid-cols-1 lg:grid-cols-[minmax(220px,1fr)_minmax(320px,1.2fr)_minmax(380px,2fr)]" : "sm:grid-cols-2 lg:grid-cols-[minmax(220px,1fr)_minmax(320px,1.2fr)_minmax(380px,2fr)]",
+          "grid min-h-0 flex-1 gap-3 p-3",
+          tab === "menu" ? "sm:grid-cols-1 lg:grid-cols-[minmax(260px,1fr)_minmax(340px,1.1fr)_minmax(420px,2fr)]" : "sm:grid-cols-2 lg:grid-cols-[minmax(260px,1fr)_minmax(340px,1.1fr)_minmax(420px,2fr)]",
         )}
       >
         <section
           aria-label={t("tables")}
-          className={cn("min-h-0 overflow-y-auto", tab === "menu" ? "hidden lg:block" : tab === "tables" ? "block" : "hidden sm:block")}
+          className={cn("min-h-0 overflow-y-auto rounded-etiqueta border border-border bg-card/40 p-3", tab === "menu" ? "hidden lg:block" : tab === "tables" ? "block" : "hidden sm:block")}
         >
           <TablePlan
             tiles={source.tiles}
@@ -213,7 +213,7 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
 
         <section
           aria-label={t("order")}
-          className={cn("min-h-0 flex-col", tab === "order" ? "flex" : tab === "menu" ? "hidden lg:flex" : "hidden sm:flex")}
+          className={cn("min-h-0 flex-col rounded-etiqueta border border-border bg-card/40 p-3", tab === "order" ? "flex" : tab === "menu" ? "hidden lg:flex" : "hidden sm:flex")}
         >
           <OrderPanel
             current={current}
@@ -233,7 +233,7 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
 
         <section
           aria-label={t("menu")}
-          className={cn("min-h-0 overflow-y-auto", tab === "menu" ? "block" : "hidden lg:block")}
+          className={cn("min-h-0 overflow-y-auto rounded-etiqueta border border-border bg-card/40 p-3", tab === "menu" ? "block" : "hidden lg:block")}
         >
           <MenuGrid
             menu={menu}

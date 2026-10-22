@@ -9,7 +9,7 @@ import {
   listWorkOrders, useAddItem, useCreateWorkOrder, useDeleteItem, useUpdateItem, useWorkOrder,
 } from "@/hooks/use-work-orders";
 import { useAuthStore } from "@/store/auth";
-import type { Check, WorkOrder } from "@/types";
+import type { Check, TableState, WorkOrder } from "@/types";
 import { inOrderCount, tapProduct, type Line, type MenuCard } from "./lib";
 
 export type Selection = { kind: "check"; id: number } | { kind: "order"; id: number } | null;
@@ -17,8 +17,11 @@ export type Selection = { kind: "check"; id: number } | { kind: "order"; id: num
 export interface SourceTile {
   key: string;
   name: string;
-  state: "free" | "occupied";
-  total: number;
+  state: TableState;
+  /** Cuándo se abrió la cuenta; las órdenes de trabajo no lo traen. */
+  openedAt?: string | null;
+  /** `null` cuando la cuenta es ajena y quien pide no es jefe (spec 032, FR-019b). */
+  total: number | null;
   owner: string | null;
   mine: boolean;
   selection: Selection;
@@ -41,6 +44,7 @@ export interface CurrentOrder {
 }
 
 const num = (value: string | number | null | undefined) => Number(value ?? 0) || 0;
+const numOrNull = (value: string | number | null | undefined) => (value == null ? null : num(value));
 
 export function checkLines(check: Check): Line[] {
   return check.items.map((i) => ({
@@ -106,8 +110,9 @@ export function useOrderSource(mode: "restaurant" | "orders", selection: Selecti
       ...tables.map((t): SourceTile => ({
         key: `table:${t.id}`,
         name: t.name,
-        state: t.check ? "occupied" : "free",
-        total: num(t.check?.total),
+        state: t.state ?? (t.check ? "occupied" : "free"),
+        openedAt: t.check?.opened_at,
+        total: numOrNull(t.check?.total),
         owner: t.check?.waiter?.name ?? null,
         mine: !!t.check?.mine,
         selection: t.check ? { kind: "check", id: t.check.id } : null,
@@ -117,7 +122,8 @@ export function useOrderSource(mode: "restaurant" | "orders", selection: Selecti
         key: `check:${c.id}`,
         name: c.takeout_name,
         state: "occupied",
-        total: num(c.total),
+        openedAt: c.opened_at,
+        total: numOrNull(c.total),
         owner: c.waiter?.name ?? null,
         mine: c.mine,
         selection: { kind: "check", id: c.id },

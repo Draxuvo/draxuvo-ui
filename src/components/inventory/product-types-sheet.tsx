@@ -25,12 +25,13 @@ import {
   useUnits,
   useUpdateProductType,
 } from "@/hooks/use-product-types";
+import { useAuthStore } from "@/store/auth";
 import { cn } from "@/lib/utils";
 import type { ProductType } from "@/types";
 
 const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring";
 
-type Values = { name: string; sellable: boolean; counted: boolean; fractional: boolean; default_unit_key: string; active: boolean; icon: string };
+type Values = { name: string; sellable: boolean; in_menu: boolean; counted: boolean; fractional: boolean; default_unit_key: string; active: boolean; icon: string };
 
 function apiCode(error: unknown): string | undefined {
   return isAxiosError(error) ? error.response?.data?.error?.details?.code : undefined;
@@ -39,6 +40,7 @@ function apiCode(error: unknown): string | undefined {
 export function ProductTypesSheet({ open, onOpenChange, canManage }: { open: boolean; onOpenChange: (open: boolean) => void; canManage: boolean }) {
   const t = useTranslations("inventory.types");
   const types = useProductTypes({ includeInactive: canManage, enabled: open });
+  const menuRule = useMenuRule();
   const [editing, setEditing] = useState<ProductType | "new" | null>(null);
   const [removing, setRemoving] = useState<ProductType | null>(null);
 
@@ -66,7 +68,7 @@ export function ProductTypesSheet({ open, onOpenChange, canManage }: { open: boo
                         {type.name}
                         {!type.active && <span className="ml-2 text-xs font-normal">({t("inactive")})</span>}
                       </p>
-                      <p className="text-xs text-muted-foreground">{rulesText(t, type)} · {t("productsCount", { count: type.products_count })}</p>
+                      <p className="text-xs text-muted-foreground">{rulesText(t, type, menuRule)} · {t("productsCount", { count: type.products_count })}</p>
                     </div>
                     {canManage && (
                       <>
@@ -95,9 +97,15 @@ export function ProductTypesSheet({ open, onOpenChange, canManage }: { open: boo
   );
 }
 
-function rulesText(t: ReturnType<typeof useTranslations>, type: ProductType) {
+/** El menú del servicio solo aplica a los negocios que toman pedido (restaurante). */
+function useMenuRule() {
+  return useAuthStore((s) => s.user?.companies?.find((c) => c.id === s.selectedCompanyId)?.order_mode) === "order";
+}
+
+function rulesText(t: ReturnType<typeof useTranslations>, type: ProductType, menuRule: boolean) {
   return [
     type.sellable ? t("rules.sellable") : t("rules.notSellable"),
+    menuRule && type.sellable && type.in_menu === false && t("rules.offMenu"),
     type.counted ? t("rules.counted") : t("rules.notCounted"),
     type.fractional && t("rules.fractional"),
     type.default_unit?.name,
@@ -111,12 +119,14 @@ function TypeForm({ type, onDone }: { type: ProductType | null; onDone: () => vo
   const create = useCreateProductType();
   const update = useUpdateProductType();
   const units = useUnits();
+  const menuRule = useMenuRule();
 
   const schema = useMemo(
     () =>
       z.object({
         name: z.string().trim().min(1, t("nameRequired")).max(40, t("nameTooLong")),
         sellable: z.boolean(),
+        in_menu: z.boolean(),
         counted: z.boolean(),
         fractional: z.boolean(),
         default_unit_key: z.string().min(1),
@@ -130,6 +140,7 @@ function TypeForm({ type, onDone }: { type: ProductType | null; onDone: () => vo
     defaultValues: {
       name: type?.name ?? "",
       sellable: type?.sellable ?? true,
+      in_menu: type?.in_menu ?? true,
       counted: type?.counted ?? false,
       fractional: type?.fractional ?? false,
       default_unit_key: type?.default_unit?.key ?? "pza",
@@ -138,6 +149,7 @@ function TypeForm({ type, onDone }: { type: ProductType | null; onDone: () => vo
     },
   });
   const counted = useWatch({ control, name: "counted" });
+  const sellable = useWatch({ control, name: "sellable" });
 
   async function onSubmit(values: Values) {
     const data = { ...values, name: values.name.trim(), fractional: values.counted && values.fractional, icon: values.icon || null };
@@ -157,7 +169,7 @@ function TypeForm({ type, onDone }: { type: ProductType | null; onDone: () => vo
     }
   }
 
-  const toggle = (name: "sellable" | "counted" | "fractional" | "active", label: string, hint?: string, disabled = false) => (
+  const toggle = (name: "sellable" | "in_menu" | "counted" | "fractional" | "active", label: string, hint?: string, disabled = false) => (
     <div className="flex items-start justify-between gap-4">
       <div className="space-y-0.5">
         <Label htmlFor={`type-${name}`} className="text-sm font-medium text-foreground">{label}</Label>
@@ -189,6 +201,7 @@ function TypeForm({ type, onDone }: { type: ProductType | null; onDone: () => vo
         {errors.name && <p role="alert" className="text-xs text-destructive">{errors.name.message}</p>}
       </div>
       {toggle("sellable", t("rules.sellableLabel"), t("rules.sellableHint"))}
+      {menuRule && sellable && toggle("in_menu", t("rules.inMenuLabel"), t("rules.inMenuHint"))}
       {toggle("counted", t("rules.countedLabel"), t("rules.countedHint"))}
       {toggle("fractional", t("rules.fractionalLabel"), t("rules.fractionalHint"), !counted)}
       {errors.fractional && <p role="alert" className="text-xs text-destructive">{errors.fractional.message}</p>}

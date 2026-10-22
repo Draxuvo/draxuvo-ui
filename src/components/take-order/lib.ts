@@ -96,15 +96,18 @@ export interface OpenCheck {
   /** Nombre de la mesa o del cliente (para llevar). */
   name: string;
   takeout: boolean;
+  /** `to_pay`: ya se entregó todo y falta cobrar. */
+  state: "occupied" | "to_pay";
   waiter: string | null;
-  total: number;
+  /** `null` en las cuentas ajenas cuando quien pide no es jefe (spec 032, FR-019b). */
+  total: number | null;
   openedAt: string;
   mine: boolean;
 }
 
 interface OverviewLike {
-  results: { name: string; active?: boolean; check: { id: number; waiter: { name: string } | null; opened_at: string; total: string; mine: boolean } | null }[];
-  takeouts: { id: number; takeout_name: string; waiter: { name: string } | null; opened_at: string; total: string; mine: boolean }[];
+  results: { name: string; active?: boolean; state?: string; check: { id: number; waiter?: { name: string } | null; opened_at: string; total?: string; mine: boolean } | null }[];
+  takeouts: { id: number; takeout_name: string; waiter?: { name: string } | null; opened_at: string; total?: string; mine: boolean; counts?: { new: number; preparing: number; ready: number; delivered: number } }[];
 }
 
 /** Cuentas abiertas del plano: las de las mesas y las para llevar; con `scope="mine"` solo las que atiende la persona. */
@@ -112,11 +115,11 @@ export function openChecksOf(overview: OverviewLike | undefined, scope: "all" | 
   if (!overview) return [];
   const tables = overview.results.flatMap((t) =>
     t.check
-      ? [{ id: t.check.id, name: t.name, takeout: false, waiter: t.check.waiter?.name ?? null, total: Number(t.check.total) || 0, openedAt: t.check.opened_at, mine: t.check.mine }]
+      ? [{ id: t.check.id, name: t.name, takeout: false, state: (t.state === "to_pay" ? "to_pay" : "occupied") as OpenCheck["state"], waiter: t.check.waiter?.name ?? null, total: t.check.total == null ? null : Number(t.check.total) || 0, openedAt: t.check.opened_at, mine: t.check.mine }]
       : [],
   );
   const takeouts = overview.takeouts.map((c) => ({
-    id: c.id, name: c.takeout_name, takeout: true, waiter: c.waiter?.name ?? null, total: Number(c.total) || 0, openedAt: c.opened_at, mine: c.mine,
+    id: c.id, name: c.takeout_name, takeout: true, state: (c.counts && c.counts.new + c.counts.preparing + c.counts.ready === 0 && c.counts.delivered > 0 ? "to_pay" : "occupied") as OpenCheck["state"], waiter: c.waiter?.name ?? null, total: c.total == null ? null : Number(c.total) || 0, openedAt: c.opened_at, mine: c.mine,
   }));
   return [...tables, ...takeouts].filter((c) => scope === "all" || c.mine);
 }

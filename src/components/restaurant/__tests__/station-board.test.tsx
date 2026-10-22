@@ -11,8 +11,8 @@ vi.mock("@/services/restaurant", () => ({
 import { restaurantService } from "@/services/restaurant";
 import { StationBoard } from "../station-board";
 
-const board = (orders: Board["orders"] = []): Board => ({
-  station: { id: 1, name: "Cocina" },
+const board = (orders: Board["orders"] = [], station: Board["station"] = { id: 1, name: "Cocina", kind: "kitchen" }): Board => ({
+  station,
   server_time: new Date().toISOString(),
   orders,
 });
@@ -142,5 +142,35 @@ describe("pantalla de estación", () => {
     renderWithProviders(<StationBoard stationId={1} />);
 
     expect(await screen.findByText("Para llevar: Luis")).toBeInTheDocument();
+  });
+
+  it("la barra se distingue de la cocina por su tipo (spec 032)", async () => {
+    vi.mocked(restaurantService.board).mockResolvedValue(board([], { id: 2, name: "Bar del patio", kind: "bar" }));
+    renderWithProviders(<StationBoard stationId={2} />);
+
+    expect(await screen.findByRole("heading", { name: "Bar del patio" })).toBeInTheDocument();
+    expect(screen.getByText("Barra", { selector: "p" })).toBeInTheDocument();
+  });
+
+  it("el resumen cuenta comandas, artículos en preparación y la más lenta", async () => {
+    const slow = order(2, [sopa], { sent_at: new Date(Date.now() - 14.5 * 60_000).toISOString() });
+    vi.mocked(restaurantService.board).mockResolvedValue(board([order(1, [taco, sopa]), slow]));
+    renderWithProviders(<StationBoard stationId={1} />);
+
+    const summary = await screen.findByRole("list", { name: "Resumen de la estación" });
+    await waitFor(() => expect(summary).toHaveTextContent("2 comandas"));
+    expect(summary).toHaveTextContent("2 en preparación");
+    expect(summary).toHaveTextContent("La más lenta: 14 min");
+  });
+
+  it("sin comandas el resumen está en cero y no flota ningún texto de sonido", async () => {
+    vi.mocked(restaurantService.board).mockResolvedValue(board());
+    renderWithProviders(<StationBoard stationId={1} />);
+
+    const summary = await screen.findByRole("list", { name: "Resumen de la estación" });
+    expect(summary).toHaveTextContent("0 comandas");
+    expect(summary).toHaveTextContent("Nada en preparación");
+    expect(screen.queryByText(/Toca para activar el sonido/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Activar sonido/ })).toBeInTheDocument();
   });
 });

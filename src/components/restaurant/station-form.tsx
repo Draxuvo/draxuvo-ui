@@ -9,7 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useStationMutations } from "@/hooks/use-restaurant";
-import type { Station } from "@/types";
+import { cn } from "@/lib/utils";
+import type { Station, StationKind } from "@/types";
+
+const KINDS: StationKind[] = ["kitchen", "bar", "other"];
 
 interface StationFormProps {
   open: boolean;
@@ -32,6 +35,7 @@ function StationFields({ station, onDone }: { station?: Station | null; onDone: 
   const t = useTranslations("restaurant");
   const { create, update } = useStationMutations();
   const [name, setName] = useState(station?.name ?? "");
+  const [kind, setKind] = useState<StationKind>(station?.kind ?? "kitchen");
   const [isDefault, setIsDefault] = useState(station?.is_default ?? false);
   const [active, setActive] = useState(station?.active ?? true);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +48,7 @@ function StationFields({ station, onDone }: { station?: Station | null; onDone: 
       return;
     }
     setError(null);
-    const data = { name: name.trim(), is_default: isDefault, active };
+    const data = { name: name.trim(), kind, is_default: isDefault, active };
     try {
       if (station) await update.mutateAsync({ id: station.id, data });
       else await create.mutateAsync(data);
@@ -69,6 +73,27 @@ function StationFields({ station, onDone }: { station?: Station | null; onDone: 
             <Input id="station-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t("stationNamePlaceholder")} />
             {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
+          <fieldset className="space-y-1.5">
+            <legend className="text-xs font-medium text-foreground">{t("stationKindLabel")}</legend>
+            <div role="radiogroup" aria-label={t("stationKindLabel")} className="grid grid-cols-3 gap-2">
+              {KINDS.map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={kind === value}
+                  onClick={() => setKind(value)}
+                  className={cn(
+                    "min-h-10 rounded-etiqueta border px-3 text-sm font-semibold foco-etiqueta transition-colors",
+                    kind === value ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {t(`stationKind.${value}`)}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">{t("stationKindHint")}</p>
+          </fieldset>
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-0.5">
               <Label htmlFor="station-default" className="text-sm font-medium text-foreground">

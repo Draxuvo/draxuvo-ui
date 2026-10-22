@@ -24,8 +24,8 @@ describe("TablePlan", () => {
         onCreate={vi.fn()}
       />,
     );
-    expect(screen.getByRole("button", { name: /^4, Libre/ })).toBeInTheDocument();
-    const busy = screen.getByRole("button", { name: /^5, Ocupada, .*320/ });
+    expect(screen.getByRole("button", { name: /^Mesa 4, Libre/ })).toBeInTheDocument();
+    const busy = screen.getByRole("button", { name: /^Mesa 5, Ocupada, .*320/ });
     expect(within(busy).getByText("Ana", { exact: false })).toBeInTheDocument();
   });
 
@@ -33,13 +33,60 @@ describe("TablePlan", () => {
     const onPick = vi.fn();
     const onCreate = vi.fn();
     renderWithProviders(<TablePlan {...base} tiles={[tile()]} onPick={onPick} onCreate={onCreate} />);
-    await userEvent.click(screen.getByRole("button", { name: /^4, Libre/ }));
+    await userEvent.click(screen.getByRole("button", { name: /^Mesa 4, Libre/ }));
     expect(onPick).toHaveBeenCalledWith(expect.objectContaining({ name: "4" }));
 
     await userEvent.click(screen.getByRole("button", { name: /Para llevar/ }));
     await userEvent.type(screen.getByLabelText("Nombre del cliente"), "Luis");
     await userEvent.click(screen.getByRole("button", { name: "Abrir" }));
     expect(onCreate).toHaveBeenCalledWith("Luis");
+  });
+
+  it("cada mesa muestra su estado, el tiempo abierta y el total sin elegirla", () => {
+    const opened = new Date(Date.now() - 25 * 60_000).toISOString();
+    renderWithProviders(
+      <TablePlan
+        {...base}
+        tiles={[tile({ key: "table:2", name: "5", state: "to_pay", total: 320, owner: "Ana", openedAt: opened, selection: { kind: "check", id: 9 } })]}
+        onPick={vi.fn()}
+        onCreate={vi.fn()}
+      />,
+    );
+    const busy = screen.getByRole("button", { name: /^Mesa 5, Por cobrar, 25 min abierta, \$320\.00, Ana/ });
+    expect(within(busy).getByText("Por cobrar")).toBeInTheDocument();
+    expect(within(busy).getByText("25 min")).toBeInTheDocument();
+  });
+
+  it("una cuenta ajena sin total no inventa dinero", () => {
+    renderWithProviders(
+      <TablePlan {...base} tiles={[tile({ name: "7", state: "occupied", total: null, openedAt: new Date().toISOString(), selection: { kind: "check", id: 3 } })]} onPick={vi.fn()} onCreate={vi.fn()} />,
+    );
+    expect(screen.getByRole("button", { name: /^Mesa 7, Ocupada/ }).textContent).not.toMatch(/\$/);
+  });
+
+  it("Mis mesas deja las propias y las libres, y avisa si no hay cuentas propias", async () => {
+    const tiles = [
+      tile({ key: "table:1", name: "1" }),
+      tile({ key: "table:2", name: "2", state: "occupied", total: 90, mine: true, owner: "Ana", openedAt: new Date().toISOString(), selection: { kind: "check", id: 2 } }),
+      tile({ key: "table:3", name: "3", state: "occupied", total: 50, mine: false, owner: "Luis", openedAt: new Date().toISOString(), selection: { kind: "check", id: 3 } }),
+    ];
+    const { rerender } = renderWithProviders(<TablePlan {...base} tiles={tiles} onPick={vi.fn()} onCreate={vi.fn()} />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Mis mesas" }));
+    expect(screen.getByRole("button", { name: /^Mesa 1, Libre/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Mesa 2, Ocupada/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Mesa 3/ })).not.toBeInTheDocument();
+
+    rerender(<TablePlan {...base} tiles={[tiles[0], tiles[2]]} onPick={vi.fn()} onCreate={vi.fn()} />);
+    expect(screen.getByText(/Todavía no tienes cuentas abiertas/)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Todas" }));
+    expect(screen.getByRole("button", { name: /^Mesa 3, Ocupada/ })).toBeInTheDocument();
+  });
+
+  it("en modo órdenes no hay filtro de Mis mesas", () => {
+    renderWithProviders(<TablePlan {...base} mode="orders" tiles={[tile()]} onPick={vi.fn()} onCreate={vi.fn()} />);
+    expect(screen.queryByRole("button", { name: "Mis mesas" })).not.toBeInTheDocument();
   });
 });
 

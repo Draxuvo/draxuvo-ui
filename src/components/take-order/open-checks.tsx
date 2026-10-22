@@ -17,16 +17,18 @@ export function useOpenChecks(scope: "all" | "mine"): OpenCheck[] {
   return mode === "restaurant" ? openChecksOf(overview.data, scope) : [];
 }
 
-export function OpenChecks({ checks, from }: { checks: OpenCheck[]; from: "ordenes" | "mis-ordenes" }) {
+export function OpenChecks({
+  checks, from, title, id = "open-checks-title",
+}: { checks: OpenCheck[]; from: "ordenes" | "mis-ordenes"; title?: string; id?: string }) {
   const t = useTranslations("takeOrder");
   const locale = useLocale();
   const money = new Intl.NumberFormat(locale === "en" ? "en-US" : "es-MX", { style: "currency", currency: "MXN" });
   if (!checks.length) return null;
 
   return (
-    <section aria-labelledby="open-checks-title" className="space-y-3">
-      <h2 id="open-checks-title" className="font-display text-xl font-extrabold">
-        {t("openChecks")} <span className="text-muted-foreground">({checks.length})</span>
+    <section aria-labelledby={id} className="space-y-3">
+      <h2 id={id} className="font-display text-xl font-extrabold">
+        {title ?? t("openChecks")} <span className="text-muted-foreground">({checks.length})</span>
       </h2>
       <ul className="grid gap-3 sm:grid-cols-2">
         {checks.map((check) => {
@@ -48,7 +50,9 @@ export function OpenChecks({ checks, from }: { checks: OpenCheck[]; from: "orden
                   </span>
                 </span>
                 <span className="flex shrink-0 items-center gap-2">
-                  <span className="font-display text-xl font-extrabold tabular-nums">{money.format(check.total)}</span>
+                  {check.total != null && (
+                    <span className="font-display text-xl font-extrabold tabular-nums">{money.format(check.total)}</span>
+                  )}
                   <ChevronRight size={18} className="text-muted-foreground" aria-hidden />
                 </span>
               </Link>

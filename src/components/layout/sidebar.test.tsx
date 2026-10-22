@@ -2,6 +2,7 @@ import { screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
 import { useAuthStore } from "@/store/auth";
+import type { TablesResponse } from "@/types";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/es/restaurante" }));
 const plan = vi.hoisted(() => ({ modules: ["employees", "inventory", "work_orders", "tickets", "restaurant"] as string[] }));
@@ -9,10 +10,14 @@ vi.mock("@/services/subscription", () => ({
   getSubscription: vi.fn().mockImplementation(() => Promise.resolve({ active_modules: plan.modules })),
 }));
 
+vi.mock("@/services/restaurant", () => ({ restaurantService: { overview: vi.fn() } }));
+
+import { restaurantService } from "@/services/restaurant";
 import { SidebarProvider } from "./sidebar-context";
 import { Sidebar } from "./sidebar";
 
 beforeEach(() => {
+  vi.mocked(restaurantService.overview).mockResolvedValue({ results: [], takeouts: [], ready_items: [] });
   plan.modules = ["employees", "inventory", "work_orders", "tickets", "restaurant"];
   useAuthStore.setState({
     user: { id: 1, role: "manager", companies: [{ id: 1, role: "manager", name: "Sazón", order_mode: "order" }] } as never,
@@ -101,5 +106,26 @@ describe("menú lateral", () => {
 
     expect((await screen.findAllByRole("link", { name: "Restaurante" })).length).toBeGreaterThan(0);
     expect(screen.queryByRole("link", { name: "Tomar pedido" })).not.toBeInTheDocument();
+  });
+});
+
+describe("menú lateral: lenguaje de restaurante (spec 032)", () => {
+  it("con mesas dadas de alta la lista de órdenes se llama Cuentas", async () => {
+    vi.mocked(restaurantService.overview).mockResolvedValue({
+      results: [{ id: 1, name: "1", active: true, position: 1, check: null }],
+      takeouts: [],
+      ready_items: [],
+    } as TablesResponse);
+    mount("owner");
+
+    expect((await screen.findAllByRole("link", { name: "Cuentas" })).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("link", { name: "Órdenes de trabajo" })).not.toBeInTheDocument();
+  });
+
+  it("sin mesas conserva Órdenes de trabajo", async () => {
+    mount("owner");
+
+    expect((await screen.findAllByRole("link", { name: "Órdenes de trabajo" })).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("link", { name: "Cuentas" })).not.toBeInTheDocument();
   });
 });
