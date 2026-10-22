@@ -1,5 +1,5 @@
 // Ayudantes comunes de las pruebas de Reportes: URL simulada, nivo sin canvas y respuestas de ejemplo.
-import type { ExpensesReport, IncomeReport, PayrollReport, ReportSummary } from "@/types";
+import type { ExpensesReport, IncomeReport, InventoryReport, PayrollReport, ReportSummary } from "@/types";
 
 export const urlStore = (() => {
   let search = "";
@@ -23,6 +23,7 @@ export const SUMMARY: ReportSummary = {
   work_orders: { total: 8, total_billed: 9_000, by_status: { open: 2, in_progress: 1, done: 1, paid: 4, cancelled: 0 } },
   expenses: { payroll: 5_000, inventory_cost: 400, total: 5_400 },
   attendance: { total: 12, normal: 12, late: 0, absent: 0 },
+  inventory: { value: 18_450.5, counted_products: 62, low_stock: 7 },
   previous: {
     period: { from: "2026-09-10", to: "2026-09-30" },
     income: { total_revenue: 8_000, pending_revenue: 0 },
@@ -61,4 +62,27 @@ export const PAYROLL: PayrollReport = {
   employees: [
     { id: 1, name: "Ana", position: null, department: null, salary: 5_000, days_present: 3, hours_worked: 24.5, attendance: { normal: 3, late: 2, absent: 1 } },
   ],
+};
+
+/** Resumen del plan Básico: sin ingresos ni órdenes (spec 033). */
+export const SUMMARY_BASIC: ReportSummary = {
+  period: SUMMARY.period,
+  expenses: SUMMARY.expenses,
+  attendance: SUMMARY.attendance,
+  inventory: SUMMARY.inventory,
+  previous: { period: SUMMARY.previous!.period, expenses: SUMMARY.previous!.expenses },
+};
+
+export const INVENTORY: InventoryReport = {
+  period: { from: "2026-10-01", to: "2026-10-21" },
+  stock: {
+    counted_products: 62,
+    value: 18_450.5,
+    without_cost: 3,
+    low_stock: [{ id: 12, name: "Harina", sku: "HAR-1", unit: "kg", stock: 2, min_stock: 5 }],
+  },
+  movements: {
+    truncated: false,
+    rows: [{ id: 12, name: "Harina", sku: "HAR-1", unit: "kg", entries: 20, exits: 14.5, adjustments: -1 }],
+  },
 };

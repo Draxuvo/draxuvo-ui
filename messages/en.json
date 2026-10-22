@@ -917,12 +917,17 @@
       "orders": "Orders",
       "billed": "Billed in orders",
       "attendance": "Attendance records",
-    "collectedHint": "{count, plural, one {# ticket paid in the period} other {# tickets paid in the period}}",
-    "pendingHint": "{count, plural, one {# ticket created in the period and not yet paid} other {# tickets created in the period and not yet paid}}",
-    "expensesHint": "Active payroll plus inventory entries",
+      "collectedHint": "{count, plural, one {# ticket paid in the period} other {# tickets paid in the period}}",
+      "pendingHint": "{count, plural, one {# ticket created in the period and not yet paid} other {# tickets created in the period and not yet paid}}",
+      "expensesHint": "Active payroll plus inventory entries",
       "incomeChart": "Collected and pending",
       "ordersChart": "Orders by status",
-      "expensesChart": "Expenses: payroll and inventory"
+      "expensesChart": "Expenses: payroll and inventory",
+      "spent": "Expenses for the period",
+      "inventoryValue": "Inventory value",
+      "inventoryHint": "{count, plural, one {# counted product, at cost} other {# counted products, at cost}}",
+      "lowStock": "Below minimum",
+      "lowStockHint": "Products at or below their minimum"
     },
     "income": {
       "title": "Income",
@@ -972,6 +977,30 @@
       "noTerminal": "No terminal",
       "noCard": "No card payments in the range",
       "count": "{count, plural, one {# payment} other {# payments}}"
+    },
+    "tabInventory": "Inventory",
+    "inventory": {
+      "title": "Inventory",
+      "today": "Today's stock; it does not change with the period",
+      "value": "Value at cost",
+      "products": "Counted products",
+      "lowStock": "Below minimum",
+      "withoutCost": "{count, plural, one {# product without cost is not in the value} other {# products without cost are not in the value}}",
+      "lowStockTitle": "Products below minimum",
+      "lowStockTable": "below-minimum",
+      "lowStockEmpty": "No product is at or below its minimum",
+      "movementsTitle": "Movements in the period",
+      "movementsTable": "inventory-movements",
+      "movementsEmpty": "There were no movements in this period",
+      "truncated": "Showing the 200 products with the most movement.",
+      "colProduct": "Product",
+      "colSku": "SKU",
+      "colUnit": "Unit",
+      "colStock": "Stock",
+      "colMin": "Minimum",
+      "colEntries": "Entries",
+      "colExits": "Exits",
+      "colAdjustments": "Adjustments"
     }
   },
   "cuentas": {
@@ -1676,7 +1705,11 @@
     "nameRequired": "Enter a name",
     "station": {
       "summary": "Station summary",
-      "kind": {"kitchen": "Kitchen", "bar": "Bar", "other": "Station"},
+      "kind": {
+        "kitchen": "Kitchen",
+        "bar": "Bar",
+        "other": "Station"
+      },
       "empty": "No orders",
       "emptyHint": "New orders show up here on their own.",
       "loadError": "Could not refresh. Retrying…",

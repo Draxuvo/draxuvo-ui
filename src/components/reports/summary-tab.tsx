@@ -31,23 +31,25 @@ export function SummaryTab({ period, companyId }: TabProps) {
   const money = (v: number) => formatCurrency(v, locale);
   const previous = compare ? s?.previous : undefined;
 
-  const statuses = Object.entries(s?.work_orders.by_status ?? {}).map(([key, value]) => ({
+  const statuses = Object.entries(s?.work_orders?.by_status ?? {}).map(([key, value]) => ({
     key,
     label: tOrders(`statuses.${key}`),
     value,
   }));
   const expenseSlices = [
-    { id: "payroll", label: t("expenses.payroll"), value: s?.expenses.payroll ?? 0, color: colors[REPORT_COLORS.payroll] },
-    { id: "inventory", label: t("expenses.inventory"), value: s?.expenses.inventory_cost ?? 0, color: colors[REPORT_COLORS.inventory] },
+    { id: "payroll", label: t("expenses.payroll"), value: s?.expenses?.payroll ?? 0, color: colors[REPORT_COLORS.payroll] },
+    { id: "inventory", label: t("expenses.inventory"), value: s?.expenses?.inventory_cost ?? 0, color: colors[REPORT_COLORS.inventory] },
   ].filter((x) => x.value > 0);
 
+  // Solo cuentan los bloques que el plan incluye: sin ellos no hay ceros que decidan si está vacío.
   const isEmpty =
     !!s &&
-    s.income.total_revenue === 0 &&
-    s.income.pending_revenue === 0 &&
-    s.work_orders.total === 0 &&
-    s.expenses.total === 0 &&
-    s.attendance.total === 0;
+    (s.income?.total_revenue ?? 0) === 0 &&
+    (s.income?.pending_revenue ?? 0) === 0 &&
+    (s.work_orders?.total ?? 0) === 0 &&
+    (s.expenses?.total ?? 0) === 0 &&
+    (s.attendance?.total ?? 0) === 0 &&
+    (s.inventory?.counted_products ?? 0) === 0;
 
   return (
     <ReportState
@@ -61,28 +63,51 @@ export function SummaryTab({ period, companyId }: TabProps) {
     >
       {s && (
         <>
-          <StatTile hero label={t("summary.collected")} value={money(s.income.total_revenue)}>
-            <p>{t("summary.collectedHint", { count: s.income.tickets_paid })}</p>
-            {previous && <DeltaBadge value={variation(s.income.total_revenue, previous.income.total_revenue, "up")} className="mt-1" />}
-          </StatTile>
+          {s.income ? (
+            <StatTile hero label={t("summary.collected")} value={money(s.income.total_revenue)}>
+              <p>{t("summary.collectedHint", { count: s.income.tickets_paid })}</p>
+              {previous?.income && <DeltaBadge value={variation(s.income.total_revenue, previous.income.total_revenue, "up")} className="mt-1" />}
+            </StatTile>
+          ) : (
+            s.expenses && (
+              <StatTile hero label={t("summary.spent")} value={money(s.expenses.total)}>
+                <p>{t("summary.expensesHint")}</p>
+                {previous?.expenses && <DeltaBadge value={variation(s.expenses.total, previous.expenses.total, "down")} className="mt-1" />}
+              </StatTile>
+            )
+          )}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatTile label={t("summary.pending")} value={money(s.income.pending_revenue)}>
-              {t("summary.pendingHint", { count: s.income.tickets_pending })}
-            </StatTile>
-            <StatTile label={t("summary.expenses")} value={money(s.expenses.total)}>
-              <p>{t("summary.expensesHint")}</p>
-              {previous && <DeltaBadge value={variation(s.expenses.total, previous.expenses.total, "down")} className="mt-1" />}
-            </StatTile>
-            {modules.workOrders && (
-              <StatTile label={t("summary.orders")} value={s.work_orders.total} className={modules.attendance ? undefined : "sm:col-span-2"}>
+            {s.income && (
+              <StatTile label={t("summary.pending")} value={money(s.income.pending_revenue)}>
+                {t("summary.pendingHint", { count: s.income.tickets_pending })}
+              </StatTile>
+            )}
+            {s.income && s.expenses && (
+              <StatTile label={t("summary.expenses")} value={money(s.expenses.total)}>
+                <p>{t("summary.expensesHint")}</p>
+                {previous?.expenses && <DeltaBadge value={variation(s.expenses.total, previous.expenses.total, "down")} className="mt-1" />}
+              </StatTile>
+            )}
+            {s.inventory && (
+              <>
+                <StatTile label={t("summary.inventoryValue")} value={money(s.inventory.value)}>
+                  {t("summary.inventoryHint", { count: s.inventory.counted_products })}
+                </StatTile>
+                <StatTile label={t("summary.lowStock")} value={s.inventory.low_stock}>
+                  {t("summary.lowStockHint")}
+                </StatTile>
+              </>
+            )}
+            {modules.workOrders && s.work_orders && (
+              <StatTile label={t("summary.orders")} value={s.work_orders.total}>
                 {t("summary.billed")}: {money(s.work_orders.total_billed)}
               </StatTile>
             )}
-            {modules.attendance && <StatTile label={t("summary.attendance")} value={s.attendance.total} />}
+            {modules.attendance && s.attendance && <StatTile label={t("summary.attendance")} value={s.attendance.total} />}
           </div>
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            {modules.workOrders && s.work_orders.total > 0 && (
+            {modules.workOrders && s.work_orders && s.work_orders.total > 0 && (
               <ChartFrame title={t("summary.ordersChart")} rows={statuses.map((x) => ({ label: x.label, value: String(x.value) }))} height={220}>
                 <BarsChart
                   data={statuses.map((x) => ({ status: x.label, key: x.key, value: x.value }))}

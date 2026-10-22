@@ -82,7 +82,7 @@ describe("exportar a CSV", () => {
 
   it("con la tabla vacía el botón está deshabilitado", async () => {
     api.income.mockResolvedValue({ ...INCOME, breakdown: [], by_period: [], total_tickets: 0, total_revenue: 0 });
-    api.expenses.mockResolvedValue({ ...EXPENSES, payroll: { ...EXPENSES.payroll, employees: [] }, inventory_cost: { ...EXPENSES.inventory_cost, movements: [], by_period: [] } });
+    api.expenses.mockResolvedValue({ ...EXPENSES, payroll: { total: 0, headcount: 0, employees: [] }, inventory_cost: { total: 0, movements: [], by_period: [] } });
     await open("Gastos");
     await screen.findByText("No hay datos en este periodo");
     expect(screen.queryByRole("button", { name: /Exportar CSV/ })).not.toBeInTheDocument();

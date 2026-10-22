@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api";
-import type { ReportSummary, IncomeReport, ExpensesReport, PayrollReport } from "@/types";
+import type { ReportSummary, IncomeReport, ExpensesReport, InventoryReport, PayrollReport } from "@/types";
 
 export type GroupBy = "day" | "week" | "month" | "year";
 
@@ -30,6 +30,9 @@ export const reportsService = {
     apiClient
       .get("/api/v1/reports/expenses", { params: { ...range, group_by }, ...companyHeaders(companyId) })
       .then((r) => r.data),
+
+  inventory: (range: DateRange, companyId?: number): Promise<InventoryReport> =>
+    apiClient.get("/api/v1/reports/inventory", { params: range, ...companyHeaders(companyId) }).then((r) => r.data),
 
   payroll: (range: DateRange, companyId?: number): Promise<PayrollReport> =>
     apiClient.get("/api/v1/reports/payroll", { params: range, ...companyHeaders(companyId) }).then((r) => r.data),
