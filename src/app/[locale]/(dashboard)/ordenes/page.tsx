@@ -88,15 +88,18 @@ function OrderRow({ order, showPriority }: { order: WorkOrder; showPriority: boo
 }
 
 function Group({
-  title, count, extra, filters, showPriority, enabled,
+  title, count, extra, filters, showPriority, enabled, hideEmpty = false,
 }: {
   title: string; count: number | undefined; extra?: string; filters: WorkOrderFilters; showPriority: boolean; enabled: boolean;
+  /** En un restaurante los grupos vacíos de órdenes de trabajo no estorban (spec 032). */
+  hideEmpty?: boolean;
 }) {
   const t = useTranslations("workOrders");
   const [expanded, setExpanded] = useState(false);
   const { data, isLoading } = useWorkOrders(filters, { page_size: expanded ? PAGE_SIZE : GROUP_SIZE }, { enabled });
   const orders = data?.results ?? [];
   const total = data?.info?.total ?? count ?? 0;
+  if (hideEmpty && count === 0) return null;
 
   return (
     <section aria-label={title} className="space-y-2">
@@ -128,6 +131,7 @@ function Group({
 
 function OrdenesContent() {
   const t = useTranslations("workOrders");
+  const tq = useTranslations("cuentas");
   const tc = useTranslations("common");
   const tf = useTranslations("common.filters");
   const locale = useLocale();
@@ -147,6 +151,9 @@ function OrdenesContent() {
   const { mode: screen } = useScreenMode();
   // Con mesas, todas las cuentas abiertas de la empresa se ven aquí (spec 020).
   const openChecks = useOpenChecks("all");
+  const restaurant = screen === "restaurant";
+  const toPayChecks = openChecks.filter((check) => check.state === "to_pay");
+  const openOnlyChecks = openChecks.filter((check) => check.state !== "to_pay");
   const newOrder = () => (screen !== "none" ? router.push("/pedido") : setFormOpen(true));
   const [modeOpen, setModeOpen] = useState(false);
 
@@ -198,9 +205,13 @@ function OrdenesContent() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl leading-tight font-semibold">{t("title")}</h1>
+          <h1 className="font-display text-3xl leading-tight font-semibold">{restaurant ? tq("title") : t("title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {flat && isFiltered ? tf("results", { count: data?.info?.total ?? 0 }) : t("subtitle", { count: summaryTotal(counts) })}
+            {flat && isFiltered
+              ? tf("results", { count: data?.info?.total ?? 0 })
+              : restaurant
+                ? tq("subtitle", { open: openOnlyChecks.length, toPay: toPayChecks.length })
+                : t("subtitle", { count: summaryTotal(counts) })}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -215,12 +226,20 @@ function OrdenesContent() {
           )}
           <Button className="h-10 gap-2" onClick={newOrder}>
             <Plus size={15} aria-hidden="true" />
-            {t(`labels.${mode}.new`)}
+            {restaurant ? tq("new") : t(`labels.${mode}.new`)}
           </Button>
         </div>
       </div>
 
-      <OpenChecks checks={openChecks} from="ordenes" />
+      {restaurant ? (
+        <>
+          <OpenChecks checks={toPayChecks} from="ordenes" title={tq("toPay")} id="checks-to-pay-title" />
+          <OpenChecks checks={openOnlyChecks} from="ordenes" title={tq("open")} id="checks-open-title" />
+          {openChecks.length === 0 && !flat && <p className="text-sm text-muted-foreground">{tq("empty")}</p>}
+        </>
+      ) : (
+        <OpenChecks checks={openChecks} from="ordenes" />
+      )}
 
       <div role="group" aria-label={t("filters.status")} className="flex flex-wrap gap-2">
         {statusChips.map((s) => (
@@ -284,12 +303,17 @@ function OrdenesContent() {
         </div>
       ) : (
         <div className="space-y-8">
-          <Group title={t("groups.toCharge")} count={counts?.done} extra={summary ? t("groups.toChargeTotal", { amount: money.format(summary.to_charge_total) }) : undefined}
+          {restaurant && summaryTotal(counts) - (counts?.paid_today ?? 0) > 0 && (
+            <p className="border-t border-border pt-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">{tq("walkIns")}</p>
+          )}
+          <Group title={t("groups.toCharge")} count={counts?.done} hideEmpty={restaurant} extra={summary ? t("groups.toChargeTotal", { amount: money.format(summary.to_charge_total) }) : undefined}
                  filters={{ status: "done" }} showPriority={showPriority} enabled={gate.enabled} />
-          <Group title={t("groups.open")} count={counts?.open} filters={{ status: "open" }} showPriority={showPriority} enabled={gate.enabled} />
-          <Group title={t("groups.inProgress")} count={counts?.in_progress} filters={{ status: "in_progress" }} showPriority={showPriority} enabled={gate.enabled} />
-          <Group title={t("groups.unassigned")} count={counts?.unassigned} filters={{ unassigned: true }} showPriority={showPriority} enabled={gate.enabled} />
-          <Group title={t("groups.paidToday")} count={counts?.paid_today} filters={{ status: "paid", paid_on: today }} showPriority={showPriority} enabled={gate.enabled} />
+          <Group title={t("groups.open")} count={counts?.open} hideEmpty={restaurant} filters={{ status: "open" }} showPriority={showPriority} enabled={gate.enabled} />
+          <Group title={t("groups.inProgress")} count={counts?.in_progress} hideEmpty={restaurant} filters={{ status: "in_progress" }} showPriority={showPriority} enabled={gate.enabled} />
+          {!restaurant && (
+            <Group title={t("groups.unassigned")} count={counts?.unassigned} filters={{ unassigned: true }} showPriority={showPriority} enabled={gate.enabled} />
+          )}
+          <Group title={restaurant ? tq("paidToday") : t("groups.paidToday")} count={counts?.paid_today} filters={{ status: "paid", paid_on: today }} showPriority={showPriority} enabled={gate.enabled} />
         </div>
       )}
 

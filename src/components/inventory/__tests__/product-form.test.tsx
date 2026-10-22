@@ -31,9 +31,9 @@ beforeEach(() => {
   vi.mocked(productTypesService.list).mockResolvedValue(TYPES);
   vi.mocked(productTypesService.units).mockResolvedValue([{ key: "pza", name: "Pieza" }, { key: "kg", name: "Kilogramo" }]);
   vi.mocked(restaurantService.stations).mockResolvedValue([
-    { id: 1, name: "Cocina", is_default: true, active: true, position: 1 },
-    { id: 2, name: "Barra", is_default: false, active: true, position: 2 },
-    { id: 3, name: "Vieja", is_default: false, active: false, position: 3 },
+    { id: 1, name: "Cocina", kind: "kitchen", is_default: true, active: true, position: 1 },
+    { id: 2, name: "Barra", kind: "bar", is_default: false, active: true, position: 2 },
+    { id: 3, name: "Vieja", kind: "kitchen", is_default: false, active: false, position: 3 },
   ]);
 });
 

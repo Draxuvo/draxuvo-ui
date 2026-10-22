@@ -2,7 +2,7 @@
 // La orden de la mesa elegida: renglones con + y −, nota, total fijo y las acciones que la API permite.
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { DoorOpen, Minus, Plus, StickyNote, Trash2 } from "lucide-react";
+import { ConciergeBell, DoorOpen, Minus, Plus, StickyNote, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ProductGlyph } from "@/components/product-icon";
@@ -45,9 +45,13 @@ export function OrderPanel({
 
   if (!current) {
     return (
-      <p className="text-sm text-muted-foreground">
-        {loading ? "…" : missing ? t("orderGone") : t("pickTable")}
-      </p>
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 py-10 text-center text-muted-foreground">
+        {!loading && <ConciergeBell aria-hidden className="size-12" />}
+        <p className={loading ? "text-sm" : "font-display text-lg font-extrabold text-foreground"}>
+          {loading ? "…" : missing ? t("orderGone") : t("pickTable")}
+        </p>
+        {!loading && !missing && <p className="max-w-[26ch] text-sm">{t("pickTableHint")}</p>}
+      </div>
     );
   }
 
@@ -134,7 +138,12 @@ export function OrderPanel({
         )}
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto">
-        {!live.length && <p className="py-3 text-sm text-muted-foreground">{t("orderEmpty")}</p>}
+        {!live.length && (
+          <div className="flex h-full min-h-40 flex-col items-center justify-center gap-2 py-6 text-center text-muted-foreground">
+            <Plus aria-hidden className="size-8" />
+            <p className="text-sm">{t("orderEmpty")}</p>
+          </div>
+        )}
         {draft.length > 0 && (
           <section aria-label={t("draftSection")}>
             {sent.length > 0 && (

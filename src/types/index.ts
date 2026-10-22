@@ -125,6 +125,8 @@ export interface MyAttendance {
 // Tipos de producto de la empresa (spec 016): sus reglas deciden menú, existencia y decimales.
 export interface ProductTypeRules {
   sellable: boolean;
+  /** Aparece en el menú del servicio (Tomar pedido); solo aplica a los tipos que se venden (spec 032). */
+  in_menu?: boolean;
   counted: boolean;
   fractional: boolean;
 }
@@ -637,19 +639,26 @@ export const ATTENDANCE_TYPES: readonly AttendanceType[] = ["normal", "late", "a
 export type ItemStatus = "draft" | "new" | "preparing" | "ready" | "delivered" | "cancelled";
 export type CheckStatus = "open" | "closed" | "cancelled";
 
+export type StationKind = "kitchen" | "bar" | "other";
+
 export interface Station {
   id: number;
   name: string;
+  kind: StationKind;
   is_default: boolean;
   active: boolean;
   position: number;
 }
+
+/** Estado de la mesa que calcula la API a partir de su cuenta abierta (spec 032). */
+export type TableState = "free" | "occupied" | "to_pay";
 
 export interface DiningTable {
   id: number;
   name: string;
   active: boolean;
   position: number;
+  state?: TableState;
 }
 
 export interface CheckItem {
@@ -747,9 +756,10 @@ export interface ItemCounts {
 
 export interface CheckSummary {
   id: number;
-  waiter: PersonRef | null;
+  /** Mesero y total solo llegan de las cuentas propias o a quien es jefe (spec 032, FR-019b). */
+  waiter?: PersonRef | null;
   opened_at: string;
-  total: string;
+  total?: string;
   counts: ItemCounts;
   mine: boolean;
 }
@@ -785,11 +795,20 @@ export interface ReadyItem {
   ready_at: string;
 }
 
+/** Resumen vivo del servicio; solo lo recibe dueño, administrador y gerente. */
+export interface ServiceOverview {
+  open_checks: number;
+  to_pay_total: string;
+  pending_comandas: number;
+  oldest_open_minutes: number | null;
+}
+
 export interface TablesResponse {
   results: TableSummary[];
   takeouts: TakeoutSummary[];
   ready_items: ReadyItem[];
   stock_alerts?: number;
+  overview?: ServiceOverview;
 }
 
 export interface BoardItem {
@@ -811,7 +830,7 @@ export interface BoardOrder {
 }
 
 export interface StationBoard {
-  station: { id: number; name: string };
+  station: { id: number; name: string; kind?: StationKind };
   server_time: string;
   orders: BoardOrder[];
 }

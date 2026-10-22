@@ -8,10 +8,20 @@ async function openFreeTable(page: Page): Promise<string> {
   await page.goto("/es/pedido");
   const free = page.getByRole("button", { name: /, Libre$/ }).first();
   await expect(free).toBeVisible();
-  const name = ((await free.getAttribute("aria-label")) ?? "").replace(/, Libre$/, "");
+  const name = tableNameOf(await free.getAttribute("aria-label"));
   await free.click();
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
   return name;
+}
+
+/** El aria-label de una pieza del plano es "Mesa 3, Libre": el nombre de la mesa es lo que va entre medio. */
+function tableNameOf(label: string | null): string {
+  return (label ?? "").replace(/, Libre$/, "").replace(/^Mesa /, "");
+}
+
+/** Pieza del plano de una mesa en un estado, p. ej. `tile(page, "3", "Libre")`. */
+function tile(page: Page, tableName: string, state: string) {
+  return page.getByRole("button", { name: new RegExp(`^Mesa ${tableName}, ${state}`) });
 }
 
 const tk = (key: string, values?: Record<string, string | number>) => t(`takeOrder.${key}`, values);
@@ -30,7 +40,7 @@ test.describe("Sazón (mesas)", () => {
     // Plano: una mesa libre con su estado en texto. Al tocarla se abre su cuenta en la misma pantalla.
     const free = page.getByRole("button", { name: /, Libre$/ }).first();
     await expect(free).toBeVisible();
-    const tableName = ((await free.getAttribute("aria-label")) ?? "").replace(/, Libre$/, "");
+    const tableName = tableNameOf(await free.getAttribute("aria-label"));
     await free.click();
     await expect(page.getByRole("heading", { name: tableName, exact: true })).toBeVisible();
     await expect(page.getByText(tk("orderEmpty"))).toBeVisible();
@@ -64,22 +74,22 @@ test.describe("Sazón (mesas)", () => {
     await dialog.getByRole("button", { name: tk("pay.close") }).click();
 
     // La mesa quedó libre de nuevo.
-    await expect(page.getByRole("button", { name: `${tableName}, ${tk("free")}` })).toBeVisible();
+    await expect(tile(page, tableName, tk("free"))).toBeVisible();
   });
 
   test("[PED-004] una mesa abierta por error se libera sin ordenar nada @pr", async ({ page }) => {
     await page.goto("/es/pedido");
     const free = page.getByRole("button", { name: /, Libre$/ }).first();
     await expect(free).toBeVisible();
-    const tableName = ((await free.getAttribute("aria-label")) ?? "").replace(/, Libre$/, "");
+    const tableName = tableNameOf(await free.getAttribute("aria-label"));
 
     await free.click();
-    await expect(page.getByRole("button", { name: `${tableName}, ${tk("occupied")}`, exact: false })).toBeVisible();
+    await expect(tile(page, tableName, tk("occupied"))).toBeVisible();
     await page.getByRole("button", { name: tk("release") }).click();
 
     // Sin productos no pide confirmar: la mesa vuelve a estar libre.
-    await expect(page.getByRole("button", { name: `${tableName}, ${tk("free")}` })).toBeVisible();
-    await expect(page.getByText(tk("pickTable"))).toBeVisible();
+    await expect(tile(page, tableName, tk("free"))).toBeVisible();
+    await expect(page.getByText(tk("pickTable"), { exact: true })).toBeVisible();
   });
 
   test("[PED-005] las cuentas abiertas se ven en Órdenes (todas) y en Mis órdenes (las del operador) @pr", async ({ page, browser }) => {
@@ -108,7 +118,7 @@ test.describe("Sazón (mesas)", () => {
     // Limpia la mesa del operador para no dejar cuentas abiertas.
     await staff.getByRole("link", { name: tk("openChecksOpen", { name: staffTable }) }).click();
     await staff.getByRole("button", { name: tk("release") }).click();
-    await expect(staff.getByRole("button", { name: `${staffTable}, ${tk("free")}` })).toBeVisible();
+    await expect(tile(staff, staffTable, tk("free"))).toBeVisible();
     await staffContext.close();
   });
 
@@ -140,7 +150,7 @@ test.describe("Sazón (mesas)", () => {
       await tabs.getByRole("button", { name: tk("menu") }).click();
       await expect(page.getByLabel(tk("search"))).toBeVisible();
       await tabs.getByRole("button", { name: tk("order") }).click();
-      await expect(page.getByText(tk("pickTable"))).toBeVisible();
+      await expect(page.getByText(tk("pickTable"), { exact: true })).toBeVisible();
     });
   });
 });

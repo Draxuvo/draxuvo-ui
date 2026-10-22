@@ -54,6 +54,7 @@ export function SoundToggle({ enabled, onToggle }: { enabled: boolean; onToggle:
       size="lg"
       onClick={onToggle}
       aria-pressed={enabled}
+      title={enabled ? undefined : t("waitingSound")}
       className="min-h-12 gap-2"
     >
       {enabled ? <Volume2 aria-hidden className="size-5" /> : <VolumeX aria-hidden className="size-5" />}

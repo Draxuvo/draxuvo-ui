@@ -1,13 +1,14 @@
 // src/services/restaurant.ts
 import { apiClient } from "@/lib/api";
 import type {
-  Check, DiningTable, PaymentMethod, PaymentResponse, RoundResponse, Station, StationBoard, StockAlert, TablesResponse,
+  Check, DiningTable, PaymentMethod, PaymentResponse, RoundResponse, Station, StationBoard, StationKind, StockAlert, TablesResponse,
 } from "@/types";
 
 const base = "/api/v1/restaurant";
 
 export interface StationPayload {
   name: string;
+  kind?: StationKind;
   is_default?: boolean;
   active?: boolean;
   position?: number;

@@ -74,7 +74,7 @@ describe("TakeOrderScreen (modo mesas)", () => {
     );
     renderWithProviders(<TakeOrderScreen />);
 
-    await userEvent.click(await screen.findByRole("button", { name: /^4, Libre/ }));
+    await userEvent.click(await screen.findByRole("button", { name: /^Mesa 4, Libre/ }));
     expect(restaurantService.openCheck).toHaveBeenCalledWith({ dining_table_id: 1 });
 
     await userEvent.click(await screen.findByRole("button", { name: /Tostada/ }));
@@ -83,7 +83,7 @@ describe("TakeOrderScreen (modo mesas)", () => {
 
   it("muestra las mesas ocupadas con su total", async () => {
     renderWithProviders(<TakeOrderScreen />);
-    expect(await screen.findByRole("button", { name: /^5, Ocupada, .*90/ })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /^Mesa 5, Ocupada, .*90/ })).toBeInTheDocument();
   });
 });
 
@@ -94,7 +94,7 @@ describe("TakeOrderScreen (liberar mesa)", () => {
     vi.mocked(restaurantService.openCheck).mockResolvedValue(empty);
     vi.mocked(restaurantService.getCheck).mockResolvedValue(empty);
     renderWithProviders(<TakeOrderScreen />);
-    await userEvent.click(await screen.findByRole("button", { name: /^4, Libre/ }));
+    await userEvent.click(await screen.findByRole("button", { name: /^Mesa 4, Libre/ }));
   }
 
   it("libera una mesa abierta sin productos de una vez, sin confirmar", async () => {
@@ -118,7 +118,7 @@ describe("TakeOrderScreen (liberar mesa)", () => {
     vi.mocked(restaurantService.getCheck).mockResolvedValue(withDraft);
     vi.mocked(restaurantService.cancelCheck).mockResolvedValue(check({ status: "cancelled" }));
     renderWithProviders(<TakeOrderScreen />);
-    await userEvent.click(await screen.findByRole("button", { name: /^4, Libre/ }));
+    await userEvent.click(await screen.findByRole("button", { name: /^Mesa 4, Libre/ }));
 
     await userEvent.click(await screen.findByRole("button", { name: "Liberar mesa" }));
     expect(await screen.findByText("¿Liberar esta mesa?")).toBeInTheDocument();
@@ -132,7 +132,7 @@ describe("TakeOrderScreen (liberar mesa)", () => {
     vi.mocked(restaurantService.openCheck).mockResolvedValue(check());
     vi.mocked(restaurantService.getCheck).mockResolvedValue(check());
     renderWithProviders(<TakeOrderScreen />);
-    await userEvent.click(await screen.findByRole("button", { name: /^4, Libre/ }));
+    await userEvent.click(await screen.findByRole("button", { name: /^Mesa 4, Libre/ }));
 
     await screen.findByText("Toca un producto del menú para agregarlo.");
     expect(screen.queryByRole("button", { name: "Liberar mesa" })).not.toBeInTheDocument();
@@ -161,7 +161,7 @@ describe("TakeOrderScreen (abrir una cuenta desde la lista)", () => {
     search = "cuenta=abc";
     renderWithProviders(<TakeOrderScreen />);
 
-    await screen.findByRole("button", { name: /^4, Libre/ });
+    await screen.findByRole("button", { name: /^Mesa 4, Libre/ });
     expect(restaurantService.getCheck).not.toHaveBeenCalled();
   });
 

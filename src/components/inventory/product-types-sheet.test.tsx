@@ -2,6 +2,7 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
+import { useAuthStore } from "@/store/auth";
 import type { ProductType } from "@/types";
 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
@@ -17,8 +18,12 @@ const type = (id: number, name: string, sellable: boolean, counted: boolean, pro
   default_unit: { key: "pza", name: "Pieza" },
 });
 
+const asCompany = (orderMode: "order" | "service") =>
+  useAuthStore.setState({ selectedCompanyId: 1, user: { companies: [{ id: 1, order_mode: orderMode }] } } as never);
+
 beforeEach(() => {
   vi.clearAllMocks();
+  useAuthStore.setState({ selectedCompanyId: null, user: null } as never);
   vi.mocked(productTypesService.list).mockResolvedValue([type(1, "Platillo", true, false, 35), type(2, "Bebida", true, true, 0)]);
   vi.mocked(productTypesService.units).mockResolvedValue([{ key: "pza", name: "Pieza" }, { key: "kg", name: "Kilogramo" }]);
   vi.mocked(productTypesService.create).mockResolvedValue(type(3, "Postre", true, true, 0));
@@ -61,5 +66,41 @@ describe("tipos de producto (spec 016)", () => {
     expect(await screen.findByText("Platillo")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Nuevo tipo" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Editar Platillo" })).not.toBeInTheDocument();
+  });
+
+  it("en un restaurante el tipo puede salir del menú sin dejar de venderse (spec 032)", async () => {
+    asCompany("order");
+    vi.mocked(productTypesService.list).mockResolvedValue([{ ...type(1, "Abarrotes", true, true, 12), in_menu: false }]);
+    vi.mocked(productTypesService.update).mockResolvedValue(type(1, "Abarrotes", true, true, 12));
+    renderWithProviders(<ProductTypesSheet open onOpenChange={() => {}} canManage />);
+    const user = userEvent.setup();
+
+    expect(await screen.findByText(/Fuera del menú/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Editar Abarrotes" }));
+    const menu = await screen.findByRole("switch", { name: "Aparece en el menú del restaurante" });
+    expect(menu).not.toBeChecked();
+    await user.click(menu);
+    await user.click(screen.getByRole("button", { name: "Guardar cambios" }));
+
+    await waitFor(() =>
+      expect(productTypesService.update).toHaveBeenCalledWith(1, expect.objectContaining({ sellable: true, in_menu: true })),
+    );
+  });
+
+  it("un tipo que no se vende no ofrece el interruptor del menú, y en servicio tampoco", async () => {
+    asCompany("order");
+    renderWithProviders(<ProductTypesSheet open onOpenChange={() => {}} canManage />);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Nuevo tipo" }));
+    expect(screen.getByRole("switch", { name: "Aparece en el menú del restaurante" })).toBeInTheDocument();
+    await user.click(screen.getByRole("switch", { name: "Se vende" }));
+    expect(screen.queryByRole("switch", { name: "Aparece en el menú del restaurante" })).not.toBeInTheDocument();
+  });
+
+  it("en un negocio de servicio no existe la regla del menú", async () => {
+    asCompany("service");
+    renderWithProviders(<ProductTypesSheet open onOpenChange={() => {}} canManage />);
+    await userEvent.setup().click(await screen.findByRole("button", { name: "Nuevo tipo" }));
+    expect(screen.queryByRole("switch", { name: "Aparece en el menú del restaurante" })).not.toBeInTheDocument();
   });
 });

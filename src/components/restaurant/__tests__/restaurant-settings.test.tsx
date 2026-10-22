@@ -6,6 +6,8 @@ import { useAuthStore } from "@/store/auth";
 import type { DiningTable, Station } from "@/types";
 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+const push = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace: vi.fn() }) }));
 vi.mock("@/services/restaurant", () => ({
   restaurantService: {
     stations: vi.fn(),
@@ -15,6 +17,7 @@ vi.mock("@/services/restaurant", () => ({
     tables: vi.fn(),
     createTable: vi.fn(),
     updateTable: vi.fn(),
+    openCheck: vi.fn(),
     stockAlerts: vi.fn(),
   },
 }));
@@ -28,7 +31,7 @@ import { restaurantService } from "@/services/restaurant";
 import RestaurantePage from "@/app/[locale]/(dashboard)/restaurante/page";
 
 const station = (id: number, name: string, extra: Partial<Station> = {}): Station => ({
-  id, name, is_default: false, active: true, position: id, ...extra,
+  id, name, kind: "kitchen", is_default: false, active: true, position: id, ...extra,
 });
 const table = (id: number, name: string, active = true): DiningTable => ({ id, name, active, position: id });
 
@@ -44,8 +47,13 @@ beforeEach(() => {
   vi.mocked(restaurantService.updateStation).mockResolvedValue(station(2, "Barra"));
 });
 
+/** Abre la pestaña Configuración (el dueño y el administrador la tienen). */
+async function openSettings(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(await screen.findByRole("tab", { name: "Configuración" }));
+}
+
 describe("configuración del restaurante", () => {
-  beforeEach(() => useAuthStore.setState({ selectedCompanyId: 1, role: "manager" } as never));
+  beforeEach(() => useAuthStore.setState({ selectedCompanyId: 1, role: "owner" } as never));
 
   it("ofrece Tomar pedido con mesas activas y lo lleva con el origen", async () => {
     renderWithProviders(<RestaurantePage />);
@@ -58,16 +66,18 @@ describe("configuración del restaurante", () => {
     vi.mocked(restaurantService.overview).mockResolvedValue({ results: [], takeouts: [], ready_items: [] });
     renderWithProviders(<RestaurantePage />);
 
-    expect(await screen.findByText("Cocina")).toBeInTheDocument();
+    expect(await screen.findByText("Aún no hay mesas")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Tomar pedido" })).not.toBeInTheDocument();
   });
 
   it("lista las estaciones con su insignia y el enlace a su pantalla", async () => {
     renderWithProviders(<RestaurantePage />);
+    await openSettings(userEvent.setup());
 
-    expect(await screen.findByText("Cocina")).toBeInTheDocument();
+    expect(await screen.findByText("Cocina", { selector: "p" })).toBeInTheDocument();
     expect(screen.getByText("Predeterminada")).toBeInTheDocument();
-    expect(screen.getByText("Inactiva")).toBeInTheDocument();
+    expect(screen.getAllByText("Inactiva").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Cocina").length).toBeGreaterThan(1);
     const links = screen.getAllByRole("link", { name: /Abrir pantalla/ });
     expect(links).toHaveLength(1);
     expect(links[0]).toHaveAttribute("href", "/es/estacion/1");
@@ -75,27 +85,31 @@ describe("configuración del restaurante", () => {
 
   it("lista las mesas y marca las inactivas", async () => {
     renderWithProviders(<RestaurantePage />);
+    await openSettings(userEvent.setup());
 
     expect(await screen.findByRole("button", { name: "Editar mesa: 1" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Editar mesa: 2" })).toHaveClass("line-through");
+    expect(screen.getByText("2")).toHaveClass("line-through");
+    expect(screen.getByText("Inactiva", { selector: "span.shrink-0" })).toBeInTheDocument();
   });
 
   it("crea una estación", async () => {
     renderWithProviders(<RestaurantePage />);
     const user = userEvent.setup();
+    await openSettings(user);
 
     await user.click(await screen.findByRole("button", { name: "Nueva estación" }));
     await user.type(await screen.findByLabelText("Nombre"), "Parrilla");
     await user.click(screen.getByRole("button", { name: "Guardar" }));
 
     await waitFor(() =>
-      expect(restaurantService.createStation).toHaveBeenCalledWith({ name: "Parrilla", is_default: false, active: true }),
+      expect(restaurantService.createStation).toHaveBeenCalledWith({ name: "Parrilla", kind: "kitchen", is_default: false, active: true }),
     );
   });
 
   it("no guarda una estación sin nombre", async () => {
     renderWithProviders(<RestaurantePage />);
     const user = userEvent.setup();
+    await openSettings(user);
 
     await user.click(await screen.findByRole("button", { name: "Nueva estación" }));
     await user.click(await screen.findByRole("button", { name: "Guardar" }));
@@ -107,6 +121,7 @@ describe("configuración del restaurante", () => {
   it("edita una estación con sus datos actuales", async () => {
     renderWithProviders(<RestaurantePage />);
     const user = userEvent.setup();
+    await openSettings(user);
 
     await user.click(await screen.findByRole("button", { name: "Editar estación: Barra" }));
     const name = await screen.findByLabelText("Nombre");
@@ -116,13 +131,14 @@ describe("configuración del restaurante", () => {
     await user.click(screen.getByRole("button", { name: "Guardar" }));
 
     await waitFor(() =>
-      expect(restaurantService.updateStation).toHaveBeenCalledWith(2, { name: "Bar", is_default: false, active: false }),
+      expect(restaurantService.updateStation).toHaveBeenCalledWith(2, { name: "Bar", kind: "kitchen", is_default: false, active: false }),
     );
   });
 
   it("crea una mesa", async () => {
     renderWithProviders(<RestaurantePage />);
     const user = userEvent.setup();
+    await openSettings(user);
 
     await user.click(await screen.findByRole("button", { name: "Nueva mesa" }));
     await user.type(await screen.findByLabelText("Nombre o número"), "3");
@@ -137,6 +153,7 @@ describe("configuración del restaurante", () => {
       { id: 2, name: "Cola", stock: 2, min_stock: 3, sold_out: false },
     ]);
     renderWithProviders(<RestaurantePage />);
+    await openSettings(userEvent.setup());
 
     expect(await screen.findByText("Cerveza")).toBeInTheDocument();
     expect(screen.getByText("Agotado")).toBeInTheDocument();
@@ -146,8 +163,59 @@ describe("configuración del restaurante", () => {
 
   it("sin alertas lo dice", async () => {
     renderWithProviders(<RestaurantePage />);
+    await openSettings(userEvent.setup());
 
     expect(await screen.findByText("Sin alertas de existencias")).toBeInTheDocument();
+  });
+
+  it("el dueño ve las pestañas Servicio y Configuración; el gerente solo el servicio", async () => {
+    const { unmount } = renderWithProviders(<RestaurantePage />);
+    expect(await screen.findByRole("tab", { name: "Servicio" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: "Configuración" })).toBeInTheDocument();
+    unmount();
+
+    useAuthStore.setState({ role: "manager" } as never);
+    renderWithProviders(<RestaurantePage />);
+    expect(await screen.findByText("Plano del servicio")).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Configuración" })).not.toBeInTheDocument();
+  });
+
+  it("elige el tipo de estación al crearla", async () => {
+    renderWithProviders(<RestaurantePage />);
+    const user = userEvent.setup();
+
+    await openSettings(user);
+    await user.click(await screen.findByRole("button", { name: "Nueva estación" }));
+    await user.type(await screen.findByLabelText("Nombre"), "Bar");
+    await user.click(screen.getByRole("radio", { name: "Barra" }));
+    await user.click(screen.getByRole("button", { name: "Guardar" }));
+
+    await waitFor(() =>
+      expect(restaurantService.createStation).toHaveBeenCalledWith({ name: "Bar", kind: "bar", is_default: false, active: true }),
+    );
+  });
+
+  it("mover una mesa renumera solo las posiciones que cambian", async () => {
+    vi.mocked(restaurantService.tables).mockResolvedValue([table(1, "1"), table(2, "2")]);
+    vi.mocked(restaurantService.updateTable).mockResolvedValue(table(1, "1"));
+    renderWithProviders(<RestaurantePage />);
+    const user = userEvent.setup();
+
+    await openSettings(user);
+    await user.click(await screen.findByRole("button", { name: "Mover después: 1" }));
+
+    await waitFor(() => expect(restaurantService.updateTable).toHaveBeenCalledTimes(2));
+    expect(restaurantService.updateTable).toHaveBeenCalledWith(2, { position: 1 });
+    expect(restaurantService.updateTable).toHaveBeenCalledWith(1, { position: 2 });
+  });
+
+  it("sin mesas guía a crear la primera", async () => {
+    vi.mocked(restaurantService.tables).mockResolvedValue([]);
+    renderWithProviders(<RestaurantePage />);
+    const user = userEvent.setup();
+
+    await openSettings(user);
+    expect(await screen.findByText(/Agrega tu primera mesa/)).toBeInTheDocument();
   });
 
   it("si el plan no incluye el módulo muestra el bloqueo y no consulta nada", () => {

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import type { BoardItem, BoardOrder } from "@/types";
 
 /** Pasados estos minutos la comanda se marca como lenta. */
-const SLOW_AFTER_MINUTES = 10;
+export const SLOW_AFTER_MINUTES = 10;
 
 export function minutesSince(sentAt: string, now: number): number {
   return Math.max(0, Math.floor((now - new Date(sentAt).getTime()) / 60_000));
