@@ -917,12 +917,17 @@
       "orders": "Órdenes",
       "billed": "Facturado en órdenes",
       "attendance": "Asistencias registradas",
-    "collectedHint": "{count, plural, one {# ticket cobrado en el periodo} other {# tickets cobrados en el periodo}}",
-    "pendingHint": "{count, plural, one {# ticket creado en el periodo y sin cobrar} other {# tickets creados en el periodo y sin cobrar}}",
-    "expensesHint": "Nómina activa más entradas de inventario",
+      "collectedHint": "{count, plural, one {# ticket cobrado en el periodo} other {# tickets cobrados en el periodo}}",
+      "pendingHint": "{count, plural, one {# ticket creado en el periodo y sin cobrar} other {# tickets creados en el periodo y sin cobrar}}",
+      "expensesHint": "Nómina activa más entradas de inventario",
       "incomeChart": "Cobrado y por cobrar",
       "ordersChart": "Órdenes por estado",
-      "expensesChart": "Gastos: nómina e inventario"
+      "expensesChart": "Gastos: nómina e inventario",
+      "spent": "Gastos del periodo",
+      "inventoryValue": "Valor del inventario",
+      "inventoryHint": "{count, plural, one {# producto que se cuenta, a costo} other {# productos que se cuentan, a costo}}",
+      "lowStock": "Bajo el mínimo",
+      "lowStockHint": "Productos en el mínimo o debajo"
     },
     "income": {
       "title": "Ingresos",
@@ -972,6 +977,30 @@
       "noTerminal": "Sin terminal",
       "noCard": "Sin cobros con tarjeta en el rango",
       "count": "{count, plural, one {# pago} other {# pagos}}"
+    },
+    "tabInventory": "Inventario",
+    "inventory": {
+      "title": "Inventario",
+      "today": "Existencias de hoy; no cambian con el periodo",
+      "value": "Valor a costo",
+      "products": "Productos que se cuentan",
+      "lowStock": "Bajo el mínimo",
+      "withoutCost": "{count, plural, one {# producto sin costo no suma al valor} other {# productos sin costo no suman al valor}}",
+      "lowStockTitle": "Productos bajo el mínimo",
+      "lowStockTable": "bajo-minimo",
+      "lowStockEmpty": "Ningún producto está en el mínimo ni debajo",
+      "movementsTitle": "Movimientos del periodo",
+      "movementsTable": "movimientos-inventario",
+      "movementsEmpty": "No hubo movimientos en este periodo",
+      "truncated": "Se muestran los 200 productos con más movimiento.",
+      "colProduct": "Producto",
+      "colSku": "SKU",
+      "colUnit": "Unidad",
+      "colStock": "Existencia",
+      "colMin": "Mínimo",
+      "colEntries": "Entradas",
+      "colExits": "Salidas",
+      "colAdjustments": "Ajustes"
     }
   },
   "cuentas": {
@@ -1676,7 +1705,11 @@
     "nameRequired": "Escribe un nombre",
     "station": {
       "summary": "Resumen de la estación",
-      "kind": {"kitchen": "Cocina", "bar": "Barra", "other": "Estación"},
+      "kind": {
+        "kitchen": "Cocina",
+        "bar": "Barra",
+        "other": "Estación"
+      },
       "empty": "Sin comandas",
       "emptyHint": "Las comandas nuevas aparecen aquí solas.",
       "loadError": "No se pudo actualizar. Reintentando…",

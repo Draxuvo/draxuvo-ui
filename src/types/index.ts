@@ -458,15 +458,18 @@ export interface ReportRange {
 /** Contrato real de `GET /reports/summary` (specs/028-reportes-rediseno/contracts/reports-api.md). */
 export interface ReportSummary {
   period: ReportRange & { type: string };
-  income: { total_revenue: number; tickets_paid: number; pending_revenue: number; tickets_pending: number };
-  work_orders: { total: number; total_billed: number; by_status: Record<string, number> };
-  expenses: { payroll: number; inventory_cost: number; total: number };
-  attendance: { total: number; normal: number; late: number; absent: number };
-  /** Solo con `compare=true`: ingresos y gastos del periodo anterior de igual duración. */
+  /** Cada bloque viene solo si su módulo está activo en el plan de la empresa (spec 033). */
+  income?: { total_revenue: number; tickets_paid: number; pending_revenue: number; tickets_pending: number };
+  work_orders?: { total: number; total_billed: number; by_status: Record<string, number> };
+  expenses?: { payroll: number; inventory_cost: number; total: number };
+  attendance?: { total: number; normal: number; late: number; absent: number };
+  /** Foto de hoy del inventario (no depende del periodo). */
+  inventory?: { value: number; counted_products: number; low_stock: number };
+  /** Solo con `compare=true`: ingresos y gastos del periodo anterior de igual duración (los que existan). */
   previous?: {
     period: ReportRange;
-    income: { total_revenue: number; pending_revenue: number };
-    expenses: { payroll: number; inventory_cost: number; total: number };
+    income?: { total_revenue: number; pending_revenue: number };
+    expenses?: { payroll: number; inventory_cost: number; total: number };
   };
 }
 
@@ -492,12 +495,13 @@ export interface IncomeReport {
 export interface ExpensesReport {
   period: ReportRange;
   total_expenses: number;
-  payroll: {
+  /** `payroll` e `inventory_cost` vienen solo si su módulo está activo (spec 033). */
+  payroll?: {
     total: number;
     headcount: number;
     employees: Array<{ id: number; name: string; position: string | null; department: string | null; salary: number }>;
   };
-  inventory_cost: {
+  inventory_cost?: {
     total: number;
     by_period: Array<{ period: string; cost: number; count: number }>;
     movements: Array<{
@@ -510,6 +514,28 @@ export interface ExpensesReport {
       cost: number;
       note: string | null;
     }>;
+  };
+}
+
+/** Contrato de `GET /reports/inventory` (specs/033-reportes-plan-basico/contracts/reports-api.md). */
+export interface InventoryProductRef {
+  id: number;
+  name: string;
+  sku: string;
+  unit: string | null;
+}
+
+export interface InventoryReport {
+  period: ReportRange;
+  stock: {
+    counted_products: number;
+    value: number;
+    without_cost: number;
+    low_stock: Array<InventoryProductRef & { stock: number; min_stock: number }>;
+  };
+  movements: {
+    truncated: boolean;
+    rows: Array<InventoryProductRef & { entries: number; exits: number; adjustments: number }>;
   };
 }
 

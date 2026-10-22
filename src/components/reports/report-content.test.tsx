@@ -1,9 +1,10 @@
 import { act, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
-import { EXPENSES, INCOME, PAYROLL, SUMMARY, urlStore } from "@/test/report-fixtures";
+import { EXPENSES, INCOME, INVENTORY, PAYROLL, SUMMARY, SUMMARY_BASIC, urlStore } from "@/test/report-fixtures";
 import { useAuthStore } from "@/store/auth";
 import { reportsService } from "@/services/reports";
+import { getSubscription } from "@/services/subscription";
 import { ReportContent } from "./report-content";
 
 vi.mock("next/navigation", async () => {
@@ -19,14 +20,15 @@ vi.mock("next/navigation", async () => {
 });
 vi.mock("@nivo/bar", () => ({ ResponsiveBar: () => <div data-testid="bars" /> }));
 vi.mock("@nivo/pie", () => ({ ResponsivePie: () => <div data-testid="donut" /> }));
-vi.mock("@/services/subscription", () => ({
-  getSubscription: vi.fn().mockResolvedValue({ active_modules: ["reports", "work_orders"] }),
-}));
+const PRO_MODULES = ["employees", "attendance", "inventory", "work_orders", "tickets", "reports", "restaurant", "terminals"];
+const BASIC_MODULES = ["employees", "attendance", "inventory", "reports"];
+vi.mock("@/services/subscription", () => ({ getSubscription: vi.fn() }));
 vi.mock("@/services/reports", () => ({
-  reportsService: { summary: vi.fn(), income: vi.fn(), expenses: vi.fn(), payroll: vi.fn() },
+  reportsService: { summary: vi.fn(), income: vi.fn(), expenses: vi.fn(), payroll: vi.fn(), inventory: vi.fn() },
 }));
 
 const api = vi.mocked(reportsService);
+const subscription = vi.mocked(getSubscription);
 
 beforeEach(() => {
   urlStore.set("");
@@ -38,6 +40,8 @@ beforeEach(() => {
   api.income.mockResolvedValue(INCOME);
   api.expenses.mockResolvedValue(EXPENSES);
   api.payroll.mockResolvedValue(PAYROLL);
+  api.inventory.mockResolvedValue(INVENTORY);
+  subscription.mockResolvedValue({ active_modules: PRO_MODULES } as Awaited<ReturnType<typeof getSubscription>>);
 });
 
 const tab = (name: string) => screen.getByRole("button", { name });
@@ -120,6 +124,7 @@ describe("Resumen", () => {
 
   it("oculta los bloques de módulos fuera del plan en vez de mostrarlos en cero", async () => {
     useAuthStore.setState({ role: "owner", selectedCompanyId: 1 });
+    subscription.mockResolvedValue({ active_modules: ["employees", "inventory", "work_orders", "tickets", "reports"] } as Awaited<ReturnType<typeof getSubscription>>);
     renderWithProviders(<ReportContent />);
     await screen.findByText("$10,000");
     await waitFor(() => expect(screen.queryByText("Asistencias registradas")).not.toBeInTheDocument());
@@ -157,5 +162,62 @@ describe("estados", () => {
     act(() => screen.getByRole("button", { name: "Actualizar reporte" }).click());
     expect(await screen.findByText("No se pudo actualizar. Se muestran los últimos datos cargados.")).toBeInTheDocument();
     expect(screen.getByText("$10,000")).toBeInTheDocument();
+  });
+});
+
+describe("Plan Básico (spec 033)", () => {
+  beforeEach(() => {
+    useAuthStore.setState({ role: "owner", selectedCompanyId: 1 });
+    subscription.mockResolvedValue({ active_modules: BASIC_MODULES } as Awaited<ReturnType<typeof getSubscription>>);
+    api.summary.mockResolvedValue(SUMMARY_BASIC);
+  });
+
+  it("muestra Resumen, Inventario, Gastos y Nómina, sin Ingresos", async () => {
+    renderWithProviders(<ReportContent />);
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Ingresos" })).not.toBeInTheDocument());
+    for (const name of ["Resumen", "Inventario", "Gastos", "Nómina"]) expect(tab(name)).toBeInTheDocument();
+  });
+
+  it("el Resumen abre con los gastos, habla de inventario y no menciona ingresos ni órdenes", async () => {
+    renderWithProviders(<ReportContent />);
+    expect(await screen.findByText("Gastos del periodo")).toBeInTheDocument();
+    expect(screen.getByText("$5,400")).toBeInTheDocument();
+    expect(screen.getByText("Valor del inventario")).toBeInTheDocument();
+    expect(screen.getByText("Bajo el mínimo")).toBeInTheDocument();
+    for (const label of ["Ingresos cobrados", "Por cobrar", "Órdenes"]) expect(screen.queryByText(label)).not.toBeInTheDocument();
+  });
+
+  it("la comparación aplica al gasto", async () => {
+    urlStore.set("comparar=1");
+    renderWithProviders(<ReportContent />);
+    expect(await screen.findByText(/Bajó 3\.6 %/)).toBeInTheDocument();
+  });
+
+  it("Inventario usa el periodo para los movimientos y muestra la foto de hoy", async () => {
+    renderWithProviders(<ReportContent />);
+    await screen.findByText("Gastos del periodo");
+    act(() => tab("Inventario").click());
+    await waitFor(() => expect(api.inventory).toHaveBeenCalledWith(expect.objectContaining({ from: expect.any(String) }), undefined));
+    expect(await screen.findByText("$18,451")).toBeInTheDocument();
+    expect(screen.getByText("3 productos sin costo no suman al valor")).toBeInTheDocument();
+    expect(screen.getByText("Productos bajo el mínimo")).toBeInTheDocument();
+    expect(screen.getAllByText("Harina", { selector: "p" })).toHaveLength(2); // bajo el mínimo y movimientos
+    expect(screen.getAllByRole("button", { name: /Exportar CSV/ })).toHaveLength(2);
+  });
+
+  it("con tickets activados aparece Ingresos", async () => {
+    subscription.mockResolvedValue({ active_modules: [...BASIC_MODULES, "tickets"] } as Awaited<ReturnType<typeof getSubscription>>);
+    renderWithProviders(<ReportContent />);
+    expect(await screen.findByRole("button", { name: "Ingresos" })).toBeInTheDocument();
+  });
+
+  it("al bajar de Pro a Básico desaparece Ingresos y el Resumen no lo menciona", async () => {
+    subscription.mockResolvedValueOnce({ active_modules: PRO_MODULES } as Awaited<ReturnType<typeof getSubscription>>);
+    const { unmount } = renderWithProviders(<ReportContent />);
+    await screen.findByRole("button", { name: "Ingresos" });
+    unmount();
+    renderWithProviders(<ReportContent />);
+    expect(await screen.findByText("Gastos del periodo")).toBeInTheDocument();
+    expect(screen.queryByText("Ingresos cobrados")).not.toBeInTheDocument();
   });
 });

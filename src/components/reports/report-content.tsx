@@ -1,21 +1,25 @@
 "use client";
 // Cascarón de Reportes: pestañas, barra de periodo única y botón de actualizar. Cada pestaña vive en su archivo.
+// Las pestañas salen de los módulos activos de la empresa (spec 033); la API sigue siendo la barrera.
 import { useState } from "react";
 import { useIsFetching, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useReportModules } from "@/hooks/use-report-modules";
 import { useReportPeriod } from "@/hooks/use-report-period";
 import { ExpensesTab } from "./expenses-tab";
 import { IncomeTab } from "./income-tab";
+import { InventoryTab } from "./inventory-tab";
 import { PayrollTab } from "./payroll-tab";
 import { PeriodBar } from "./period-bar";
 import { SummaryTab } from "./summary-tab";
 
-type Tab = "summary" | "income" | "expenses" | "payroll";
+type Tab = "summary" | "inventory" | "income" | "expenses" | "payroll";
 
-const TABS: { key: Tab; label: "tabSummary" | "tabIncome" | "tabExpenses" | "tabPayroll" }[] = [
+const TABS: { key: Tab; label: "tabSummary" | "tabInventory" | "tabIncome" | "tabExpenses" | "tabPayroll" }[] = [
   { key: "summary", label: "tabSummary" },
+  { key: "inventory", label: "tabInventory" },
   { key: "income", label: "tabIncome" },
   { key: "expenses", label: "tabExpenses" },
   { key: "payroll", label: "tabPayroll" },
@@ -24,14 +28,25 @@ const TABS: { key: Tab; label: "tabSummary" | "tabIncome" | "tabExpenses" | "tab
 export function ReportContent({ companyId }: { companyId?: number }) {
   const t = useTranslations("reports");
   const period = useReportPeriod();
-  const [tab, setTab] = useState<Tab>("summary");
+  const modules = useReportModules();
+  const [selected, setTab] = useState<Tab>("summary");
   const queryClient = useQueryClient();
   const fetching = useIsFetching({ queryKey: ["reports"] }) > 0;
+
+  const available: Record<Tab, boolean> = {
+    summary: true,
+    inventory: modules.inventory,
+    income: modules.income,
+    expenses: modules.expenses,
+    payroll: modules.attendance,
+  };
+  // Una pestaña que deja de estar disponible (cambió el plan o los módulos) cae en Resumen.
+  const tab = available[selected] ? selected : "summary";
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-2" role="group" aria-label={t("tabsLabel")}>
-        {TABS.map(({ key, label }) => (
+        {TABS.filter(({ key }) => available[key]).map(({ key, label }) => (
           <button
             key={key}
             type="button"
@@ -60,6 +75,7 @@ export function ReportContent({ companyId }: { companyId?: number }) {
       <PeriodBar period={period} showCompare={tab === "summary"} />
 
       {tab === "summary" && <SummaryTab period={period} companyId={companyId} />}
+      {tab === "inventory" && <InventoryTab period={period} companyId={companyId} />}
       {tab === "income" && <IncomeTab period={period} companyId={companyId} />}
       {tab === "expenses" && <ExpensesTab period={period} companyId={companyId} />}
       {tab === "payroll" && <PayrollTab period={period} companyId={companyId} />}

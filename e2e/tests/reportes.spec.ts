@@ -102,10 +102,36 @@ test.describe("dueño de Don Chuy (plan Básico)", () => {
     await expect(page.getByRole("heading", { name: board("chartInventory") })).toBeVisible();
   });
 
-  test("[REP-011] sin el módulo en el plan, Reportes muestra el bloqueo @regresion", async ({ page }) => {
+  test("[REP-011] Reportes del plan Básico: inventario y módulos activos, sin ingresos @regresion", async ({ page }) => {
     await page.goto("/es/reportes");
-    await expect(page.getByText(t("subscription.moduleLocked"))).toBeVisible();
-    await expect(page.getByText(t("subscription.moduleLockedDesc", { module: t("modules.reports") }))).toBeVisible();
+    await expect(page.getByRole("heading", { name: rep("title"), level: 1 })).toBeVisible();
+    for (const key of ["tabSummary", "tabInventory", "tabExpenses", "tabPayroll"]) await expect(tab(page, key)).toBeVisible();
+    await expect(tab(page, "tabIncome")).toHaveCount(0);
+
+    // Resumen: abre con los gastos y habla de inventario; no menciona ingresos ni órdenes.
+    await expect(page.getByText(rep("summary.spent"), { exact: true })).toBeVisible();
+    await expect(page.getByText(rep("summary.inventoryValue"), { exact: true })).toBeVisible();
+    for (const label of ["summary.collected", "summary.pending", "summary.orders"]) {
+      await expect(page.getByText(rep(label), { exact: true })).toHaveCount(0);
+    }
+
+    // Inventario: foto de hoy y movimientos del periodo.
+    await tab(page, "tabInventory").click();
+    await expect(page.getByText(rep("inventory.value"), { exact: true })).toBeVisible();
+    await expect(page.getByText(rep("inventory.lowStockTitle"), { exact: true })).toBeVisible();
+    await expect(page.getByText(rep("inventory.movementsTitle"), { exact: true })).toBeVisible();
+  });
+
+  test("[REP-011] la API de Básico cierra Ingresos con module_not_in_plan @regresion", async ({ page }) => {
+    await page.goto("/es/reportes");
+    const token = await page.evaluate(() => localStorage.getItem("token") ?? localStorage.getItem("auth_token") ?? "");
+    const companyId = await page.evaluate(() => localStorage.getItem("selected_company_id") ?? "");
+    const api = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
+    const res = await page.request.get(`${api}/api/v1/reports/income?from=2026-01-01&to=2026-01-31`, {
+      headers: { Authorization: `Bearer ${token}`, "X-Company-Id": companyId },
+    });
+    expect(res.status()).toBe(403);
+    expect((await res.json()).error.details.code).toBe("module_not_in_plan");
   });
 });
 
@@ -134,12 +160,12 @@ test.describe("staff de Volta", () => {
 test.describe("admin de Volta", () => {
   test.use({ storageState: storageStatePath("admin", "volta.demo") });
 
-  test("[REP-011] las cuatro pestañas de Reportes, el periodo único y los rangos sin datos @regresion", async ({ page }) => {
+  test("[REP-011] las cinco pestañas de Reportes, el periodo único y los rangos sin datos @regresion", async ({ page }) => {
     await page.goto("/es/inicio");
     await menu(page).getByRole("link", { name: t("nav.reports") }).click();
     await expect(page).toHaveURL(/\/es\/reportes$/);
     await expect(page.getByRole("heading", { name: rep("title"), level: 1 })).toBeVisible();
-    for (const key of ["tabSummary", "tabIncome", "tabExpenses", "tabPayroll"]) {
+    for (const key of ["tabSummary", "tabInventory", "tabIncome", "tabExpenses", "tabPayroll"]) {
       await expect(tab(page, key)).toBeVisible();
     }
 

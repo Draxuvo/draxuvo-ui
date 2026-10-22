@@ -15,8 +15,8 @@ import { ReportState } from "./report-state";
 import { ReportTable, type Column } from "./report-table";
 import type { TabProps } from "./tab-props";
 
-type Employee = ExpensesReport["payroll"]["employees"][number];
-type Movement = ExpensesReport["inventory_cost"]["movements"][number];
+type Employee = NonNullable<ExpensesReport["payroll"]>["employees"][number];
+type Movement = NonNullable<ExpensesReport["inventory_cost"]>["movements"][number];
 
 export function ExpensesTab({ period, companyId }: TabProps) {
   const t = useTranslations("reports");
@@ -31,15 +31,16 @@ export function ExpensesTab({ period, companyId }: TabProps) {
     placeholderData: keepPreviousData,
   });
   const report = query.data;
-  const employees = report?.payroll.employees ?? [];
-  const movements = report?.inventory_cost.movements ?? [];
+  // Cada bloque viene solo si su módulo está activo (spec 033): sin él no se pinta su tabla.
+  const employees = report?.payroll?.employees ?? [];
+  const movements = report?.inventory_cost?.movements ?? [];
   const money = (v: number) => formatCurrency(v, locale);
   const cents = (v: number) => formatCurrency(v, locale, true);
-  const byPeriod = (report?.inventory_cost.by_period ?? []).map((g) => ({ period: periodLabel(g.period, locale), cost: g.cost }));
+  const byPeriod = (report?.inventory_cost?.by_period ?? []).map((g) => ({ period: periodLabel(g.period, locale), cost: g.cost }));
 
   const payrollColumns: Column<Employee>[] = [
     { key: "name", header: t("expenses.colEmployee"), render: (e) => e.name },
-    { key: "salary", header: t("expenses.colSalary"), align: "right", render: (e) => <span className="font-medium">{cents(e.salary)}</span>, total: cents(report?.payroll.total ?? 0) },
+    { key: "salary", header: t("expenses.colSalary"), align: "right", render: (e) => <span className="font-medium">{cents(e.salary)}</span>, total: cents(report?.payroll?.total ?? 0) },
   ];
   const inventoryColumns: Column<Movement>[] = [
     {
@@ -54,7 +55,7 @@ export function ExpensesTab({ period, companyId }: TabProps) {
     },
     { key: "qty", header: t("expenses.colQty"), align: "right", render: (m) => m.qty },
     { key: "unit", header: t("expenses.colUnitCost"), align: "right", render: (m) => cents(m.unit_cost) },
-    { key: "cost", header: t("expenses.colTotalCost"), align: "right", render: (m) => <span className="font-medium">{cents(m.cost)}</span>, total: cents(report?.inventory_cost.total ?? 0) },
+    { key: "cost", header: t("expenses.colTotalCost"), align: "right", render: (m) => <span className="font-medium">{cents(m.cost)}</span>, total: cents(report?.inventory_cost?.total ?? 0) },
   ];
   const payrollCsv: CsvColumn<Employee>[] = [
     { header: t("expenses.colEmployee"), value: (e) => e.name },
@@ -84,7 +85,7 @@ export function ExpensesTab({ period, companyId }: TabProps) {
         </ChartFrame>
       )}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <ReportTable
+        {report?.payroll && <ReportTable
           title={t("expenses.payrollTitle")}
           subtitle={t("expenses.payrollNote")}
           actions={<ExportCsvButton table={t("expenses.payrollTable")} range={range} columns={payrollCsv} rows={employees} />}
@@ -93,8 +94,8 @@ export function ExpensesTab({ period, companyId }: TabProps) {
           rowKey={(e) => e.id}
           totalLabel={t("total")}
           empty={t("state.emptyTitle")}
-        />
-        <ReportTable
+        />}
+        {report?.inventory_cost && <ReportTable
           title={t("expenses.inventoryTitle")}
           actions={<ExportCsvButton table={t("expenses.inventoryTable")} range={range} columns={inventoryCsv} rows={movements} />}
           columns={inventoryColumns}
@@ -102,7 +103,7 @@ export function ExpensesTab({ period, companyId }: TabProps) {
           rowKey={(m) => m.id}
           totalLabel={t("total")}
           empty={t("state.emptyTitle")}
-        />
+        />}
       </div>
     </ReportState>
   );
