@@ -24,15 +24,17 @@ const BILLING_ROLES = ["owner", "admin"];
 // GET /subscription responde 403 a roles menores, así que para ellos se sondea
 // GET /company (pasa por check_subscription!) sin disparar el toast global:
 // un 403 ahí significa que la empresa no tiene acceso.
-async function probeCompanyAccess(): Promise<boolean> {
+async function probeCompanyAccess(): Promise<{ access: boolean; suspended: boolean }> {
   const res = await apiClient.get("/api/v1/company", {
     validateStatus: (s) => s < 500,
   });
-  return res.status !== 403;
+  const code = res.data?.error?.details?.code;
+  return { access: res.status !== 403, suspended: code === "subscription_suspended" };
 }
 
 export function SubscriptionGuard() {
   const t = useTranslations("subscription");
+  const tp = useTranslations("plans");
   const locale = useLocale();
   const pathname = usePathname();
   const { user, logout, selectedCompanyId, role } = useAuthStore();
@@ -49,7 +51,7 @@ export function SubscriptionGuard() {
     enabled: !!user && canBill,
   });
 
-  const { data: memberHasAccess } = useQuery({
+  const { data: memberAccess } = useQuery({
     queryKey: ["company-access", selectedCompanyId],
     queryFn: probeCompanyAccess,
     retry: false,
@@ -69,8 +71,12 @@ export function SubscriptionGuard() {
     const bare = pathname.replace(/^\/(es|en)(?=\/|$)/, "") || "/";
     if (bare === "/suscripcion" || bare.startsWith("/suscripcion/")) return null;
 
-    const title =
-      subscription.status === "cancelled" ? t("blockedTitleExpired") : t("blockedTitle");
+    const suspended = subscription.status === "suspended";
+    const title = suspended
+      ? t("suspendedTitle")
+      : subscription.status === "cancelled"
+        ? t("blockedTitleExpired")
+        : t("blockedTitle");
 
     // Sucursal: el pago se hace en la principal, no aquí.
     if (subscription.managed_by_parent) {
@@ -93,25 +99,43 @@ export function SubscriptionGuard() {
     }
 
     return (
-      <BlockedDialog title={title} description={t("blockedDescOwner")}>
+      <BlockedDialog title={title} description={suspended ? t("suspendedDescOwner") : t("blockedDescOwner")}>
+        {suspended && (
+          <p className="text-sm text-muted-foreground">
+            {subscription.suspension_reason === "plan_change" ? t("suspendedReasonPlanChange") : t("suspendedReasonOverdue")}{" "}
+            {t("suspendedPending", { plan: tp(subscription.plan) })}
+          </p>
+        )}
         {switcher}
         <Button variant="outline" onClick={logout}>
           {t("logout")}
         </Button>
-        <Button asChild className="gap-2">
-          <Link href={`/${locale}/suscripcion`}>
-            <CreditCard size={14} />
-            {t("blockedAction")}
-          </Link>
-        </Button>
+        {suspended && subscription.pay_url ? (
+          <Button asChild className="gap-2">
+            <a href={subscription.pay_url} target="_blank" rel="noreferrer">
+              <CreditCard size={14} />
+              {t("payNow")}
+            </a>
+          </Button>
+        ) : (
+          <Button asChild className="gap-2">
+            <Link href={`/${locale}/suscripcion`}>
+              <CreditCard size={14} />
+              {suspended ? t("payNow") : t("blockedAction")}
+            </Link>
+          </Button>
+        )}
       </BlockedDialog>
     );
   }
 
-  if (memberHasAccess !== false) return null;
+  if (memberAccess?.access !== false) return null;
 
   return (
-    <BlockedDialog title={t("blockedTitleExpired")} description={t("blockedDescMember")}>
+    <BlockedDialog
+      title={memberAccess.suspended ? t("suspendedTitle") : t("blockedTitleExpired")}
+      description={memberAccess.suspended ? t("suspendedDescMember") : t("blockedDescMember")}
+    >
       {switcher}
       <Button variant="outline" onClick={logout}>
         {t("logout")}

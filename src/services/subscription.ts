@@ -16,6 +16,12 @@ export const getSubscription = (): Promise<Subscription> =>
 export const updateTrialPlan = (plan: PlanKey): Promise<Subscription> =>
   apiClient.patch("/api/v1/subscription", { plan }).then((r) => r.data);
 
+// Super admin: cambia el plan de prueba de una empresa (el dueño y el administrador reciben 403, spec 031).
+export const updateCompanyTrialPlan = (companyId: number, plan: PlanKey): Promise<Subscription> =>
+  apiClient
+    .patch("/api/v1/subscription", { plan }, { headers: { "X-Company-Id": String(companyId) } })
+    .then((r) => r.data);
+
 export const createCheckout = (
   plan: PlanKey,
   billingCycle: BillingCycle,

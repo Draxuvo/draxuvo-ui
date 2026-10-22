@@ -3,7 +3,8 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations, useLocale } from "next-intl";
 import { usePathname } from "next/navigation";
-import { differenceInDays } from "date-fns";
+import { differenceInDays, format } from "date-fns";
+import { es, enUS } from "date-fns/locale";
 import { AlertTriangle, CreditCard, CalendarDays } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -55,7 +56,11 @@ export function TrialBanner() {
       <div className="flex items-center justify-between gap-4 border-b border-alerta/30 bg-alerta/10 px-4 py-2 text-sm text-foreground sm:px-6">
         <div className="flex items-center gap-2">
           <AlertTriangle size={14} className="shrink-0 text-alerta" aria-hidden="true" />
-          <span className="font-medium">{t("pastDueBanner")}</span>
+          <span className="font-medium">
+            {subscription.grace_ends_at
+              ? t("pastDueGraceBanner", { date: format(new Date(subscription.grace_ends_at), "d MMM yyyy", { locale: locale === "en" ? enUS : es }) })
+              : t("pastDueBanner")}
+          </span>
         </div>
         {!managedByParent && (
           <button
