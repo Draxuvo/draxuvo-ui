@@ -99,9 +99,6 @@ export function PlanPicker({
             </button>
           ))}
         </div>
-        <span className="rounded-full bg-ceja px-2.5 py-0.5 text-xs font-semibold text-foreground">
-          {t("annualNote")}
-        </span>
         <span className="text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground @xl:ml-auto">
           {t("pricesWithoutIva")}
         </span>
@@ -155,7 +152,7 @@ export function PlanPicker({
                 <span className="mt-4 flex items-end gap-1.5">
                   <TagPrice cents={price.amount_cents} />
                   <span className="text-sm text-muted-foreground">
-                    {cycle === "monthly" ? t("perMonth") : t("perYear")}
+                    {t("beforeIva")} {cycle === "monthly" ? t("perMonth") : t("perYear")}
                   </span>
                 </span>
 

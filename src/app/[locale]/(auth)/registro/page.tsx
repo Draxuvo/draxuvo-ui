@@ -196,11 +196,6 @@ function RegistrationForm() {
                       <input type="radio" value={cycle} className="sr-only" {...register("billing_cycle")} />
                       {selected && <SelectedMark />}
                       <span className="pr-6 text-sm font-semibold">{tp(cycle)}</span>
-                      {cycle === "annual" && (
-                        <span className="mt-1 w-fit rounded-full bg-ceja px-2 py-0.5 text-xs font-semibold">
-                          {tp("annualNote")}
-                        </span>
-                      )}
                     </label>
                   );
                 })}

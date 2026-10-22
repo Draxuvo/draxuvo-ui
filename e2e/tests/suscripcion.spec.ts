@@ -54,7 +54,6 @@ test("[SUS-018] en prueba: banner, estado, plan fijo, ciclo y salida al checkout
 
   // El plan asignado queda fijo (spec 031): los demás no se pueden elegir; los precios salen sin IVA, con IVA 16 % y total.
   await expect(page.getByText(t("plans.ivaRate", { rate: 16 }))).toHaveCount(3);
-  await expect(page.getByText(t("plans.annualNote"))).toBeVisible();
   await expect(page.getByText(sub("trialPlanLocked"))).toBeVisible();
   await expect(planCard(page, "basic")).toBeDisabled();
   await expect(planCard(page, "enterprise")).toBeDisabled();
