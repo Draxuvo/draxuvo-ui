@@ -228,7 +228,7 @@ export type ModuleKey =
   | "terminals"
   | "whatsapp"
   | "multi_company";
-export type SubscriptionStatus = "trialing" | "active" | "past_due" | "cancelled" | "expired";
+export type SubscriptionStatus = "trialing" | "active" | "past_due" | "cancelled" | "expired" | "suspended";
 
 export interface PlanPrice {
   amount_cents: number;
@@ -265,6 +265,14 @@ export interface Subscription {
   trial_days_remaining?: number;
   /** Sucursal: la suscripción es la de la empresa principal y el cobro se administra allá. */
   managed_by_parent?: boolean;
+  /** Suspendida por falta de pago (spec 031). `pay_url` es la factura pendiente (solo dueño y administrador). */
+  suspended_at?: string | null;
+  suspension_reason?: "plan_change" | "payment_overdue" | null;
+  cancels_at?: string | null;
+  pay_url?: string | null;
+  /** Cobro normal fallido: fecha desde la que corre la gracia y cuándo termina (7 días). */
+  past_due_since?: string | null;
+  grace_ends_at?: string | null;
 }
 
 export interface CheckoutResponse {

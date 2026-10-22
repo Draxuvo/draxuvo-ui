@@ -22,6 +22,7 @@ const STATUS_KEY: Record<SubscriptionStatus, string> = {
   past_due: "pastDue",
   cancelled: "cancelled",
   expired: "expired",
+  suspended: "suspendedTitle",
 };
 
 export default function InicioPage() {

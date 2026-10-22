@@ -48,6 +48,8 @@ interface PlanPickerProps {
   onCycleChange: (cycle: BillingCycle) => void;
   currentPlan?: PlanKey | null;
   disabled?: boolean;
+  /** Durante la prueba solo se puede pagar el plan asignado (spec 031): los demás no se pueden elegir. */
+  lockedPlan?: PlanKey | null;
 }
 
 export function PlanPicker({
@@ -57,6 +59,7 @@ export function PlanPicker({
   onCycleChange,
   currentPlan,
   disabled = false,
+  lockedPlan = null,
 }: PlanPickerProps) {
   const t = useTranslations("plans");
   const tm = useTranslations("modules");
@@ -117,7 +120,7 @@ export function PlanPicker({
               <button
                 key={plan.key}
                 type="button"
-                disabled={disabled}
+                disabled={disabled || (!!lockedPlan && lockedPlan !== plan.key)}
                 aria-pressed={isSelected}
                 onClick={() => onSelect(plan.key)}
                 className={cn(

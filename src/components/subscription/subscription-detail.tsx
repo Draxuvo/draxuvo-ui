@@ -1,6 +1,6 @@
 "use client";
 import { useState, type ReactNode } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslations, useLocale } from "next-intl";
 import { differenceInDays, format } from "date-fns";
 import { es, enUS } from "date-fns/locale";
@@ -22,7 +22,6 @@ import {
   createCheckout,
   createPortal,
   getSubscription,
-  updateTrialPlan,
 } from "@/services/subscription";
 import { useSwitchCompany } from "@/components/layout/company-switcher";
 import { cn } from "@/lib/utils";
@@ -34,7 +33,6 @@ export function SubscriptionDetail() {
   const t = useTranslations("subscription");
   const tp = useTranslations("plans");
   const locale = useLocale() as "es" | "en";
-  const queryClient = useQueryClient();
   const companyId = useAuthStore((s) => s.selectedCompanyId);
   const companies = useAuthStore((s) => s.user?.companies);
   const switchCompany = useSwitchCompany();
@@ -50,19 +48,6 @@ export function SubscriptionDetail() {
     retry: false,
   });
 
-  const changePlan = useMutation({
-    mutationFn: updateTrialPlan,
-    onSuccess: (updated) => {
-      queryClient.setQueryData(queryKey, updated);
-      queryClient.invalidateQueries({ queryKey });
-      toast.success(t("planChanged"));
-    },
-    onError: () => {
-      setPickedPlan(null);
-      toast.error(t("planChangeError"));
-    },
-  });
-
   const status = subscription?.status;
   const plan: PlanKey = pickedPlan ?? subscription?.plan ?? "pro";
   const cycle: BillingCycle = pickedCycle ?? subscription?.billing_cycle ?? "monthly";
@@ -72,15 +57,16 @@ export function SubscriptionDetail() {
   const parent = companies?.find((c) => c.id === parentId);
   const canPay =
     !managedByParent && (status === "trialing" || status === "expired" || status === "cancelled");
-  const canManage = !managedByParent && (status === "active" || status === "past_due");
-  const busy = redirecting !== null || changePlan.isPending;
+  const canManage = !managedByParent && (status === "active" || status === "past_due" || status === "suspended");
+  const busy = redirecting !== null;
+  // Durante la prueba el plan solo lo cambia el super admin (spec 031): se puede pagar el plan asignado.
+  const trialLockedPlan = status === "trialing" ? subscription?.plan ?? null : null;
 
   const formatDate = (iso?: string | null) =>
     iso ? format(new Date(iso), "d MMM yyyy", { locale: DATE_LOCALES[locale] }) : null;
 
   function handleSelectPlan(next: PlanKey) {
     setPickedPlan(next);
-    if (status === "trialing" && next !== subscription?.plan) changePlan.mutate(next);
   }
 
   async function handleCheckout() {
@@ -194,7 +180,11 @@ export function SubscriptionDetail() {
             onCycleChange={setPickedCycle}
             currentPlan={subscription.plan}
             disabled={busy}
+            lockedPlan={trialLockedPlan}
           />
+          {trialLockedPlan && (
+            <p className="text-sm text-muted-foreground">{t("trialPlanLocked")}</p>
+          )}
           <Button
             onClick={handleCheckout}
             disabled={busy}
@@ -242,6 +232,8 @@ function StatusBadge({ subscription }: { subscription: Subscription }) {
       return <Badge className={cn(BADGE, "bg-ceja text-foreground")}>{t("trialing")}</Badge>;
     case "past_due":
       return <Badge className={cn(BADGE, "bg-alerta text-etiqueta")}>{t("pastDue")}</Badge>;
+    case "suspended":
+      return <Badge className={cn(BADGE, "bg-alerta text-etiqueta")}>{t("suspendedTitle")}</Badge>;
     case "expired":
       return <Badge className={cn(BADGE, "bg-alerta text-etiqueta")}>{t("expired")}</Badge>;
     case "cancelled":
@@ -261,6 +253,7 @@ function StatusPanel({
   formatDate: (iso?: string | null) => string | null;
 }) {
   const t = useTranslations("subscription");
+  const tp = useTranslations("plans");
   const periodEnd = formatDate(subscription.current_period_end);
 
   switch (subscription.status) {
@@ -301,12 +294,36 @@ function StatusPanel({
           )}
         </Panel>
       );
-    case "past_due":
+    case "past_due": {
+      const graceEnd = formatDate(subscription.grace_ends_at);
       return (
         <Panel tone="alerta" icon={AlertTriangle} title={t("pastDue")}>
           <p className="text-sm text-muted-foreground">{t("pastDueBanner")}</p>
+          {graceEnd && <p className="text-sm font-medium text-foreground">{t("pastDueGrace", { date: graceEnd })}</p>}
         </Panel>
       );
+    }
+    case "suspended": {
+      const cancelsOn = formatDate(subscription.cancels_at);
+      return (
+        <Panel tone="alerta" icon={AlertTriangle} title={t("suspendedTitle")}>
+          <p className="text-sm text-muted-foreground">{t("suspendedDescOwner")}</p>
+          <p className="text-sm text-muted-foreground">
+            {subscription.suspension_reason === "plan_change" ? t("suspendedReasonPlanChange") : t("suspendedReasonOverdue")}
+          </p>
+          <p className="text-sm font-medium text-foreground">{t("suspendedPending", { plan: tp(subscription.plan) })}</p>
+          {cancelsOn && <p className="text-sm text-muted-foreground">{t("suspendedCancelsOn", { date: cancelsOn })}</p>}
+          {subscription.pay_url && (
+            <Button asChild className="mt-2 h-11 gap-2 rounded-etiqueta px-5 text-base font-semibold">
+              <a href={subscription.pay_url} target="_blank" rel="noreferrer">
+                <CreditCard size={18} aria-hidden />
+                {t("payNow")}
+              </a>
+            </Button>
+          )}
+        </Panel>
+      );
+    }
     case "expired":
       return (
         <Panel tone="alerta" icon={AlertTriangle} title={t("trialExpired")}>

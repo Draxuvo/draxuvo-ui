@@ -19,6 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CompanyCheckoutDialog } from "@/components/subscription/company-checkout-dialog";
+import { TrialPlanDialog } from "@/components/subscription/trial-plan-dialog";
 import { companiesService } from "@/services/companies";
 import { getCompanySubscription, cancelCompanySubscription } from "@/services/subscription";
 import { cn } from "@/lib/utils";
@@ -28,7 +29,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 const EXPIRING_SOON_DAYS = 7;
 const PAGE_SIZE = 50;
 
-type FilterStatus = "all" | "expired" | "expiring_soon" | "trial" | "active" | "past_due";
+type FilterStatus = "all" | "expired" | "expiring_soon" | "trial" | "active" | "past_due" | "suspended";
 
 type RowData = {
   company: Company;
@@ -40,6 +41,7 @@ type DisplayStatus =
   | "active"
   | "cancel_scheduled"
   | "past_due"
+  | "suspended"
   | "expiring_soon"
   | "trial"
   | "expired"
@@ -63,6 +65,7 @@ function getDisplayStatus(sub: Subscription | null): DisplayStatus {
   if (sub.status === "expired" || (isTrial && daysLeft !== null && daysLeft <= 0))
     return "expired";
   if (sub.status === "cancelled") return "cancelled";
+  if (sub.status === "suspended") return "suspended";
   if (sub.status === "past_due") return "past_due";
   if (sub.status === "active" && sub.cancel_at_period_end) return "cancel_scheduled";
   if (isTrial) return "trial";
@@ -82,6 +85,7 @@ export default function SuscripcionesPage() {
   const [filter, setFilter] = useState<FilterStatus>("all");
   const [checkoutCompany, setCheckoutCompany] = useState<Company | null>(null);
   const [cancelCompany, setCancelCompany] = useState<Company | null>(null);
+  const [trialPlanRow, setTrialPlanRow] = useState<RowData | null>(null);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: companiesData, isLoading: companiesLoading, isFetching, refetch } = useQuery({
@@ -120,6 +124,7 @@ export default function SuscripcionesPage() {
       if (filter === "trial") return status === "trial";
       if (filter === "active") return status === "active";
       if (filter === "past_due") return status === "past_due";
+      if (filter === "suspended") return status === "suspended";
       return true;
     });
   }, [rows, filter]);
@@ -144,6 +149,7 @@ export default function SuscripcionesPage() {
     active: { label: t("statusActive"), className: "bg-estado-completada text-estado-completada-foreground border-estado-completada-border" },
     cancel_scheduled: { label: t("statusCancelScheduled", { date: "" }).trim(), className: "bg-estado-pendiente text-estado-pendiente-foreground border-estado-pendiente-border" },
     past_due: { label: t("statusPastDue"), className: "bg-destructive/10 text-destructive border-destructive/30" },
+    suspended: { label: t("statusSuspended"), className: "bg-destructive text-background border-destructive" },
     expiring_soon: { label: t("statusExpiringSoon"), className: "bg-estado-pendiente text-estado-pendiente-foreground border-estado-pendiente-border" },
     trial: { label: t("statusTrial"), className: "bg-estado-progreso text-estado-progreso-foreground border-estado-progreso-border" },
     expired: { label: t("statusExpired"), className: "bg-destructive/10 text-destructive border-destructive/30" },
@@ -155,6 +161,7 @@ export default function SuscripcionesPage() {
     active: CheckCircle2,
     cancel_scheduled: Clock,
     past_due: AlertTriangle,
+    suspended: Ban,
     expiring_soon: Clock,
     trial: CircleDot,
     expired: XCircle,
@@ -181,9 +188,17 @@ export default function SuscripcionesPage() {
           if (!subscription?.plan)
             return <span className="text-muted-foreground text-sm">{t("noPlan")}</span>;
           return (
-            <Badge variant="outline" className="capitalize text-xs">
-              {subscription.plan}
-            </Badge>
+            <div className="flex flex-col gap-1">
+              <Badge variant="outline" className="w-fit capitalize text-xs">
+                {subscription.plan}
+              </Badge>
+              {subscription.status === "suspended" && (
+                <span className="text-xs text-muted-foreground">
+                  {t("pendingPlan", { plan: subscription.plan })}
+                  {subscription.cancels_at && ` · ${t("cancelsOn", { date: format(new Date(subscription.cancels_at), "dd MMM yyyy") })}`}
+                </span>
+              )}
+            </div>
           );
         },
       },
@@ -275,6 +290,17 @@ export default function SuscripcionesPage() {
                 <CreditCard size={12} />
                 {t("checkoutBtn")}
               </Button>
+              {status === "trial" && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5 h-7 text-xs"
+                  disabled={isLoadingSub}
+                  onClick={() => setTrialPlanRow(row.original)}
+                >
+                  {t("trialPlanBtn")}
+                </Button>
+              )}
               {canCancel && (
                 <Button
                   size="sm"
@@ -303,6 +329,7 @@ export default function SuscripcionesPage() {
     { id: "trial", label: t("filterTrial") },
     { id: "active", label: t("filterActive") },
     { id: "past_due", label: t("filterPastDue") },
+    { id: "suspended", label: t("filterSuspended") },
   ];
 
   return (
@@ -355,6 +382,12 @@ export default function SuscripcionesPage() {
         isLoading={companiesLoading}
         loadingMessage={tc("loading")}
         emptyMessage={t("empty")}
+      />
+
+      <TrialPlanDialog
+        company={trialPlanRow?.company ?? null}
+        currentPlan={trialPlanRow?.subscription?.plan}
+        onOpenChange={(open) => !open && setTrialPlanRow(null)}
       />
 
       <CompanyCheckoutDialog
