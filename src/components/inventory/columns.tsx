@@ -49,7 +49,15 @@ export function getProductColumns(
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <ProductGlyph product={row.original} className="text-muted-foreground" />
-          <span className="font-medium text-foreground">{row.original.name}</span>
+          <div className="min-w-0">
+            <span className="font-medium text-foreground">{row.original.name}</span>
+            {!!row.original.barcodes?.length && (
+              <span className="block font-mono text-xs text-muted-foreground tabular-nums">
+                {row.original.barcodes[0]}
+                {row.original.barcodes.length > 1 ? ` +${row.original.barcodes.length - 1}` : ""}
+              </span>
+            )}
+          </div>
           {row.original.low_stock && (
             <Badge
               variant="secondary"

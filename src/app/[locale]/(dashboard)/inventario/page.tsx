@@ -3,7 +3,10 @@
 import { Suspense, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, RefreshCw, FileUp, Shapes } from "lucide-react";
+import { toast } from "sonner";
+import { useMutation } from "@tanstack/react-query";
+import Link from "next/link";
+import { Plus, RefreshCw, FileUp, FileDown, Shapes, PackagePlus, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Pagination } from "@/components/ui/pagination";
@@ -82,6 +85,27 @@ function InventarioContent() {
         search: filters.search || undefined,
         product_type_id: filters.product_type_id ? Number(filters.product_type_id) : undefined,
       }),
+  });
+
+  // Excel con el inventario y los filtros vigentes (spec 034).
+  const exportMutation = useMutation({
+    mutationFn: () =>
+      inventoryService.exportProducts({
+        low_stock: filters.low_stock === "true" || undefined,
+        out_of_stock: filters.out_of_stock === "true" || undefined,
+        available: filters.available === "true" || undefined,
+        search: filters.search || undefined,
+        product_type_id: filters.product_type_id ? Number(filters.product_type_id) : undefined,
+      }),
+    onSuccess: (blob) => {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = t("exportFilename");
+      link.click();
+      URL.revokeObjectURL(url);
+    },
+    onError: () => toast.error(t("exportError")),
   });
 
   const types = useProductTypes({ enabled: gate.enabled });
@@ -179,6 +203,22 @@ function InventarioContent() {
           <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2">
             <FileUp size={15} />
             {t("importBtn")}
+          </Button>
+          <Button asChild variant="outline" className="gap-2">
+            <Link href={`/${locale}/inventario/recibir`}>
+              <PackagePlus size={15} aria-hidden />
+              {t("receive.title")}
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="gap-2">
+            <Link href={`/${locale}/inventario/conteo`}>
+              <ClipboardCheck size={15} aria-hidden />
+              {t("count.title")}
+            </Link>
+          </Button>
+          <Button variant="outline" onClick={() => exportMutation.mutate()} disabled={exportMutation.isPending} className="gap-2">
+            <FileDown size={15} />
+            {exportMutation.isPending ? t("exporting") : t("exportButton")}
           </Button>
           <Button onClick={() => { setEditing(null); setFormOpen(true); }} className="gap-2">
             <Plus size={15} />
