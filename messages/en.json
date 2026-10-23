@@ -416,7 +416,10 @@
       "formatName": "Name",
       "formatNamePlaceholder": "Shelf labels",
       "formatKind": "Paper type",
-      "kind": { "sheet": "Sheet", "roll": "Roll" },
+      "kind": {
+        "sheet": "Sheet",
+        "roll": "Roll"
+      },
       "field": {
         "page_width_mm": "Sheet width (mm)",
         "page_height_mm": "Sheet height (mm)",
@@ -1210,7 +1213,11 @@
       "colSalary": "Salary",
       "colDays": "Days present",
       "colHours": "Hours worked",
-      "hoursUnit": "hrs"
+      "hoursUnit": "hrs",
+      "runsLabel": "Payroll runs in the period",
+      "runsPaid": "Paid",
+      "runsPending": "Pending payment",
+      "runsCount": "Runs"
     },
     "payments": {
       "byMethod": "By method",
@@ -1834,7 +1841,8 @@
     "tabsLabel": "Staff sections",
     "tabs": {
       "employees": "Employees",
-      "attendance": "Attendance"
+      "attendance": "Attendance",
+      "payroll": "Payroll"
     }
   },
   "myCompanies": {
@@ -2239,6 +2247,196 @@
       "tools": "Tools",
       "truck": "Truck",
       "gift": "Gift"
+    }
+  },
+  "payroll": {
+    "title": "Payroll",
+    "subtitle": "Prepare each period's payment, approve it and keep a record of what was paid. Draxuvo does not move money: it only records.",
+    "newRun": "New run",
+    "empty": "No payroll runs yet",
+    "emptyHint": "Create a run to calculate the payment of your active employees.",
+    "loadError": "Payroll could not be loaded",
+    "retry": "Retry",
+    "back": "All runs",
+    "filters": {
+      "status": "Status",
+      "year": "Year",
+      "all": "All"
+    },
+    "periodType": {
+      "weekly": "Weekly",
+      "biweekly": "Biweekly",
+      "monthly": "Monthly"
+    },
+    "status": {
+      "draft": "Draft",
+      "approved": "Approved",
+      "partial": "Partial",
+      "paid": "Paid",
+      "cancelled": "Cancelled"
+    },
+    "lineStatus": {
+      "pending": "Pending",
+      "paid": "Paid"
+    },
+    "method": {
+      "cash": "Cash",
+      "transfer": "Transfer",
+      "other": "Other"
+    },
+    "list": {
+      "period": "Period",
+      "type": "Type",
+      "status": "Status",
+      "total": "Total",
+      "paid": "Paid",
+      "paidOf": "{paid} of {count}"
+    },
+    "new": {
+      "title": "New payroll run",
+      "description": "A draft is created with one line per active employee. The salary on each employee's record is taken as monthly.",
+      "type": "Period type",
+      "from": "From",
+      "to": "To",
+      "create": "Create draft",
+      "cancel": "Cancel",
+      "hintWeekly": "Up to 7 days",
+      "hintBiweekly": "Up to 16 days",
+      "hintMonthly": "Up to 31 days",
+      "datesRequired": "Choose the period dates",
+      "endBeforeStart": "The end date cannot be before the start date",
+      "created": "Run created",
+      "createError": "The run could not be created"
+    },
+    "detail": {
+      "period": "Period",
+      "total": "Total to pay",
+      "createdBy": "Created by {name}",
+      "approvedBy": "Approved by {name}",
+      "cancelledNote": "Cancelled: {reason}",
+      "employee": "Employee",
+      "attendance": "Attendance",
+      "attendanceValue": "{days} days · {hours} h",
+      "daysPaid": "Days to pay",
+      "salary": "Salary",
+      "bonuses": "Bonuses",
+      "deductions": "Deductions",
+      "net": "Net",
+      "state": "Status",
+      "actions": "Actions",
+      "noSalary": "No salary set: add it on the employee record or remove the line",
+      "adjust": "Adjustments",
+      "removeLine": "Remove line",
+      "pay": "Pay",
+      "receipt": "Receipt",
+      "history": "Payment history",
+      "refresh": "Refresh employees",
+      "refreshed": "Employees refreshed",
+      "discard": "Discard draft",
+      "discarded": "Draft discarded",
+      "approve": "Approve",
+      "approved": "Run approved",
+      "payAll": "Pay all",
+      "cancelRun": "Cancel run",
+      "cancelled": "Run cancelled",
+      "exportCsv": "Export CSV",
+      "events": "Activity log",
+      "noEvents": "No activity",
+      "daysInvalid": "Between 0 and {max} days",
+      "lineRemoved": "Line removed",
+      "daysSaved": "Days updated",
+      "approveConfirmTitle": "Approve the run?",
+      "approveConfirmBody": "Amounts are frozen: you will no longer be able to edit days or adjustments. Total: {total}.",
+      "discardConfirmTitle": "Discard the draft?",
+      "discardConfirmBody": "The run and its lines are deleted. This cannot be undone.",
+      "confirm": "Confirm",
+      "keep": "Go back",
+      "unchanged": "The run changed; it was reloaded with the latest data"
+    },
+    "events": {
+      "created": "Run created",
+      "adjustment_added": "Adjustment added to {employee}",
+      "adjustment_updated": "Adjustment edited for {employee}",
+      "adjustment_removed": "Adjustment removed from {employee}",
+      "days_changed": "Days to pay for {employee}: {days}",
+      "line_removed": "Line removed: {employee}",
+      "employees_refreshed": "Employees refreshed",
+      "approved": "Run approved",
+      "paid": "Payments recorded",
+      "cancelled": "Run cancelled"
+    },
+    "adjust": {
+      "title": "Adjustments for {name}",
+      "description": "Bonuses and deductions for this period. Every adjustment has a note.",
+      "none": "No adjustments",
+      "kind": "Type",
+      "bonus": "Bonus",
+      "deduction": "Deduction",
+      "amount": "Amount (MXN)",
+      "note": "Note",
+      "notePlaceholder": "For example: punctuality, advance, correction",
+      "add": "Add adjustment",
+      "remove": "Remove",
+      "corrects": "Corrects an earlier payment",
+      "correctsPick": "Payment being corrected",
+      "noPaid": "This employee has no payments yet",
+      "amountInvalid": "Enter an amount greater than zero",
+      "noteRequired": "The note is required",
+      "added": "Adjustment added",
+      "removed": "Adjustment removed",
+      "close": "Close",
+      "readOnly": "The run no longer accepts adjustments"
+    },
+    "pay": {
+      "title": "Record payment",
+      "titleAll": "Pay all pending",
+      "description": "This only records the payment; Draxuvo does not move money.",
+      "descriptionAll": "{count} pending payments totalling {total}.",
+      "method": "Method",
+      "date": "Payment date",
+      "reference": "Reference (optional)",
+      "referencePlaceholder": "Transfer reference, note…",
+      "confirm": "Record payment",
+      "cancel": "Cancel",
+      "done": "Payment recorded",
+      "doneAll": "Payments recorded",
+      "futureDate": "The date cannot be in the future"
+    },
+    "cancel": {
+      "title": "Cancel run",
+      "description": "Only an approved run with no payments can be cancelled.",
+      "reason": "Reason",
+      "reasonRequired": "Enter the reason",
+      "confirm": "Cancel run",
+      "keep": "Go back"
+    },
+    "receipt": {
+      "title": "Payroll receipt",
+      "company": "Company",
+      "employee": "Employee",
+      "period": "Period",
+      "salary": "Period salary",
+      "daysPaid": "Days paid: {days} of {total}",
+      "bonuses": "Bonuses",
+      "deductions": "Deductions",
+      "net": "Net paid",
+      "method": "Payment method",
+      "paidOn": "Payment date",
+      "reference": "Reference",
+      "print": "Print",
+      "back": "Back to the run",
+      "notice": "Internal payment record; not a tax receipt.",
+      "loadError": "The receipt could not be loaded",
+      "notPaid": "This line is not paid yet"
+    },
+    "history": {
+      "title": "Payments of {name}",
+      "empty": "No payments recorded",
+      "period": "Period",
+      "net": "Net",
+      "method": "Method",
+      "paidOn": "Date",
+      "close": "Close"
     }
   }
 }

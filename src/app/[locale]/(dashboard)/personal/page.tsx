@@ -12,11 +12,14 @@ import { useAppRouter } from "@/hooks/use-router";
 import { getSubscription } from "@/services/subscription";
 import { EmployeesTab } from "@/components/people/employees-tab";
 import { AttendanceTab } from "@/components/people/attendance-tab";
+import { PayrollTab } from "@/components/payroll/payroll-tab";
 import { cn } from "@/lib/utils";
 import type { ModuleKey } from "@/types";
 
-type Tab = "empleados" | "asistencia";
+type Tab = "empleados" | "asistencia" | "nomina";
 const PEOPLE_ROLES = new Set(["admin", "owner", "manager"]);
+// Nómina (spec 037): solo quien administra el negocio; el gerente no la ve.
+const PAYROLL_ROLES = new Set(["admin", "owner"]);
 
 export default function PersonalPage() {
   return (
@@ -44,7 +47,12 @@ function PersonalContent() {
     enabled: !!user && canSee && !!selectedCompanyId,
   });
   const inPlan = (module: ModuleKey) => !subscription || subscription.active_modules.includes(module);
-  const available: Tab[] = [...(inPlan("employees") ? ["empleados" as const] : []), ...(inPlan("attendance") ? ["asistencia" as const] : [])];
+  const canPay = !!role && PAYROLL_ROLES.has(role);
+  const available: Tab[] = [
+    ...(inPlan("employees") ? ["empleados" as const] : []),
+    ...(inPlan("attendance") ? ["asistencia" as const] : []),
+    ...(inPlan("employees") && canPay ? ["nomina" as const] : []),
+  ];
 
   const asked = searchParams.get("tab");
   const active: Tab | undefined = available.find((tab) => tab === asked) ?? available[0];
@@ -64,7 +72,7 @@ function PersonalContent() {
 
   const tabs: { key: Tab; label: string }[] = available.map((key) => ({
     key,
-    label: key === "empleados" ? t("tabs.employees") : t("tabs.attendance"),
+    label: key === "empleados" ? t("tabs.employees") : key === "asistencia" ? t("tabs.attendance") : t("tabs.payroll"),
   }));
 
   return (
@@ -97,7 +105,7 @@ function PersonalContent() {
       )}
 
       <div role="tabpanel" id={`personal-panel-${active}`} aria-labelledby={`personal-tab-${active}`}>
-        {active === "asistencia" ? <AttendanceTab /> : <EmployeesTab />}
+        {active === "asistencia" ? <AttendanceTab /> : active === "nomina" ? <PayrollTab /> : <EmployeesTab />}
       </div>
     </div>
   );

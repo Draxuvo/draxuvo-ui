@@ -58,6 +58,7 @@ export const EXPENSES: ExpensesReport = {
 export const PAYROLL: PayrollReport = {
   period: { from: "2026-10-01", to: "2026-10-21" },
   total_payroll: 5_000,
+  runs: { count: 0, paid_cents: 0, pending_cents: 0 },
   headcount: 1,
   employees: [
     { id: 1, name: "Ana", position: null, department: null, salary: 5_000, days_present: 3, hours_worked: 24.5, attendance: { normal: 3, late: 2, absent: 1 } },

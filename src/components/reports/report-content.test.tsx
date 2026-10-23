@@ -67,6 +67,27 @@ describe("ReportContent", () => {
     expect(screen.getByRole("button", { name: "Mes pasado" })).toHaveAttribute("aria-pressed", "true");
   });
 
+  it("Nómina muestra lo pagado y lo pendiente de las corridas del periodo (spec 037)", async () => {
+    api.payroll.mockResolvedValue({ ...PAYROLL, runs: { count: 2, paid_cents: 1_050_000, pending_cents: 450_000 } });
+    renderWithProviders(<ReportContent />);
+    await screen.findByText("Ingresos cobrados");
+
+    act(() => tab("Nómina").click());
+    expect(await screen.findByLabelText("Corridas de nómina del periodo")).toHaveTextContent("$10,500.00");
+    expect(screen.getByLabelText("Corridas de nómina del periodo")).toHaveTextContent("$4,500.00");
+    expect(screen.getByText("Pendiente de pago")).toBeInTheDocument();
+  });
+
+  it("Nómina sin corridas conserva la vista de siempre", async () => {
+    renderWithProviders(<ReportContent />);
+    await screen.findByText("Ingresos cobrados");
+
+    act(() => tab("Nómina").click());
+    await waitFor(() => expect(api.payroll).toHaveBeenCalled());
+    await screen.findByText(PAYROLL.employees[0].name);
+    expect(screen.queryByLabelText("Corridas de nómina del periodo")).not.toBeInTheDocument();
+  });
+
   it("pasa la empresa elegida (super admin) a la consulta", async () => {
     renderWithProviders(<ReportContent companyId={7} />);
     await waitFor(() => expect(api.summary).toHaveBeenCalledWith(expect.anything(), false, 7));
