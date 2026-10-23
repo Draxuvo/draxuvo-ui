@@ -7,10 +7,12 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, Minus, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Minus, Plus, Printer, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ProductForm } from "@/components/inventory/product-form";
+import { saveLabelSelection, selectionItem } from "@/hooks/use-label-selection";
+import { useAppRouter } from "@/hooks/use-router";
 import { inventoryService } from "@/services/inventory";
 import { useAuthStore } from "@/store/auth";
 import type { Product } from "@/types";
@@ -25,10 +27,14 @@ interface Line {
 export function ReceiveScreen() {
   const t = useTranslations("inventory");
   const tr = useTranslations("inventory.receive");
+  const tl = useTranslations("inventory.labels");
+  const router = useAppRouter();
   const locale = useLocale();
   const qc = useQueryClient();
   const role = useAuthStore((s) => s.role);
   const [lines, setLines] = useState<Line[]>([]);
+  // Lo que se acaba de recibir, para ofrecer sus etiquetas (una por pieza recibida).
+  const [received, setReceived] = useState<Line[]>([]);
   const [note, setNote] = useState("");
   const [unknown, setUnknown] = useState<string | null>(null);
   const [creating, setCreating] = useState<string | null>(null);
@@ -59,6 +65,7 @@ export function ReceiveScreen() {
   async function onScan(code: string) {
     const product = await inventoryService.byCode(code);
     if (!product) return setUnknown(code);
+    setReceived([]);
     if (!product.product_type?.counted) return void toast.error(tr("notCounted", { name: product.name }));
     add(product);
   }
@@ -77,12 +84,18 @@ export function ReceiveScreen() {
     onSuccess: (result) => {
       toast.success(tr("success", { count: result.movements.length }));
       key.current = crypto.randomUUID();
+      setReceived(lines);
       setLines([]);
       setNote("");
       void qc.invalidateQueries({ queryKey: ["products"] });
       setFocusSignal((n) => n + 1);
     },
   });
+
+  function printReceived() {
+    saveLabelSelection(received.map(({ product, qty }) => selectionItem(product, Math.max(1, Math.ceil(qty)))));
+    router.push("/inventario/etiquetas");
+  }
 
   const valid = lines.length > 0 && lines.every((line) => Number.isFinite(line.qty) && line.qty > 0);
   const pieces = lines.reduce((sum, line) => sum + (Number.isFinite(line.qty) ? line.qty : 0), 0);
@@ -105,6 +118,13 @@ export function ReceiveScreen() {
       </header>
 
       <ScanField onScan={onScan} focusSignal={focusSignal} disabled={confirm.isPending} />
+
+      {received.length > 0 && lines.length === 0 && (
+        <Button type="button" variant="outline" className="gap-1.5" onClick={printReceived}>
+          <Printer size={15} aria-hidden />
+          {tl("printReceived")}
+        </Button>
+      )}
 
       {lines.length === 0 ? (
         <p className="rounded-etiqueta border border-dashed border-border p-6 text-center text-sm text-muted-foreground">{tr("empty")}</p>

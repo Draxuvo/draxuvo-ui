@@ -14,6 +14,10 @@ import { ProductForm } from "@/components/inventory/product-form";
 import { ProductDeleteDialog } from "@/components/inventory/product-delete-dialog";
 import { StockMovementDialog } from "@/components/inventory/stock-movement-dialog";
 import { ProductImportDialog } from "@/components/inventory/product-import-dialog";
+import { GenerateBarcodesDialog } from "@/components/inventory/generate-barcodes-dialog";
+import { ProductSelectionBar } from "@/components/inventory/product-selection-bar";
+import { saveLabelSelection, selectionItem } from "@/hooks/use-label-selection";
+import { useAppRouter } from "@/hooks/use-router";
 import { getProductColumns } from "@/components/inventory/columns";
 import { ProductTypesSheet } from "@/components/inventory/product-types-sheet";
 import { useProductTypes } from "@/hooks/use-product-types";
@@ -69,6 +73,10 @@ function InventarioContent() {
   const [movementProduct, setMovementProduct] = useState<Product | null>(null);
   const [movementType, setMovementType] = useState<"entry" | "exit" | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  // Productos marcados (spec 035): se guardan completos por id para que sobrevivan a la paginación y a los filtros.
+  const [selected, setSelected] = useState<Map<number, Product>>(new Map());
+  const [generateOpen, setGenerateOpen] = useState(false);
+  const router = useAppRouter();
 
   // Puerta del módulo antes de consultar: fuera del plan no hay request ni toast.
   const gate = useModuleGate("inventory");
@@ -135,17 +143,47 @@ function InventarioContent() {
     });
   }
 
-  const columns = useMemo(
-    () =>
-      getProductColumns(t, tc, {
+  const tl = useTranslations("inventory.labels");
+  const columns = useMemo(() => {
+    const pageAll = products.length > 0 && products.every((p) => selected.has(p.id));
+    const toggle = (product: Product) =>
+      setSelected((current) => {
+        const next = new Map(current);
+        if (next.has(product.id)) next.delete(product.id);
+        else next.set(product.id, product);
+        return next;
+      });
+    const togglePage = () =>
+      setSelected((current) => {
+        const next = new Map(current);
+        for (const p of products) {
+          if (pageAll) next.delete(p.id);
+          else next.set(p.id, p);
+        }
+        return next;
+      });
+    return getProductColumns(
+      t,
+      tc,
+      {
         onEntry: (p) => { setMovementProduct(p); setMovementType("entry"); },
         onExit: (p) => { setMovementProduct(p); setMovementType("exit"); },
         onEdit: (p) => { setEditing(p); setFormOpen(true); },
         onDelete: (p) => setDeleting(p),
-      }, view, locale),
+      },
+      view,
+      locale,
+      {
+        isSelected: (id) => selected.has(id),
+        toggle,
+        pageAll,
+        pageSome: products.some((p) => selected.has(p.id)),
+        togglePage,
+        labels: { row: (name) => tl("selectRow", { name }), page: tl("selectPage") },
+      },
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [view, locale],
-  );
+  }, [view, locale, selected, products]);
 
   if (gate.isLocked(error)) return <ModuleLocked module="inventory" />;
 
@@ -285,6 +323,16 @@ function InventarioContent() {
         emptyMessage={isFiltered ? tf("noResults") : t("empty")}
       />
 
+      <ProductSelectionBar
+        count={selected.size}
+        onGenerate={() => setGenerateOpen(true)}
+        onPrint={() => {
+          saveLabelSelection([...selected.values()].map((p) => selectionItem(p)));
+          router.push("/inventario/etiquetas");
+        }}
+        onClear={() => setSelected(new Map())}
+      />
+
       {/* Pagination */}
       {data?.info && data.info.total > 0 && (
         <Pagination info={data.info} onPageChange={setPage} />
@@ -314,6 +362,8 @@ function InventarioContent() {
         movementType={movementType}
         onOpenChange={(open) => !open && closeMovement()}
       />
+
+      <GenerateBarcodesDialog open={generateOpen} products={[...selected.values()]} onOpenChange={setGenerateOpen} />
 
       {/* Import Dialog */}
       <ProductImportDialog open={importOpen} onOpenChange={setImportOpen} />

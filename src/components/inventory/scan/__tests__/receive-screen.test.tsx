@@ -3,8 +3,11 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
 import { useAuthStore } from "@/store/auth";
+import { readLabelSelection } from "@/hooks/use-label-selection";
 import type { Product } from "@/types";
 
+const push = vi.hoisted(() => vi.fn());
+vi.mock("@/hooks/use-router", () => ({ useAppRouter: () => ({ push, replace: vi.fn(), back: vi.fn() }) }));
 const toast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
 vi.mock("sonner", () => ({ toast }));
 vi.mock("@/services/inventory", () => ({ inventoryService: { byCode: vi.fn(), receive: vi.fn() } }));
@@ -112,5 +115,19 @@ describe("Recibir mercancía (spec 034)", () => {
     const during = new Event("beforeunload", { cancelable: true });
     window.dispatchEvent(during);
     expect(during.defaultPrevented).toBe(true);
+  });
+
+  it("tras confirmar ofrece imprimir las etiquetas de lo recibido, una por pieza", async () => {
+    window.sessionStorage.clear();
+    renderWithProviders(<ReceiveScreen />);
+    const user = userEvent.setup();
+    await scan("7501");
+    await screen.findByText("Tacos");
+    await user.click(screen.getByRole("button", { name: "Una más de Tacos" }));
+    await user.click(screen.getByRole("button", { name: "Confirmar recepción" }));
+
+    await user.click(await screen.findByRole("button", { name: "Imprimir etiquetas de lo recibido" }));
+    expect(readLabelSelection()).toMatchObject([{ id: 1, name: "Tacos", copies: 2 }]);
+    expect(push).toHaveBeenCalledWith("/inventario/etiquetas");
   });
 });
