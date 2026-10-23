@@ -72,6 +72,9 @@ async function importFile(page: Page, name: string, content: string) {
   await expect(dialog.getByText(t("inventory.importTitle"))).toBeVisible();
   await dialog.locator('input[type="file"]').setInputFiles({ name, mimeType: "text/csv", buffer: Buffer.from(content) });
   await dialog.getByRole("button", { name: t("inventory.importConfirm") }).click();
+  // La importación corre en segundo plano (spec 034): se espera el resumen y se cierra el diálogo.
+  await expect(dialog.getByText(t("inventory.importDone"), { exact: false })).toBeVisible({ timeout: 60_000 });
+  return dialog;
 }
 
 test("[FLU-03] el dueño importa productos, mueve stock y el historial cuadra @pr", async ({ browser, request }, info) => {
@@ -92,7 +95,8 @@ test("[FLU-03] el dueño importa productos, mueve stock y el historial cuadra @p
   expect(download.suggestedFilename()).toBe("plantilla_productos.xlsx");
   await page.getByRole("dialog").getByRole("button", { name: t("inventory.cancel") }).click();
 
-  await importFile(page, "productos.csv", csv([[a, `Tornillo ${a}`, 5, 10], [b, `Tuerca ${b}`, 2, 4]]));
+  const done = await importFile(page, "productos.csv", csv([[a, `Tornillo ${a}`, 5, 10], [b, `Tuerca ${b}`, 2, 4]]));
+  await done.getByRole("button", { name: t("inventory.importClose") }).click();
 
   // 2. La lista muestra cada producto con su existencia.
   await expect(row(page, a)).toContainText("10");
@@ -112,13 +116,13 @@ test("[FLU-03] el dueño importa productos, mueve stock y el historial cuadra @p
   const productId = (await found.json()).results[0].id;
   const history = await request.get(`${API_URL}/api/v1/products/${productId}/stock_movements`, { headers: owner.headers });
   const movements: Array<{ movement_type: string; qty: number }> = (await history.json()).results;
-  expect(movements.map((m) => [m.movement_type, Number(m.qty)]).sort()).toEqual([["entry", 5], ["exit", 3]]);
+  // La importación deja el stock inicial como una entrada (spec 034), además de la entrada y la salida manuales.
+  expect(movements.map((m) => [m.movement_type, Number(m.qty)]).sort()).toEqual([["entry", 10], ["entry", 5], ["exit", 3]]);
   expect(10 + 5 - 3).toBe(12);
   await owner.context.close();
 });
 
 test("[INV-017] importar un archivo con filas malas informa cuántos entraron y qué falló @regresion", async ({ browser, request }, info) => {
-  knownFailure("H-09");
   test.setTimeout(90_000);
   const company = await createCompany(request, { workerIndex: info.workerIndex });
   const prefix = uniquePrefix(info.workerIndex);
@@ -133,9 +137,10 @@ test("[INV-017] importar un archivo con filas malas informa cuántos entraron y 
   await page.getByRole("dialog").getByRole("button", { name: t("inventory.cancel") }).click();
 
   // Una fila válida y una sin SKU: entra la válida y el aviso dice cuántas (1) y qué falló.
-  await importFile(page, "mixto.csv", csv([[`${prefix}-OK`, `Bueno ${prefix}`, 5, 3], ["", "Sin SKU", 1, 1]]));
-  await expect(page.getByText(t("inventory.importSuccess", { count: 1 }))).toBeVisible();
-  await expect(page.getByText(/SKU requerido/)).toBeVisible();
+  const dialog = await importFile(page, "mixto.csv", csv([[`${prefix}-OK`, `Bueno ${prefix}`, 5, 3], ["", "Sin SKU", 1, 1]]));
+  await expect(dialog.getByText(t("inventory.importErrorRow", { row: 3 }))).toBeVisible();
+  await expect(dialog.getByText(/SKU requerido/)).toBeVisible();
+  await dialog.getByRole("button", { name: t("inventory.importClose") }).click();
   await expect(row(page, `${prefix}-OK`)).toBeVisible();
   await owner.context.close();
 });

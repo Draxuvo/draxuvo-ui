@@ -18,6 +18,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { isAxiosError } from "axios";
+import { BarcodeInput } from "./barcode-input";
 import { IconPicker } from "./icon-picker";
 import { inventoryService, type ProductPayload } from "@/services/inventory";
 import { useModuleGate } from "@/components/subscription/module-locked";
@@ -33,6 +35,10 @@ interface ProductFormProps {
   defaultTypeId?: number | null;
   /** Solo administrador y dueño cambian el icono (spec 026); la API también lo valida. */
   canEditIcon?: boolean;
+  /** Códigos precargados al dar de alta (captura con pistola: el código que no existía, spec 034). */
+  initialBarcodes?: string[];
+  /** Se llama con el producto guardado, además de cerrar la hoja. */
+  onSaved?: (product: Product) => void;
 }
 
 const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring";
@@ -51,12 +57,14 @@ type FormValues = {
   available?: boolean;
   station_id?: string;
   icon?: string;
+  barcodes: string[];
 };
 
-export function ProductForm({ open, onOpenChange, product, defaultTypeId, canEditIcon = false }: ProductFormProps) {
+export function ProductForm({ open, onOpenChange, product, defaultTypeId, canEditIcon = false, initialBarcodes, onSaved }: ProductFormProps) {
   const t = useTranslations("inventory");
   const tc = useTranslations("common");
   const ti = useTranslations("productIcons");
+  const tb = useTranslations("inventory.barcodes");
   const qc = useQueryClient();
   const isEdit = !!product;
 
@@ -79,13 +87,14 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId, canEdi
         available: z.boolean().optional(),
         station_id: z.string().optional(),
         icon: z.string().optional(),
+        barcodes: z.array(z.string().trim().min(1).max(64)),
       }),
     [t],
   );
 
   const { register, handleSubmit, reset, setError, control, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema) as Resolver<FormValues>,
-    defaultValues: { product_type_id: "", sku: "", name: "", stock: 0, min_stock: 0, unit_cost: 0, price: 0, category: "", description: "", available: true, station_id: "", unit_key: "", icon: "" },
+    defaultValues: { product_type_id: "", sku: "", name: "", stock: 0, min_stock: 0, unit_cost: 0, price: 0, category: "", description: "", available: true, station_id: "", unit_key: "", icon: "", barcodes: [] },
   });
 
   const { data: productData } = useQuery({
@@ -112,8 +121,9 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId, canEdi
       available: source?.available ?? true,
       station_id: source?.station_id ? String(source.station_id) : "",
       icon: source?.icon ?? "",
+      barcodes: source?.barcodes ?? initialBarcodes ?? [],
     });
-  }, [open, productData, isEdit, reset, defaultTypeId]);
+  }, [open, productData, isEdit, reset, defaultTypeId, initialBarcodes]);
 
   const typeId = useWatch({ control, name: "product_type_id" });
   const type = types.data?.find((item) => String(item.id) === typeId);
@@ -132,6 +142,7 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId, canEdi
         unit_cost: values.unit_cost,
         category: values.category,
         description: values.description,
+        barcodes: values.barcodes,
       };
       if (canEditIcon && (values.icon || null) !== (product?.icon ?? null)) payload.icon = values.icon || null;
       if (type?.sellable) {
@@ -143,10 +154,17 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId, canEdi
       }
       return isEdit ? inventoryService.update(product!.id, payload) : inventoryService.create(payload);
     },
-    onSuccess: () => {
+    onSuccess: (saved) => {
       toast.success(isEdit ? t("updateSuccess") : t("createSuccess"));
       qc.invalidateQueries({ queryKey: ["products"] });
+      onSaved?.(saved);
       onOpenChange(false);
+    },
+    onError: (error) => {
+      // Un código ya usado por otro producto se explica bajo el campo, además del aviso global.
+      if (isAxiosError(error) && error.response?.data?.error?.details?.code === "barcode_taken") {
+        setError("barcodes", { message: error.response.data.error.message });
+      }
     },
   });
 
@@ -240,6 +258,16 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId, canEdi
                 <Label htmlFor="category" className="text-xs font-medium text-foreground">{t("category")}</Label>
                 <Input id="category" placeholder={t("categoryPlaceholder")} {...register("category")} />
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="barcodes" className="text-xs font-medium text-foreground">{tb("label")}</Label>
+              <Controller
+                control={control}
+                name="barcodes"
+                render={({ field }) => <BarcodeInput value={field.value} onChange={field.onChange} />}
+              />
+              {errors.barcodes && <p role="alert" className="text-xs text-destructive">{errors.barcodes.message as string}</p>}
             </div>
 
             {canEditIcon && (

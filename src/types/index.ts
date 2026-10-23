@@ -162,6 +162,8 @@ export interface ProductTypePayload extends Partial<ProductTypeRules> {
 export interface Product {
   id: number;
   sku: string;
+  /** Códigos de barras del producto, en orden de alta (spec 034). */
+  barcodes?: string[];
   name: string;
   /** `null` cuando el tipo no se cuenta (spec 016). */
   stock: number | null;
@@ -195,7 +197,65 @@ export interface StockMovement {
   movement_type: "entry" | "exit" | "adjustment";
   qty: number;
   note?: string;
+  /** Quién lo registró; los movimientos anteriores a la spec 034 no lo traen. */
+  user?: { id: number; name: string } | null;
   created_at: string;
+}
+
+// Importación de productos en segundo plano (spec 034).
+export type ProductImportStatus = "queued" | "processing" | "done" | "failed";
+
+export interface ProductImportError {
+  row: number | null;
+  sku?: string;
+  error: string;
+}
+
+export interface ProductImport {
+  id: number;
+  status: ProductImportStatus;
+  filename: string | null;
+  total_rows: number;
+  processed_rows: number;
+  created: number;
+  updated: number;
+  unchanged: number;
+  /** Hasta 500 filas; `errors_total` cuenta todas. */
+  errors: ProductImportError[];
+  errors_total: number;
+  started_at: string | null;
+  finished_at: string | null;
+  created_at: string;
+  user: { id: number; name: string } | null;
+}
+
+// Conteo físico en borrador (spec 034).
+export type StockCountStatus = "draft" | "confirmed" | "discarded";
+
+export interface StockCountItem {
+  product: Product;
+  counted_qty: number;
+  baseline_stock: number;
+  current_stock: number;
+  /** Contado menos stock actual: positiva es sobrante. */
+  difference: number;
+  /** El stock del sistema cambió desde que se contó por primera vez. */
+  changed: boolean;
+}
+
+export interface StockCount {
+  id: number;
+  name: string | null;
+  status: StockCountStatus;
+  user: { id: number; name: string } | null;
+  created_at: string;
+  confirmed_at: string | null;
+  items: StockCountItem[];
+}
+
+export interface StockReceiptItem {
+  product_id: number;
+  qty: number;
 }
 
 export interface PaginationInfo {

@@ -129,5 +129,52 @@ describe("icono del producto (spec 026)", () => {
     await waitFor(() => expect(inventoryService.create).toHaveBeenCalled());
     expect(vi.mocked(inventoryService.create).mock.calls[0][0]).toMatchObject({ icon: "taco" });
   });
-});
 
+  describe("códigos de barras (spec 034)", () => {
+    it("manda la lista de códigos escrita con Enter y descarta los repetidos", async () => {
+      renderWithProviders(<ProductForm open onOpenChange={() => {}} />);
+      const user = userEvent.setup();
+      await fill(user, "Platillo");
+
+      const codes = screen.getByLabelText("Códigos de barras", { selector: "input" });
+      await user.type(codes, "0012345678905{Enter}");
+      await user.type(codes, "7501234567890{Enter}");
+      await user.type(codes, "0012345678905{Enter}");
+      await user.click(screen.getByRole("button", { name: "Guardar cambios" }));
+
+      await waitFor(() => expect(inventoryService.create).toHaveBeenCalled());
+      expect(vi.mocked(inventoryService.create).mock.calls[0][0].barcodes).toEqual(["0012345678905", "7501234567890"]);
+    });
+
+    it("quitar un código lo saca de la lista que se manda", async () => {
+      vi.mocked(inventoryService.getById).mockResolvedValue({
+        id: 7, sku: "P-7", name: "Cuaderno", barcodes: ["111", "222"], stock: 3, min_stock: 1, unit_cost: 1, low_stock: false,
+        product_type: { id: 2, name: "Bebida", sellable: true, counted: true, fractional: false },
+      } as never);
+      vi.mocked(inventoryService.update).mockResolvedValue({} as never);
+      renderWithProviders(<ProductForm open onOpenChange={() => {}} product={{ id: 7 } as never} />);
+      const user = userEvent.setup();
+
+      await user.click(await screen.findByRole("button", { name: "Quitar código 111" }));
+      await user.click(screen.getByRole("button", { name: "Guardar cambios" }));
+
+      await waitFor(() => expect(inventoryService.update).toHaveBeenCalled());
+      expect(vi.mocked(inventoryService.update).mock.calls[0][1].barcodes).toEqual(["222"]);
+    });
+
+    it("un código de otro producto muestra el mensaje de la API bajo el campo", async () => {
+      const error = Object.assign(new Error("x"), {
+        isAxiosError: true,
+        response: { status: 422, data: { error: { message: "El código 111 ya pertenece a Cuaderno", details: { code: "barcode_taken" } } } },
+      });
+      vi.mocked(inventoryService.create).mockRejectedValue(error);
+      renderWithProviders(<ProductForm open onOpenChange={() => {}} />);
+      const user = userEvent.setup();
+      await fill(user, "Platillo");
+      await user.type(screen.getByLabelText("Códigos de barras", { selector: "input" }), "111{Enter}");
+      await user.click(screen.getByRole("button", { name: "Guardar cambios" }));
+
+      expect(await screen.findByRole("alert")).toHaveTextContent("El código 111 ya pertenece a Cuaderno");
+    });
+  });
+});
