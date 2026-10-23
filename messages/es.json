@@ -2294,7 +2294,7 @@
     },
     "new": {
       "title": "Nueva corrida de nómina",
-      "description": "Se crea un borrador con una línea por cada empleado activo. El salario capturado en la ficha se toma como mensual.",
+      "description": "Se crea un borrador con una línea por cada empleado activo con salario capturado. El salario de la ficha se toma como mensual.",
       "type": "Tipo de periodo",
       "from": "Del",
       "to": "Al",
@@ -2324,7 +2324,6 @@
       "net": "Neto",
       "state": "Estado",
       "actions": "Acciones",
-      "noSalary": "Sin salario capturado: captúralo en la ficha del empleado o quita la línea",
       "adjust": "Ajustes",
       "removeLine": "Quitar línea",
       "pay": "Pagar",

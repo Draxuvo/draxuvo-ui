@@ -2294,7 +2294,7 @@
     },
     "new": {
       "title": "New payroll run",
-      "description": "A draft is created with one line per active employee. The salary on each employee's record is taken as monthly.",
+      "description": "A draft is created with one line per active employee with a salary set. The salary on each employee's record is taken as monthly.",
       "type": "Period type",
       "from": "From",
       "to": "To",
@@ -2324,7 +2324,6 @@
       "net": "Net",
       "state": "Status",
       "actions": "Actions",
-      "noSalary": "No salary set: add it on the employee record or remove the line",
       "adjust": "Adjustments",
       "removeLine": "Remove line",
       "pay": "Pay",

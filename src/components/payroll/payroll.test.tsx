@@ -123,14 +123,6 @@ describe("Nómina (spec 037)", () => {
     await waitFor(() => expect(api.approve).toHaveBeenCalledWith(1, 3, expect.any(String)));
   });
 
-  it("avisa de la línea sin salario", async () => {
-    search = "run=1";
-    api.get.mockResolvedValue(run({ payments: [line({ monthly_salary_cents: 0, salary_cents: 0, net_cents: 0 })] }));
-    renderWithProviders(<PayrollTab />);
-
-    expect(await screen.findByText(/Sin salario capturado/)).toBeInTheDocument();
-  });
-
   it("aprobada: paga una línea con método, fecha y referencia", async () => {
     search = "run=1";
     api.get.mockResolvedValue(run({ status: "approved" }));

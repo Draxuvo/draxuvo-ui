@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, Download, FileText, History, RefreshCw, SlidersHorizontal, Trash2, TriangleAlert } from "lucide-react";
+import { ArrowLeft, Download, FileText, History, RefreshCw, SlidersHorizontal, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -179,11 +179,6 @@ export function RunDetail({ runId, onBack }: { runId: number; onBack: () => void
               <TableRow key={p.id}>
                 <TableCell className="font-medium">
                   {p.employee_name}
-                  {p.monthly_salary_cents === 0 && (
-                    <span className="mt-0.5 flex items-center gap-1 text-xs font-normal text-amber-700 dark:text-amber-400">
-                      <TriangleAlert size={12} aria-hidden /> {t("detail.noSalary")}
-                    </span>
-                  )}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
                   {t("detail.attendanceValue", { days: p.days_attended, hours: p.hours_worked })}

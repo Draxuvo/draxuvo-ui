@@ -26,14 +26,8 @@ test.describe("nómina (spec 037)", () => {
     await dialog.getByLabel(t("payroll.new.to")).fill(to);
     await dialog.getByRole("button", { name: t("payroll.new.create") }).click();
 
-    // Borrador: las fichas sin salario (dueño, administrador…) se quitan para poder aprobar.
+    // Borrador: solo entran los empleados con salario (el dueño y el administrador de la demo no tienen).
     await expect(page.getByRole("button", { name: t("payroll.detail.approve") })).toBeVisible();
-    const noSalary = page.getByText(t("payroll.detail.noSalary"));
-    while ((await noSalary.count()) > 0) {
-      const before = await noSalary.count();
-      await noSalary.first().locator("xpath=ancestor::tr").getByRole("button", { name: new RegExp(t("payroll.detail.removeLine")) }).click();
-      await expect(noSalary).toHaveCount(before - 1);
-    }
 
     // Un bono de $500 a la primera línea.
     await page.getByRole("button", { name: new RegExp(`^${t("payroll.detail.adjust")}:`) }).first().click();
