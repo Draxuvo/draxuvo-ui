@@ -17,6 +17,7 @@ vi.mock("@/services/subscription", () => ({
 }));
 vi.mock("@/components/people/employees-tab", () => ({ EmployeesTab: () => <p>cuerpo empleados</p> }));
 vi.mock("@/components/people/attendance-tab", () => ({ AttendanceTab: () => <p>cuerpo asistencia</p> }));
+vi.mock("@/components/payroll/payroll-tab", () => ({ PayrollTab: () => <p>cuerpo nómina</p> }));
 
 import PersonalPage from "./page";
 
@@ -75,12 +76,31 @@ describe("Personal (specs 029 y 036)", () => {
     expect(replace).toHaveBeenCalledWith("/es/personal?tab=asistencia", { scroll: false });
   });
 
-  it("manager ve las dos pestañas", async () => {
+  it("manager ve las dos pestañas y no la de Nómina", async () => {
     as("manager");
     renderWithProviders(<PersonalPage />);
 
     expect(await screen.findByText("cuerpo empleados")).toBeInTheDocument();
     expect(await screen.findByRole("tab", { name: "Asistencia" })).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Nómina" })).not.toBeInTheDocument();
+  });
+
+  it("dueño y administrador ven Nómina (spec 037) y ?tab=nomina la abre", async () => {
+    as("owner");
+    search = "tab=nomina";
+    renderWithProviders(<PersonalPage />);
+
+    expect(await screen.findByText("cuerpo nómina")).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Nómina", selected: true })).toBeInTheDocument();
+  });
+
+  it("sin el módulo de empleados no hay pestaña Nómina", async () => {
+    as("admin");
+    modules = ["attendance"];
+    renderWithProviders(<PersonalPage />);
+
+    expect(await screen.findByText("cuerpo asistencia")).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Nómina" })).not.toBeInTheDocument();
   });
 
   it("con solo el módulo de asistencia no hay pestaña Empleados y abre Asistencia", async () => {

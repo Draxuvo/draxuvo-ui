@@ -701,6 +701,8 @@ export interface PayrollReport {
   period: ReportRange;
   total_payroll: number;
   headcount: number;
+  /** Spec 037: corridas cuyo periodo termina en el rango; montos en centavos. */
+  runs: { count: number; paid_cents: number; pending_cents: number };
   employees: PayrollEmployee[];
 }
 
@@ -1015,4 +1017,83 @@ export interface StockAlert {
   stock: number;
   min_stock: number | null;
   sold_out: boolean;
+}
+
+// --- Nómina (spec 037) ----------------------------------------------------------------------
+export const PAYROLL_PERIOD_TYPES = ["weekly", "biweekly", "monthly"] as const;
+export type PayrollPeriodType = (typeof PAYROLL_PERIOD_TYPES)[number];
+export const PAYROLL_RUN_STATUSES = ["draft", "approved", "partial", "paid", "cancelled"] as const;
+export type PayrollRunStatus = (typeof PAYROLL_RUN_STATUSES)[number];
+export const PAYROLL_METHODS = ["cash", "transfer", "other"] as const;
+export type PayrollMethod = (typeof PAYROLL_METHODS)[number];
+
+export interface PayrollUserRef {
+  id: number;
+  name: string;
+}
+
+/** Montos en centavos MXN. */
+export interface PayrollAdjustment {
+  id: number;
+  payroll_payment_id: number;
+  kind: "bonus" | "deduction";
+  amount_cents: number;
+  note: string;
+  corrects_payment_id: number | null;
+  created_by: PayrollUserRef | null;
+  created_at: string;
+}
+
+export interface PayrollPayment {
+  id: number;
+  payroll_run_id: number;
+  employee_id: number | null;
+  employee_name: string;
+  monthly_salary_cents: number;
+  period_days: number;
+  days_paid: number;
+  salary_cents: number;
+  bonus_cents: number;
+  deduction_cents: number;
+  net_cents: number;
+  days_attended: number;
+  hours_worked: number;
+  status: "pending" | "paid";
+  method: PayrollMethod | null;
+  reference: string | null;
+  paid_on: string | null;
+  paid_by: PayrollUserRef | null;
+  adjustments?: PayrollAdjustment[];
+  /** Solo en el historial por empleado y en el recibo. */
+  run?: Pick<PayrollRun, "id" | "period_type" | "starts_on" | "ends_on">;
+  company?: { name: string };
+}
+
+export interface PayrollEvent {
+  id: number;
+  action: string;
+  details: Record<string, unknown>;
+  user: PayrollUserRef | null;
+  created_at: string;
+}
+
+export interface PayrollRun {
+  id: number;
+  period_type: PayrollPeriodType;
+  starts_on: string;
+  ends_on: string;
+  status: PayrollRunStatus;
+  total_cents: number;
+  lock_version: number;
+  payments_count: number;
+  paid_count: number;
+  paid_cents: number;
+  created_by: PayrollUserRef | null;
+  approved_by: PayrollUserRef | null;
+  approved_at: string | null;
+  cancelled_at: string | null;
+  cancel_reason: string | null;
+  created_at: string;
+  payments?: PayrollPayment[];
+  events?: PayrollEvent[];
 }

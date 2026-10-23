@@ -416,7 +416,10 @@
       "formatName": "Nombre",
       "formatNamePlaceholder": "Etiquetas de estante",
       "formatKind": "Tipo de papel",
-      "kind": { "sheet": "Hoja", "roll": "Rollo" },
+      "kind": {
+        "sheet": "Hoja",
+        "roll": "Rollo"
+      },
       "field": {
         "page_width_mm": "Ancho de la hoja (mm)",
         "page_height_mm": "Alto de la hoja (mm)",
@@ -1210,7 +1213,11 @@
       "colSalary": "Salario",
       "colDays": "Días presentes",
       "colHours": "Horas trabajadas",
-      "hoursUnit": "hrs"
+      "hoursUnit": "hrs",
+      "runsLabel": "Corridas de nómina del periodo",
+      "runsPaid": "Pagado",
+      "runsPending": "Pendiente de pago",
+      "runsCount": "Corridas"
     },
     "payments": {
       "byMethod": "Por método",
@@ -1834,7 +1841,8 @@
     "tabsLabel": "Secciones de Personal",
     "tabs": {
       "employees": "Empleados",
-      "attendance": "Asistencia"
+      "attendance": "Asistencia",
+      "payroll": "Nómina"
     }
   },
   "myCompanies": {
@@ -2239,6 +2247,195 @@
       "tools": "Herramientas",
       "truck": "Camión",
       "gift": "Regalo"
+    }
+  },
+  "payroll": {
+    "title": "Nómina",
+    "subtitle": "Prepara cada pago por periodo, apruébalo y deja constancia de lo pagado. Draxuvo no mueve dinero: solo registra.",
+    "newRun": "Nueva corrida",
+    "empty": "Aún no hay corridas de nómina",
+    "emptyHint": "Crea una corrida para calcular el pago de tus empleados activos.",
+    "loadError": "No se pudo cargar la nómina",
+    "retry": "Reintentar",
+    "back": "Todas las corridas",
+    "filters": {
+      "status": "Estado",
+      "year": "Año",
+      "all": "Todos"
+    },
+    "periodType": {
+      "weekly": "Semanal",
+      "biweekly": "Quincenal",
+      "monthly": "Mensual"
+    },
+    "status": {
+      "draft": "Borrador",
+      "approved": "Aprobada",
+      "partial": "Parcial",
+      "paid": "Pagada",
+      "cancelled": "Cancelada"
+    },
+    "lineStatus": {
+      "pending": "Pendiente",
+      "paid": "Pagada"
+    },
+    "method": {
+      "cash": "Efectivo",
+      "transfer": "Transferencia",
+      "other": "Otro"
+    },
+    "list": {
+      "period": "Periodo",
+      "type": "Tipo",
+      "status": "Estado",
+      "total": "Total",
+      "paid": "Pagadas",
+      "paidOf": "{paid} de {count}"
+    },
+    "new": {
+      "title": "Nueva corrida de nómina",
+      "description": "Se crea un borrador con una línea por cada empleado activo con salario capturado. El salario de la ficha se toma como mensual.",
+      "type": "Tipo de periodo",
+      "from": "Del",
+      "to": "Al",
+      "create": "Crear borrador",
+      "cancel": "Cancelar",
+      "hintWeekly": "Hasta 7 días",
+      "hintBiweekly": "Hasta 16 días",
+      "hintMonthly": "Hasta 31 días",
+      "datesRequired": "Elige las fechas del periodo",
+      "endBeforeStart": "La fecha final no puede ser anterior a la inicial",
+      "created": "Corrida creada",
+      "createError": "No se pudo crear la corrida"
+    },
+    "detail": {
+      "period": "Periodo",
+      "total": "Total a pagar",
+      "createdBy": "Creada por {name}",
+      "approvedBy": "Aprobada por {name}",
+      "cancelledNote": "Cancelada: {reason}",
+      "employee": "Empleado",
+      "attendance": "Asistencia",
+      "attendanceValue": "{days} días · {hours} h",
+      "daysPaid": "Días a pagar",
+      "salary": "Salario",
+      "bonuses": "Bonos",
+      "deductions": "Deducciones",
+      "net": "Neto",
+      "state": "Estado",
+      "actions": "Acciones",
+      "adjust": "Ajustes",
+      "removeLine": "Quitar línea",
+      "pay": "Pagar",
+      "receipt": "Recibo",
+      "history": "Historial de pagos",
+      "refresh": "Actualizar empleados",
+      "refreshed": "Empleados actualizados",
+      "discard": "Descartar borrador",
+      "discarded": "Borrador descartado",
+      "approve": "Aprobar",
+      "approved": "Corrida aprobada",
+      "payAll": "Pagar todos",
+      "cancelRun": "Cancelar corrida",
+      "cancelled": "Corrida cancelada",
+      "exportCsv": "Exportar CSV",
+      "events": "Bitácora",
+      "noEvents": "Sin movimientos",
+      "daysInvalid": "Entre 0 y {max} días",
+      "lineRemoved": "Línea quitada",
+      "daysSaved": "Días actualizados",
+      "approveConfirmTitle": "¿Aprobar la corrida?",
+      "approveConfirmBody": "Los montos quedan congelados: ya no podrás editar días ni ajustes. Total: {total}.",
+      "discardConfirmTitle": "¿Descartar el borrador?",
+      "discardConfirmBody": "Se borra la corrida y sus líneas. No se puede deshacer.",
+      "confirm": "Confirmar",
+      "keep": "Volver",
+      "unchanged": "La corrida cambió; se recargó con lo más reciente"
+    },
+    "events": {
+      "created": "Corrida creada",
+      "adjustment_added": "Ajuste agregado a {employee}",
+      "adjustment_updated": "Ajuste editado de {employee}",
+      "adjustment_removed": "Ajuste quitado de {employee}",
+      "days_changed": "Días a pagar de {employee}: {days}",
+      "line_removed": "Línea quitada: {employee}",
+      "employees_refreshed": "Empleados actualizados",
+      "approved": "Corrida aprobada",
+      "paid": "Pagos registrados",
+      "cancelled": "Corrida cancelada"
+    },
+    "adjust": {
+      "title": "Ajustes de {name}",
+      "description": "Bonos y deducciones de este periodo. Cada ajuste lleva una nota.",
+      "none": "Sin ajustes",
+      "kind": "Tipo",
+      "bonus": "Bono",
+      "deduction": "Deducción",
+      "amount": "Monto (MXN)",
+      "note": "Nota",
+      "notePlaceholder": "Por ejemplo: puntualidad, anticipo, corrección",
+      "add": "Agregar ajuste",
+      "remove": "Quitar",
+      "corrects": "Corrige un pago anterior",
+      "correctsPick": "Pago que se corrige",
+      "noPaid": "Este empleado no tiene pagos hechos",
+      "amountInvalid": "Escribe un monto mayor que cero",
+      "noteRequired": "La nota es obligatoria",
+      "added": "Ajuste agregado",
+      "removed": "Ajuste quitado",
+      "close": "Cerrar",
+      "readOnly": "La corrida ya no admite ajustes"
+    },
+    "pay": {
+      "title": "Registrar pago",
+      "titleAll": "Pagar todos los pendientes",
+      "description": "Solo se deja constancia; Draxuvo no mueve dinero.",
+      "descriptionAll": "{count} pagos pendientes por {total}.",
+      "method": "Método",
+      "date": "Fecha de pago",
+      "reference": "Referencia (opcional)",
+      "referencePlaceholder": "Folio de la transferencia, nota…",
+      "confirm": "Registrar pago",
+      "cancel": "Cancelar",
+      "done": "Pago registrado",
+      "doneAll": "Pagos registrados",
+      "futureDate": "La fecha no puede ser futura"
+    },
+    "cancel": {
+      "title": "Cancelar corrida",
+      "description": "Solo se puede cancelar una corrida aprobada sin pagos.",
+      "reason": "Motivo",
+      "reasonRequired": "Indica el motivo",
+      "confirm": "Cancelar corrida",
+      "keep": "Volver"
+    },
+    "receipt": {
+      "title": "Recibo de nómina",
+      "company": "Empresa",
+      "employee": "Empleado",
+      "period": "Periodo",
+      "salary": "Salario del periodo",
+      "daysPaid": "Días pagados: {days} de {total}",
+      "bonuses": "Bonos",
+      "deductions": "Deducciones",
+      "net": "Neto pagado",
+      "method": "Método de pago",
+      "paidOn": "Fecha de pago",
+      "reference": "Referencia",
+      "print": "Imprimir",
+      "back": "Volver a la corrida",
+      "notice": "Constancia interna de pago; no es un comprobante fiscal.",
+      "loadError": "No se pudo cargar el recibo",
+      "notPaid": "Esta línea aún no está pagada"
+    },
+    "history": {
+      "title": "Pagos de {name}",
+      "empty": "Sin pagos registrados",
+      "period": "Periodo",
+      "net": "Neto",
+      "method": "Método",
+      "paidOn": "Fecha",
+      "close": "Cerrar"
     }
   }
 }

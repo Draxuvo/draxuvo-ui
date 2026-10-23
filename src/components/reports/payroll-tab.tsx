@@ -54,6 +54,13 @@ export function PayrollTab({ period, companyId }: TabProps) {
       onRetry={() => query.refetch()}
       period={period}
     >
+      {report && report.runs.count > 0 && (
+        <dl className="mb-4 grid gap-3 sm:grid-cols-3" aria-label={t("payroll.runsLabel")}>
+          <RunStat label={t("payroll.runsPaid")} value={formatCurrency(report.runs.paid_cents / 100, locale, true)} />
+          <RunStat label={t("payroll.runsPending")} value={formatCurrency(report.runs.pending_cents / 100, locale, true)} />
+          <RunStat label={t("payroll.runsCount")} value={String(report.runs.count)} />
+        </dl>
+      )}
       <ReportTable
         title={t("payroll.title")}
         subtitle={t("payroll.subtitle")}
@@ -65,5 +72,14 @@ export function PayrollTab({ period, companyId }: TabProps) {
         empty={t("state.emptyTitle")}
       />
     </ReportState>
+  );
+}
+
+function RunStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-etiqueta border border-border bg-card px-4 py-3">
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="font-display text-xl font-semibold tabular-nums">{value}</dd>
+    </div>
   );
 }
