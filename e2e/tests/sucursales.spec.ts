@@ -162,15 +162,12 @@ test("[FLU-08] el dueño crea una sucursal, cambia de empresa y los datos no se 
   await page.getByRole("menuitemradio", { name: new RegExp(branchName) }).click();
   await expect(page.getByText(t("companySwitcher.switched", { company: branchName }))).toBeVisible();
   await expect(page).toHaveURL(/\/es\/inicio$/);
-  // En la sucursal el dueño también tiene su ficha (spec 036): se omite el aviso de marcar entrada.
-  await page.getByRole("button", { name: t("attendance.entry.later") }).click({ timeout: 5000 }).catch(() => {});
 
   // 3. Hereda el modo de órdenes y la suscripción de la principal, pero no sus datos.
   await page.goto("/es/ordenes");
   await expect(page.getByRole("button", { name: t("workOrders.labels.order.new") })).toBeVisible();
   await page.goto("/es/empleados");
-  // Solo la ficha del propio dueño: no trae a los empleados de la principal.
-  await expect(page.getByRole("row")).toHaveCount(2);
+  await expect(page.getByText(t("employees.empty"))).toBeVisible();
   await expect(page.getByText(employeeName)).toHaveCount(0);
   await page.goto("/es/suscripcion");
   await expect(page.getByText(t("subscription.managedByParentTitle", { company: owner.company.companyName }))).toBeVisible();

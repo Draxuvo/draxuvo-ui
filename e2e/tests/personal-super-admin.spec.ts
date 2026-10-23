@@ -46,16 +46,19 @@ test("[PER-001] el super admin con membresía entra a Mi empresa, gestiona el ac
     // Entra a su empresa: menú de administrador, con Personal.
     await menu(page).getByRole("link", { name: t("nav.myCompany") }).click();
     await expect(page).toHaveURL(/\/es\/inicio$/);
-    // Como administrador de la empresa tiene ficha: se omite el aviso de marcar entrada si aparece.
-    const later = page.getByRole("button", { name: t("attendance.entry.later") });
-    if (await later.isVisible({ timeout: 3000 }).catch(() => false)) await later.click();
     expect((await context.cookies()).find((c) => c.name === "user_role")?.value).toBe("admin");
     await menu(page).getByRole("link", { name: t("nav.people") }).click();
     await expect(page.getByRole("tab", { name: "Acceso" })).toHaveCount(0);
 
-    // Conserva sus poderes: a diferencia de un administrador, puede cambiar el rol del dueño desde su ficha.
-    await page.getByRole("row").filter({ hasText: t("adminUsers.roles.owner") }).getByRole("button").nth(-2).click();
-    await expect(page.getByTestId("employee-access").getByRole("combobox")).toHaveCount(1);
+    // Conserva sus poderes: a diferencia de un administrador, ofrece el rol de dueño en la ficha del personal.
+    const staff = await request.post(`${API_URL}/api/v1/company/members`, {
+      headers,
+      data: { member: { email: `staff-${companyId}@mailinator.com`, first_name: "Sol", last_name: "Piso", phone: "5512345678", role: "staff" } },
+    });
+    expect(staff.ok()).toBeTruthy();
+    await page.reload();
+    await page.getByRole("row").filter({ hasText: "Sol Piso" }).getByRole("button").nth(-2).click();
+    await expect(page.getByTestId("employee-access").getByRole("combobox").getByRole("option", { name: t("adminUsers.roles.owner") })).toHaveCount(1);
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);
 

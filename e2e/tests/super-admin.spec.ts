@@ -292,11 +292,10 @@ test("[SAD-013] estadísticas y reportes de cualquier empresa, con las cifras de
   await page.goto("/es/estadisticas");
   await expect(page.getByText(board("selectCompanyHint"))).toBeVisible();
   await company(withStaff.companyName);
-  // Desde la spec 036 el dueño tiene ficha de empleado: la empresa con un empleado más suma 2 y la vacía, 1.
-  await expect(card(board("totalEmployees"))).toHaveText("2");
+  await expect(card(board("totalEmployees"))).toHaveText("1");
   await expect(page.getByText(board("totalUsers"), { exact: true })).toBeVisible();
   await company(empty.companyName);
-  await expect(card(board("totalEmployees"))).toHaveText("1");
+  await expect(card(board("totalEmployees"))).toHaveText("0");
 
   await page.goto("/es/reportes");
   await expect(page.getByText(co("selectCompanyPrompt"))).toBeVisible();
