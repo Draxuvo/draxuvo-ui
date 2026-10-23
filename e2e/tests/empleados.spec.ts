@@ -56,11 +56,14 @@ test.describe("permisos por rol en empleados y asistencia", () => {
       test(`[EPL-013] ${role} ve Personal y Asistencia en el menú y abre las dos pantallas @regresion`, async ({ page }) => {
         await page.goto("/es/inicio");
         await expect(menu(page).getByRole("link", { name: t("nav.people") })).toBeVisible();
-        await expect(menu(page).getByRole("link", { name: t("nav.attendance") })).toBeVisible();
+        // Una sola opción (spec 036): Asistencia ya no tiene lugar propio en el menú.
+        await expect(menu(page).getByRole("link", { name: t("nav.attendance") })).toHaveCount(0);
         await page.goto("/es/empleados");
-        await expect(page.getByRole("heading", { name: emp("title"), level: 1 })).toBeVisible();
+        await expect(page.getByRole("heading", { name: t("people.title"), level: 1 })).toBeVisible();
+        await expect(page).toHaveURL(/\/es\/personal\?tab=empleados$/);
         await page.goto("/es/asistencia");
-        await expect(page.getByRole("heading", { name: att("title"), level: 1 })).toBeVisible();
+        await expect(page).toHaveURL(/\/es\/personal\?tab=asistencia$/);
+        await expect(page.getByRole("tab", { name: t("people.tabs.attendance"), selected: true })).toBeVisible();
       });
     });
   }
@@ -107,7 +110,7 @@ test.describe("manager de Volta", () => {
   test("[EPL-017] asistencia: hoy por defecto, rango, filtros combinados y fechas inválidas @regresion", async ({ page }) => {
     await page.goto("/es/asistencia");
     await expect(page.getByText(att("subtitleToday"))).toBeVisible();
-    await expect(page.getByText(att("readOnlyHint"))).toBeVisible();
+    await expect(page.getByRole("heading", { name: att("roster.title") })).toBeVisible();
 
     await page.getByLabel(att("from")).fill(day(-14));
     await expect(page.getByText(new RegExp(`^${att("subtitleRange", { from: ".+", to: ".+" })}`))).toBeVisible();
@@ -184,7 +187,6 @@ test.describe("dueño de Don Chuy", () => {
   });
 
   test("[EPL-002] un empleado nuevo creado como Activo aparece Activo @regresion", async ({ page }, info) => {
-    knownFailure("H-10");
     const name = `Rosa ${uniquePrefix(info.workerIndex)}`;
     await page.goto("/es/empleados");
     await createEmployee(page, name);

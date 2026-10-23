@@ -300,6 +300,45 @@
       "all": "All",
       "active": "Active",
       "inactive": "Inactive"
+    },
+    "access": {
+      "column": "Access",
+      "none": "No access",
+      "filter": {
+        "all": "All",
+        "with": "With access",
+        "without": "No access"
+      },
+      "title": "Panel access",
+      "give": "Give panel access",
+      "giveHint": "They get an email to create their password. You need their email and phone.",
+      "role": "Role",
+      "roleHint": "You can only give roles up to your own.",
+      "roleOf": "Role of {name}",
+      "email": "Email",
+      "phone": "Phone",
+      "send": "Give access",
+      "sending": "Sending...",
+      "cancel": "Cancel",
+      "granted": "{email} now has access",
+      "roleUpdated": "{name} is now {role}",
+      "revoke": "Remove access",
+      "revokeTitle": "Remove access?",
+      "revokeBody": "{name} can no longer sign in to the company. Their employee record and attendance are kept.",
+      "revokeConfirm": "Remove access",
+      "revoking": "Removing...",
+      "revoked": "{name} no longer has access",
+      "lastOwnerWarning": "This is the only owner: without an owner nobody can pay the subscription or manage people until you assign another.",
+      "emailNeeded": "Enter an email to give access",
+      "phoneNeeded": "Enter a phone to give access",
+      "errors": {
+        "role_not_allowed": "You cannot assign or change a role above yours. Only an owner manages owners.",
+        "already_member": "That person already belongs to the company.",
+        "last_owner": "The company needs at least one owner. Name another before making this change.",
+        "email_required": "An email is required to give access.",
+        "no_user": "The employee has no access.",
+        "generic": "The change could not be saved. Try again."
+      }
     }
   },
   "api": {
@@ -1739,7 +1778,49 @@
       "error": "Couldn't clock out. Try again."
     },
     "open": "Open",
-    "duration": "Duration"
+    "duration": "Duration",
+    "history": "History",
+    "capturedBy": "entered by {name}",
+    "roster": {
+      "title": "Today by employee",
+      "loading": "Loading…",
+      "empty": "There are no active employees yet.",
+      "loadError": "Today's list could not be loaded.",
+      "retry": "Retry",
+      "noEntry": "No check-in today",
+      "workingSince": "On shift since {time}",
+      "doneRange": "{from} to {to}",
+      "capturedBy": "entered by {name}",
+      "markIn": "Check in",
+      "markOut": "Check out",
+      "state": {
+        "none": "No check-in",
+        "working": "On shift",
+        "done": "Checked out"
+      }
+    },
+    "mark": {
+      "titleIn": "Check in {name}",
+      "titleOut": "Check out {name}",
+      "hint": "It is recorded under your name. You can change the time if they forgot to clock.",
+      "when": "Date and time",
+      "capturedNote": "It will be flagged as entered by you.",
+      "confirmIn": "Check in",
+      "confirmOut": "Check out",
+      "cancel": "Cancel",
+      "doneIn": "{name}'s check-in recorded",
+      "doneOut": "{name}'s check-out recorded",
+      "errors": {
+        "already_open": "They already have an open check-in.",
+        "no_open_attendance": "They have no open check-in.",
+        "future_time": "The time cannot be in the future.",
+        "before_checkin": "Check-out cannot be before check-in.",
+        "overlap": "That time overlaps another shift of the employee.",
+        "invalid_time": "The date or time is not valid.",
+        "employee_inactive": "The employee has been deactivated.",
+        "generic": "The entry could not be recorded. Try again."
+      }
+    }
   },
   "companySwitcher": {
     "label": "Active company",
@@ -1753,51 +1834,7 @@
     "tabsLabel": "Staff sections",
     "tabs": {
       "employees": "Employees",
-      "access": "Access"
-    }
-  },
-  "team": {
-    "title": "Team",
-    "subtitle": "{count, plural, =0 {No people} one {# person} other {# people}} in {company}",
-    "invite": "Invite person",
-    "inviteTitle": "Invite to the team",
-    "inviteSubtitle": "If they already have a Draxuvo account they are only added to this company. Otherwise they get an email to create their password.",
-    "email": "Email",
-    "emailPlaceholder": "ana@company.com",
-    "emailInvalid": "Enter a valid email",
-    "firstName": "First name",
-    "lastName": "Last name",
-    "phone": "Phone",
-    "optional": "optional",
-    "role": "Role",
-    "roleHint": "You can only grant roles up to your own.",
-    "roleOf": "Role of {name}",
-    "person": "Person",
-    "status": "Status",
-    "active": "Active",
-    "inactive": "Inactive",
-    "you": "You",
-    "remove": "Remove",
-    "removeLabel": "Remove {name} from the team",
-    "removeTitle": "Remove from the team?",
-    "lastOwnerTitle": "Leave the company without an owner?",
-    "lastOwnerBody": "{name} is the only owner of {company}. Without an owner nobody can pay the subscription or manage the team until you assign another.",
-    "lastOwnerConfirm": "Continue",
-    "removeConfirm": "{name} loses access to {company}. Their account and other companies don't change.",
-    "removing": "Removing...",
-    "removed": "{name} is no longer on the team",
-    "roleUpdated": "{name} is now {role}",
-    "invited": "{email} was added to the team",
-    "sending": "Inviting...",
-    "send": "Invite",
-    "cancel": "Cancel",
-    "empty": "There's nobody else on the team yet.",
-    "loadError": "The team could not be loaded.",
-    "errors": {
-      "role_not_allowed": "You can't grant or change a role above your own. Only an owner manages owners.",
-      "already_member": "That person is already on the team.",
-      "last_owner": "The company needs at least one owner. Name another one before making this change.",
-      "generic": "The change could not be saved. Try again."
+      "attendance": "Attendance"
     }
   },
   "myCompanies": {

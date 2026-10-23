@@ -1,6 +1,6 @@
 // src/components/employees/employee-form.tsx
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -17,7 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { employeesService } from "@/services/employees";
-import type { Employee } from "@/types";
+import { CreateAccessFields, EditAccess, useAssignableRoles } from "@/components/people/access-section";
+import type { CompanyRole, Employee } from "@/types";
 
 interface EmployeeFormProps {
   open: boolean;
@@ -29,6 +30,17 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
   const t = useTranslations("employees");
   const qc = useQueryClient();
   const isEdit = !!employee;
+  const assignable = useAssignableRoles();
+  const [giveAccess, setGiveAccess] = useState(false);
+  const [accessRole, setAccessRole] = useState<CompanyRole>("staff");
+  // El acceso del alta empieza apagado cada vez que el formulario se cierra.
+  const handleOpenChange = (value: boolean) => {
+    if (!value) {
+      setGiveAccess(false);
+      setAccessRole("staff");
+    }
+    onOpenChange(value);
+  };
 
   const { data: employeeData } = useQuery({
     queryKey: ["employees", employee?.id],
@@ -56,7 +68,7 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
     status: "active" | "inactive";
   };
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, reset, setError, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema) as Resolver<FormValues>,
     defaultValues: { status: "active" },
   });
@@ -89,17 +101,26 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
       };
       return isEdit
         ? employeesService.update(employee!.id, payload)
-        : employeesService.create(payload);
+        : employeesService.create(payload, giveAccess ? { role: assignable.includes(accessRole) ? accessRole : "staff" } : undefined);
     },
     onSuccess: () => {
       toast.success(isEdit ? t("updateSuccess") : t("createSuccess"));
       qc.invalidateQueries({ queryKey: ["employees"] });
-      onOpenChange(false);
+      handleOpenChange(false);
     },
   });
 
+  // Dar acceso necesita correo y teléfono (la cuenta se crea con ellos).
+  const submit = (v: FormValues) => {
+    if (!isEdit && giveAccess) {
+      if (!v.email) return setError("email", { message: t("access.emailNeeded") });
+      if (!v.phone) return setError("phone", { message: t("access.phoneNeeded") });
+    }
+    mutation.mutate(v);
+  };
+
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent className="w-full sm:max-w-md flex flex-col gap-0 p-0">
 
         <SheetHeader className="px-6 py-5 border-b border-border/60">
@@ -110,7 +131,7 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
         </SheetHeader>
 
         <form
-          onSubmit={handleSubmit((v) => mutation.mutate(v))}
+          onSubmit={handleSubmit(submit)}
           className="flex flex-col flex-1"
         >
           <div className="flex-1 px-6 py-6 space-y-5 overflow-y-auto">
@@ -174,13 +195,26 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium text-foreground">{t("phone")}</Label>
                 <Input placeholder={t("phonePlaceholder")} {...register("phone")} />
+                {errors.phone && (
+                  <p className="text-xs text-destructive">{errors.phone.message}</p>
+                )}
               </div>
             </div>
+
+            {!isEdit && assignable.length > 0 && (
+              <CreateAccessFields
+                enabled={giveAccess}
+                onEnabledChange={setGiveAccess}
+                role={accessRole}
+                onRoleChange={setAccessRole}
+              />
+            )}
+            {isEdit && employeeData && assignable.length > 0 && <EditAccess employee={employeeData} />}
 
           </div>
 
           <div className="px-6 py-4 border-t border-border/60 flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
               {t("cancel")}
             </Button>
             <Button type="submit" disabled={mutation.isPending}>

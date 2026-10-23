@@ -29,17 +29,6 @@ export interface UserCompany {
   order_mode: OrderMode;
 }
 
-/** Persona del equipo de la empresa activa (`/company/members`). */
-export interface CompanyMember {
-  id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone?: string | null;
-  role: CompanyRole;
-  active: boolean;
-}
-
 /** Empresa principal o sucursal (`/company/branches`, R17). */
 export interface Branch {
   id: number;
@@ -84,6 +73,15 @@ export interface Employee {
   phone?: string;
   status: EmployeeStatus;
   created_at: string;
+  /** Acceso al panel (spec 036); solo lo recibe quien lo administra. `null` = sin acceso. */
+  access?: EmployeeAccess | null;
+}
+
+export interface EmployeeAccess {
+  id: number;
+  email: string;
+  role: Role;
+  active: boolean;
 }
 
 export type AttendanceType = "normal" | "late" | "absent";
@@ -97,11 +95,24 @@ export interface Attendance {
   checkout_at: string | null;
   open: boolean;
   duration_minutes: number | null;
+  /** Quién registró cada marca y si la hora fue capturada (spec 036). */
+  checkin_by: { id: number; name: string } | null;
+  checkout_by: { id: number; name: string } | null;
+  checkin_captured: boolean;
+  checkout_captured: boolean;
+  checkout_recorded_at: string | null;
   lat: string | null;
   lng: string | null;
   created_at: string;
   updated_at: string;
   employee: { id: number; name: string; position: string | null };
+}
+
+/** Fila de la lista del día por empleado (spec 036). */
+export interface RosterRow {
+  employee: { id: number; name: string; position: string | null };
+  state: "none" | "working" | "done";
+  attendance: Attendance | null;
 }
 
 /** Un turno de quien consulta (spec 026). */
@@ -748,6 +759,8 @@ export interface ListParams {
 export interface EmployeeFilters {
   status?: EmployeeStatus;
   search?: string;
+  /** Con o sin acceso al panel (spec 036). */
+  access?: "with" | "without";
 }
 
 export interface ProductFilters {

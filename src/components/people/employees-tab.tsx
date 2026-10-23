@@ -13,6 +13,7 @@ import { EmployeeForm } from "@/components/employees/employee-form";
 import { EmployeeDeleteDialog } from "@/components/employees/employee-delete-dialog";
 import { getEmployeeColumns } from "@/components/employees/columns";
 import { employeesService } from "@/services/employees";
+import { useAuthStore } from "@/store/auth";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { cn } from "@/lib/utils";
 import { EMPLOYEE_STATUSES, type Employee, type EmployeeStatus } from "@/types";
@@ -21,8 +22,9 @@ import { FilterNotice } from "@/components/filters/filter-notice";
 import { SearchInput } from "@/components/filters/search-input";
 
 const PAGE_SIZE = 10;
-const DEFAULTS = { status: "", search: "" };
-const ALLOWED = { status: EMPLOYEE_STATUSES };
+const DEFAULTS = { status: "", search: "", access: "" };
+const ALLOWED = { status: EMPLOYEE_STATUSES, access: ["with", "without"] as const };
+const ACCESS_ROLES = new Set(["admin", "owner"]);
 // "tab" es de la página Personal: limpiar los filtros no debe cambiar de pestaña.
 const PRESERVE = ["tab"] as const;
 
@@ -41,6 +43,9 @@ export function EmployeesTab() {
 
 function EmpleadosContent() {
   const t = useTranslations("employees");
+  const tRoles = useTranslations("adminUsers.roles");
+  const role = useAuthStore((s) => s.role);
+  const showAccess = !!role && ACCESS_ROLES.has(role);
   const tc = useTranslations("common");
   const tf = useTranslations("common.filters");
   const { filters, page, setFilter, setPage, reset, isFiltered } = useUrlFilters(DEFAULTS, {
@@ -73,6 +78,7 @@ function EmpleadosContent() {
         page_size: PAGE_SIZE,
         status: (filters.status || undefined) as EmployeeStatus | undefined,
         search: filters.search || undefined,
+        access: showAccess ? ((filters.access || undefined) as "with" | "without" | undefined) : undefined,
       }),
   });
 
@@ -89,9 +95,11 @@ function EmpleadosContent() {
         onEdit: (emp) => { setEditing(emp); setFormOpen(true); },
         onDelete: (emp) => setDeleting(emp),
         onToggleStatus: (emp) => toggleStatusMutation.mutate(emp),
+        showAccess,
+        accessLabel: (emp) => (emp.access ? tRoles(emp.access.role) : t("access.none")),
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [showAccess],
   );
 
   if (gate.isLocked(error)) return <ModuleLocked module="employees" />;
@@ -103,6 +111,7 @@ function EmpleadosContent() {
   ];
   const applied = [
     filters.status && `${t("filters.status")}: ${t(`filters.${filters.status as EmployeeStatus}`)}`,
+    filters.access && `${t("access.column")}: ${t(`access.filter.${filters.access as "with" | "without"}`)}`,
     filters.search && `"${filters.search}"`,
   ].filter(Boolean);
 
@@ -155,6 +164,26 @@ function EmpleadosContent() {
           ))}
         </div>
       </div>
+
+      {showAccess && (
+        <div role="group" aria-label={t("access.column")} className="flex flex-wrap gap-2">
+          {[
+            { value: "", label: t("access.filter.all") },
+            { value: "with", label: t("access.filter.with") },
+            { value: "without", label: t("access.filter.without") },
+          ].map((o) => (
+            <button
+              key={o.value || "all"}
+              type="button"
+              aria-pressed={filters.access === o.value}
+              onClick={() => setFilter("access", o.value || null)}
+              className={cn(CHIP, filters.access === o.value ? CHIP_ON : CHIP_OFF)}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {isFiltered && <FilterNotice applied={applied} onClear={reset} />}
 

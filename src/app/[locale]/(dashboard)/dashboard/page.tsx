@@ -209,7 +209,7 @@ export default function DashboardPage() {
   const can = (module: ModuleKey, roles: Role[] = ANALYTICS_ROLES) =>
     !!data && !!role && data.active_modules.includes(module) && roles.includes(role);
   const href = (path: string) => `/${locale}${path}`;
-  const attendancePath = `/asistencia?from=${today}&to=${today}`;
+  const attendancePath = `/personal?tab=asistencia&from=${today}&to=${today}`;
 
   const cards: (StatLinkCardProps & { id: string })[] = [];
   const legend = (chart: string) => t("legendLabel", { chart });

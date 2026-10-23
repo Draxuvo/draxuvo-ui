@@ -5,7 +5,6 @@ import { API_URL, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD } from "../support/ses
 
 const ANON = { cookies: [], origins: [] };
 const menu = (page: Page) => page.getByRole("navigation", { name: t("nav.mainNav") });
-const row = (page: Page, text: string) => page.getByRole("listitem").filter({ hasText: text });
 
 async function apiLogin(request: import("@playwright/test").APIRequestContext, email: string, password: string) {
   const res = await request.post(`${API_URL}/api/v1/auth/login`, { data: { email, password } });
@@ -47,13 +46,18 @@ test("[PER-001] el super admin con membresía entra a Mi empresa, gestiona el ac
     // Entra a su empresa: menú de administrador, con Personal.
     await menu(page).getByRole("link", { name: t("nav.myCompany") }).click();
     await expect(page).toHaveURL(/\/es\/inicio$/);
+    // Como administrador de la empresa tiene ficha: se omite el aviso de marcar entrada si aparece.
+    const later = page.getByRole("button", { name: t("attendance.entry.later") });
+    if (await later.isVisible({ timeout: 3000 }).catch(() => false)) await later.click();
     expect((await context.cookies()).find((c) => c.name === "user_role")?.value).toBe("admin");
     await menu(page).getByRole("link", { name: t("nav.people") }).click();
-    await page.getByRole("tab", { name: t("people.tabs.access") }).click();
-    await expect(page).toHaveURL(/\/es\/personal\?tab=acceso$/);
+    await expect(page.getByRole("tab", { name: "Acceso" })).toHaveCount(0);
 
-    // Conserva sus poderes: a diferencia de un administrador, puede cambiar el rol del dueño.
-    await expect(row(page, company.email).getByRole("combobox")).toHaveCount(1);
+    // Conserva sus poderes: a diferencia de un administrador, puede cambiar el rol del dueño desde su ficha.
+    await page.getByRole("row").filter({ hasText: t("adminUsers.roles.owner") }).getByRole("button").nth(-2).click();
+    await expect(page.getByTestId("employee-access").getByRole("combobox")).toHaveCount(1);
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
 
     // Vuelve a su panel global.
     await menu(page).getByRole("link", { name: t("nav.backToGlobal") }).click();

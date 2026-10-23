@@ -13,6 +13,9 @@ import {
 import type { Employee } from "@/types";
 
 interface EmployeeActions {
+  /** Muestra la columna de acceso (solo administrador y dueño, spec 036). */
+  showAccess?: boolean;
+  accessLabel?: (employee: Employee) => string;
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
   onToggleStatus: (employee: Employee) => void;
@@ -52,6 +55,19 @@ export function getEmployeeColumns(
         <span className="text-muted-foreground">{row.original.position ?? "—"}</span>
       ),
     },
+    ...(actions.showAccess
+      ? [
+          {
+            id: "access",
+            header: t("access.column"),
+            cell: ({ row }: { row: { original: Employee } }) => (
+              <span className={row.original.access ? "text-foreground" : "text-muted-foreground"}>
+                {actions.accessLabel?.(row.original)}
+              </span>
+            ),
+          } as ColumnDef<Employee, unknown>,
+        ]
+      : []),
     {
       accessorKey: "status",
       header: t("status"),

@@ -57,6 +57,13 @@ export async function createCompany(
   }
   const body = await res.json();
   const user = body.user ?? {};
+  // Desde la spec 036 el dueño tiene ficha de empleado: se le deja una entrada abierta, como a las sesiones demo,
+  // para que el modal "Marcar entrada" no tape las pantallas. Si no aplica (módulo fuera del plan) se ignora.
+  const companyId = user.company_id ?? user.company?.id ?? user.companies?.[0]?.id ?? null;
+  await request.post(`${API_URL}/api/v1/my_attendance/check_in`, {
+    headers: { Authorization: `Bearer ${body.token}`, ...(companyId ? { "X-Company-Id": String(companyId) } : {}) },
+    failOnStatusCode: false,
+  });
   return {
     prefix,
     email,
@@ -64,6 +71,6 @@ export async function createCompany(
     companyName,
     token: body.token,
     userId: user.id,
-    companyId: user.company_id ?? user.company?.id ?? null,
+    companyId,
   };
 }

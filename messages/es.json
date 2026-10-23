@@ -300,6 +300,45 @@
       "all": "Todos",
       "active": "Activos",
       "inactive": "Inactivos"
+    },
+    "access": {
+      "column": "Acceso",
+      "none": "Sin acceso",
+      "filter": {
+        "all": "Todos",
+        "with": "Con acceso",
+        "without": "Sin acceso"
+      },
+      "title": "Acceso al panel",
+      "give": "Dar acceso al panel",
+      "giveHint": "Le llega un correo para crear su contraseña. Necesitas su correo y teléfono.",
+      "role": "Rol",
+      "roleHint": "Solo puedes dar roles hasta el tuyo.",
+      "roleOf": "Rol de {name}",
+      "email": "Correo electrónico",
+      "phone": "Teléfono",
+      "send": "Dar acceso",
+      "sending": "Enviando...",
+      "cancel": "Cancelar",
+      "granted": "{email} ya tiene acceso",
+      "roleUpdated": "{name} ahora es {role}",
+      "revoke": "Quitar acceso",
+      "revokeTitle": "¿Quitar el acceso?",
+      "revokeBody": "{name} deja de poder entrar a la empresa. Su ficha de empleado y su asistencia se conservan.",
+      "revokeConfirm": "Quitar acceso",
+      "revoking": "Quitando...",
+      "revoked": "{name} ya no tiene acceso",
+      "lastOwnerWarning": "Es el único dueño: sin dueño nadie podrá pagar la suscripción ni administrar a las personas hasta que asignes otro.",
+      "emailNeeded": "Para dar acceso escribe un correo",
+      "phoneNeeded": "Para dar acceso escribe un teléfono",
+      "errors": {
+        "role_not_allowed": "No puedes asignar ni modificar un rol mayor al tuyo. Solo un propietario administra propietarios.",
+        "already_member": "Esa persona ya es parte de la empresa.",
+        "last_owner": "La empresa necesita al menos un propietario. Nombra a otro antes de hacer este cambio.",
+        "email_required": "Para dar acceso se necesita un correo.",
+        "no_user": "El empleado no tiene acceso.",
+        "generic": "No se pudo guardar el cambio. Inténtalo de nuevo."
+      }
     }
   },
   "api": {
@@ -1739,7 +1778,49 @@
       "error": "No se pudo marcar la salida. Intenta de nuevo."
     },
     "open": "Abierta",
-    "duration": "Duración"
+    "duration": "Duración",
+    "history": "Historial",
+    "capturedBy": "capturada por {name}",
+    "roster": {
+      "title": "Hoy por empleado",
+      "loading": "Cargando…",
+      "empty": "Todavía no hay empleados activos.",
+      "loadError": "No se pudo cargar la lista de hoy.",
+      "retry": "Reintentar",
+      "noEntry": "Sin entrada hoy",
+      "workingSince": "En turno desde las {time}",
+      "doneRange": "De {from} a {to}",
+      "capturedBy": "capturada por {name}",
+      "markIn": "Marcar entrada",
+      "markOut": "Marcar salida",
+      "state": {
+        "none": "Sin entrada",
+        "working": "En turno",
+        "done": "Con salida"
+      }
+    },
+    "mark": {
+      "titleIn": "Marcar entrada de {name}",
+      "titleOut": "Marcar salida de {name}",
+      "hint": "Se registra a tu nombre. Puedes cambiar la hora si se le olvidó marcar.",
+      "when": "Fecha y hora",
+      "capturedNote": "Quedará señalada como capturada por ti.",
+      "confirmIn": "Marcar entrada",
+      "confirmOut": "Marcar salida",
+      "cancel": "Cancelar",
+      "doneIn": "Entrada de {name} registrada",
+      "doneOut": "Salida de {name} registrada",
+      "errors": {
+        "already_open": "Ya tiene una entrada abierta.",
+        "no_open_attendance": "No tiene una entrada abierta.",
+        "future_time": "La hora no puede ser futura.",
+        "before_checkin": "La salida no puede ser anterior a la entrada.",
+        "overlap": "Ese horario se empalma con otro turno del empleado.",
+        "invalid_time": "La fecha u hora no es válida.",
+        "employee_inactive": "El empleado está dado de baja.",
+        "generic": "No se pudo registrar la marca. Inténtalo de nuevo."
+      }
+    }
   },
   "companySwitcher": {
     "label": "Empresa activa",
@@ -1753,51 +1834,7 @@
     "tabsLabel": "Secciones de Personal",
     "tabs": {
       "employees": "Empleados",
-      "access": "Acceso"
-    }
-  },
-  "team": {
-    "title": "Equipo",
-    "subtitle": "{count, plural, =0 {Sin personas} one {# persona} other {# personas}} en {company}",
-    "invite": "Invitar persona",
-    "inviteTitle": "Invitar al equipo",
-    "inviteSubtitle": "Si ya tiene cuenta en Draxuvo solo se agrega a esta empresa. Si no, le llega un correo para crear su contraseña.",
-    "email": "Correo electrónico",
-    "emailPlaceholder": "ana@empresa.mx",
-    "emailInvalid": "Escribe un correo válido",
-    "firstName": "Nombre",
-    "lastName": "Apellido",
-    "phone": "Teléfono",
-    "optional": "opcional",
-    "role": "Rol",
-    "roleHint": "Solo puedes dar roles hasta el tuyo.",
-    "roleOf": "Rol de {name}",
-    "person": "Persona",
-    "status": "Estado",
-    "active": "Activa",
-    "inactive": "Inactiva",
-    "you": "Tú",
-    "remove": "Quitar",
-    "removeLabel": "Quitar a {name} del equipo",
-    "removeTitle": "¿Quitar del equipo?",
-    "lastOwnerTitle": "¿Dejar la empresa sin dueño?",
-    "lastOwnerBody": "{name} es el único dueño de {company}. Sin dueño nadie podrá pagar la suscripción ni administrar al equipo hasta que asignes otro.",
-    "lastOwnerConfirm": "Continuar",
-    "removeConfirm": "{name} deja de tener acceso a {company}. Su cuenta y sus otras empresas no cambian.",
-    "removing": "Quitando...",
-    "removed": "{name} ya no está en el equipo",
-    "roleUpdated": "{name} ahora es {role}",
-    "invited": "{email} se agregó al equipo",
-    "sending": "Invitando...",
-    "send": "Invitar",
-    "cancel": "Cancelar",
-    "empty": "Todavía no hay nadie más en el equipo.",
-    "loadError": "No se pudo cargar el equipo.",
-    "errors": {
-      "role_not_allowed": "No puedes asignar ni modificar un rol mayor al tuyo. Solo un propietario administra propietarios.",
-      "already_member": "Esa persona ya es parte del equipo.",
-      "last_owner": "La empresa necesita al menos un propietario. Nombra a otro antes de hacer este cambio.",
-      "generic": "No se pudo guardar el cambio. Inténtalo de nuevo."
+      "attendance": "Asistencia"
     }
   },
   "myCompanies": {

@@ -1,7 +1,6 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import { createCompany, E2E_PASSWORD, uniquePrefix, type NewCompany } from "../support/data";
 import { t } from "../support/i18n";
-import { knownFailure } from "../support/known-failure";
 import { setDisabledModules } from "../support/modules";
 import { API_URL, authFile, storageStatePath } from "../support/session";
 import { setPasswordPath } from "../support/tokens";
@@ -29,19 +28,23 @@ async function ownerOf(browser: Browser, company: NewCompany) {
   return { context, page, headers: { Authorization: `Bearer ${company.token}`, "X-Company-Id": companyId } };
 }
 
-async function invite(page: Page, person: { email: string; first?: string; last?: string; phone?: string; role?: string }) {
-  await page.getByRole("button", { name: t("team.invite") }).click();
-  const sheet = page.getByRole("dialog");
-  await sheet.getByPlaceholder(t("team.emailPlaceholder")).fill(person.email);
-  if (person.first) await sheet.getByLabel(t("team.firstName")).fill(person.first);
-  if (person.last) await sheet.getByLabel(t("team.lastName")).fill(person.last);
-  if (person.phone) await sheet.getByLabel(t("team.phone")).fill(person.phone);
-  if (person.role) await sheet.getByLabel(t("team.role")).selectOption({ label: person.role });
-  await sheet.getByRole("button", { name: t("team.send"), exact: true }).click();
-  return sheet;
-}
+const acc = (key: string, values?: Record<string, string | number>) => t(`employees.access.${key}`, values);
+const tableRow = (page: Page, text: string) => page.getByRole("row").filter({ hasText: text });
+/** Los dos íconos del final de cada fila: editar y eliminar. */
+const editButton = (r: ReturnType<typeof tableRow>) => r.getByRole("button").nth(-2);
 
-const row = (page: Page, text: string) => page.getByRole("listitem").filter({ hasText: text });
+/** Alta de un empleado con acceso desde el botón "Nuevo empleado" (spec 036). */
+async function createWithAccess(page: Page, person: { name: string; email: string; phone: string; role?: string }) {
+  await page.getByRole("button", { name: t("employees.new") }).click();
+  const sheet = page.getByRole("dialog");
+  await sheet.getByPlaceholder(t("employees.namePlaceholder")).fill(person.name);
+  await sheet.getByPlaceholder(t("employees.emailPlaceholder")).fill(person.email);
+  await sheet.getByPlaceholder(t("employees.phonePlaceholder")).fill(person.phone);
+  await sheet.getByLabel(acc("give")).check();
+  if (person.role) await sheet.getByLabel(acc("role"), { exact: true }).selectOption({ label: person.role });
+  await sheet.getByRole("button", { name: t("employees.save") }).click();
+  await expect(page.getByText(t("employees.createSuccess"))).toBeVisible();
+}
 
 // Cuarentena (spec 010): falló o fue inestable en la primera corrida local. Arreglar o borrar en 14 días.
 test("[FLU-02] el dueño da de alta un empleado con correo; entra como staff y, al subir de rol, al inicio @pr @flaky", async ({ browser, request }, info) => {
@@ -51,16 +54,11 @@ test("[FLU-02] el dueño da de alta un empleado con correo; entra como staff y, 
   const person = { name: `Pedro ${prefix}`, email: `${prefix}@mailinator.com` };
   const owner = await ownerOf(browser, company);
 
-  // 1. El dueño crea al empleado con correo (EPL-003): nace inactivo, esperando su contraseña.
+  // 1. El dueño crea al empleado con acceso desde "Nuevo empleado" (spec 036): rol Personal de piso, activo.
   await owner.page.goto("/es/empleados");
-  await owner.page.getByRole("button", { name: t("employees.new") }).click();
-  const sheet = owner.page.getByRole("dialog");
-  await sheet.getByPlaceholder(t("employees.namePlaceholder")).fill(person.name);
-  await sheet.getByPlaceholder(t("employees.emailPlaceholder")).fill(person.email);
-  await sheet.getByPlaceholder(t("employees.phonePlaceholder")).fill("5512345678");
-  await sheet.getByRole("button", { name: t("employees.save") }).click();
-  await expect(owner.page.getByText(t("employees.createSuccess"))).toBeVisible();
-  await expect(owner.page.getByRole("row").filter({ hasText: person.name })).toContainText(t("employees.inactive"));
+  await createWithAccess(owner.page, { ...person, phone: "5512345678" });
+  await expect(tableRow(owner.page, person.name)).toContainText(t("employees.active"));
+  await expect(tableRow(owner.page, person.name)).toContainText(role("staff"));
 
   // Es miembro de la empresa con rol staff; su id firma el enlace de alta (no hay correo real).
   const members = await request.get(`${API_URL}/api/v1/company/members`, { headers: owner.headers });
@@ -80,21 +78,19 @@ test("[FLU-02] el dueño da de alta un empleado con correo; entra como staff y, 
   await expect(guestPage).toHaveURL(/\/es\/mis-ordenes$/);
   await expect(menu(guestPage).getByRole("link", { name: t("nav.people") })).toHaveCount(0);
 
-  // El empleado ya figura activo y ligado a su usuario.
-  await owner.page.reload();
-  await expect(owner.page.getByRole("row").filter({ hasText: person.name })).toContainText(t("employees.active"));
-
-  // 3. El dueño lo sube a Gerente (EMP-010) y el invitado, al volver a entrar, llega a /inicio.
-  await owner.page.goto("/es/personal?tab=acceso");
-  await row(owner.page, person.email).getByRole("combobox").selectOption({ label: role("manager") });
-  await expect(owner.page.getByText(t("team.roleUpdated", { name: person.name, role: role("manager") }))).toBeVisible();
+  // 3. El dueño lo sube a Gerente desde su ficha (EMP-010) y el invitado, al volver a entrar, llega a /inicio.
+  await owner.page.goto("/es/personal?tab=empleados");
+  await editButton(tableRow(owner.page, person.name)).click();
+  await owner.page.getByLabel(acc("roleOf", { name: person.name })).selectOption({ label: role("manager") });
+  await expect(owner.page.getByText(acc("roleUpdated", { name: person.name, role: role("manager") }))).toBeVisible();
 
   await guestPage.getByRole("button", { name: t("nav.logout") }).click();
   await login(guestPage, person.email, E2E_PASSWORD);
   await expect(guestPage).toHaveURL(/\/es\/inicio$/);
   await expect(menu(guestPage).getByRole("link", { name: t("nav.people") })).toBeVisible();
   await guestPage.goto("/es/personal");
-  await expect(guestPage.getByRole("tab", { name: t("people.tabs.access") })).toHaveCount(0);
+  await expect(guestPage.getByRole("tab", { name: "Acceso" })).toHaveCount(0);
+  await expect(guestPage.getByRole("tab", { name: t("people.tabs.attendance") })).toBeVisible();
 
   await guest.close();
   await owner.context.close();
@@ -103,45 +99,26 @@ test("[FLU-02] el dueño da de alta un empleado con correo; entra como staff y, 
 test.describe("dueño de Volta", () => {
   test.use({ storageState: storageStatePath("owner", "volta.demo") });
 
-  test("[EMP-006] invitar con solo el correo funciona y el correo mal escrito se valida @regresion", async ({ page }, info) => {
-    knownFailure("H-11");
-    const email = `${uniquePrefix(info.workerIndex)}@mailinator.com`;
-    await page.goto("/es/personal?tab=acceso");
+  test("[EMP-008] dar acceso a quien ya es miembro avisa y no crea nada @regresion", async ({ page }, info) => {
+    await page.goto("/es/personal?tab=empleados");
+    const before = await page.getByRole("row").count();
 
-    // Un correo mal escrito se valida en la pantalla, sin llamar a la API.
-    const sheet = await invite(page, { email: "sin-arroba" });
-    await expect(sheet.getByText(t("team.emailInvalid"))).toBeVisible();
-
-    // Nombre, apellido y teléfono se marcan opcionales: invitar solo con el correo debería bastar.
-    await sheet.getByPlaceholder(t("team.emailPlaceholder")).fill(email);
-    await sheet.getByRole("button", { name: t("team.send"), exact: true }).click();
-    await expect(page.getByText(t("team.invited", { email }))).toBeVisible();
-  });
-
-  test("[EMP-008] invitar a quien ya es miembro avisa y no cambia la lista @regresion", async ({ page }) => {
-    await page.goto("/es/personal?tab=acceso");
-    await expect(row(page, "manager@volta.demo")).toBeVisible();
-    const before = await page.getByRole("listitem").count();
-
-    const sheet = await invite(page, { email: "manager@volta.demo" });
-    await expect(sheet.getByRole("alert")).toHaveText(t("team.errors.already_member"));
-
-    await sheet.getByRole("button", { name: t("team.cancel") }).click();
-    await expect(page.getByRole("listitem")).toHaveCount(before);
+    await page.getByRole("button", { name: t("employees.new") }).click();
+    const sheet = page.getByRole("dialog");
+    await sheet.getByPlaceholder(t("employees.namePlaceholder")).fill(`Repetido ${uniquePrefix(info.workerIndex)}`);
+    await sheet.getByPlaceholder(t("employees.emailPlaceholder")).fill("manager@volta.demo");
+    await sheet.getByPlaceholder(t("employees.phonePlaceholder")).fill("5512345678");
+    await sheet.getByLabel(acc("give")).check();
+    await sheet.getByRole("button", { name: t("employees.save") }).click();
+    await expect(page.getByRole("row")).toHaveCount(before);
   });
 });
 
-test("[EMP-012] el único propietario no se edita ni se quita desde la pantalla @regresion", async ({ browser, request }, info) => {
+test("[EMP-012] el único propietario no se baja ni se quita desde su ficha @regresion", async ({ browser, request }, info) => {
   test.setTimeout(90_000);
   const company = await createCompany(request, { workerIndex: info.workerIndex });
   const { context: me, page, headers } = await ownerOf(browser, company);
-  await page.goto("/es/personal?tab=acceso");
-
-  // Su fila lleva "Tú", sin selector de rol ni botón de quitar.
-  const own = row(page, company.email);
-  await expect(own).toContainText(t("team.you"));
-  await expect(own.getByRole("combobox")).toHaveCount(0);
-  await expect(own.getByRole("button", { name: /Quitar/, includeHidden: true })).toBeDisabled();
+  await page.goto("/es/personal?tab=empleados");
 
   // La API lo respalda: bajar el propio rol o salirse da 422 `last_owner`.
   const demote = await request.patch(`${API_URL}/api/v1/company/members/${company.userId}`, {
@@ -153,55 +130,35 @@ test("[EMP-012] el único propietario no se edita ni se quita desde la pantalla 
   const leave = await request.delete(`${API_URL}/api/v1/company/members/${company.userId}`, { headers });
   expect(leave.status()).toBe(422);
 
-  // Si la API rechaza un cambio con `last_owner`, la pantalla explica qué hacer.
-  const prefix = uniquePrefix(info.workerIndex);
-  await invite(page, { email: `${prefix}@mailinator.com`, first: "Nora", last: prefix, phone: "5512345678" });
-  await expect(page.getByText(t("team.invited", { email: `${prefix}@mailinator.com` }))).toBeVisible();
-  await page.route("**/api/v1/company/members/*", (route) =>
-    route.request().method() === "PATCH"
-      ? route.fulfill({
-          status: 422,
-          contentType: "application/json",
-          body: JSON.stringify({ error: { message: "x", details: { code: "last_owner" } } }),
-        })
-      : route.fallback(),
-  );
-  await row(page, `${prefix}@mailinator.com`).getByRole("combobox").selectOption({ label: role("manager") });
-  await expect(page.getByText(t("team.errors.last_owner"))).toBeVisible();
+  // La pantalla explica qué hacer al intentar bajar el propio rol desde la ficha.
+  await editButton(tableRow(page, role("owner"))).click();
+  await page.getByLabel(/^Rol de /).selectOption({ label: role("admin") });
+  await expect(page.getByText(acc("errors.last_owner"))).toBeVisible();
   await me.close();
 });
 
-test("[EMP-014] el dueño invita, cambia el rol y quita a una persona desde Personal › Acceso @regresion", async ({ browser, request }, info) => {
+test("[EMP-014] el dueño da acceso desde Nuevo empleado, cambia el rol y lo quita sin perder al empleado @regresion", async ({ browser, request }, info) => {
   test.setTimeout(90_000);
   const company = await createCompany(request, { workerIndex: info.workerIndex });
   const prefix = uniquePrefix(info.workerIndex);
-  const person = { email: `${prefix}@mailinator.com`, first: "Nora", last: prefix, phone: "5512345678" };
-  const name = `${person.first} ${person.last}`;
+  const person = { email: `${prefix}@mailinator.com`, name: `Nora ${prefix}`, phone: "5512345678" };
   const owner = await ownerOf(browser, company);
   const page = owner.page;
 
-  await page.goto("/es/personal?tab=acceso");
-  await expect(page.getByRole("heading", { name: t("team.title") })).toBeVisible();
-  // El plural de `team.subtitle` es ICU; t() no lo resuelve.
-  await expect(page.getByText(`1 persona en ${company.companyName}`)).toBeVisible();
-  const own = row(page, company.email);
-  await expect(own).toContainText(t("team.you"));
-  await expect(own.getByRole("combobox")).toHaveCount(0);
+  await page.goto("/es/personal?tab=empleados");
+  await createWithAccess(page, { ...person, role: role("manager") });
+  await expect(tableRow(page, person.name)).toContainText(role("manager"));
 
-  await invite(page, { ...person, role: role("manager") });
-  await expect(page.getByText(t("team.invited", { email: person.email }))).toBeVisible();
-  await expect(row(page, person.email).getByRole("combobox")).toHaveValue("manager");
+  await editButton(tableRow(page, person.name)).click();
+  await page.getByLabel(acc("roleOf", { name: person.name })).selectOption({ label: role("staff") });
+  await expect(page.getByText(acc("roleUpdated", { name: person.name, role: role("staff") }))).toBeVisible();
 
-  await row(page, person.email).getByRole("combobox").selectOption({ label: role("staff") });
-  await expect(page.getByText(t("team.roleUpdated", { name, role: role("staff") }))).toBeVisible();
-
-  await row(page, person.email).getByRole("button", { name: t("team.removeLabel", { name }) }).click();
-  const dialog = page.getByRole("dialog");
-  await expect(dialog.getByText(t("team.removeTitle"))).toBeVisible();
-  await expect(dialog.getByText(t("team.removeConfirm", { name, company: company.companyName }))).toBeVisible();
-  await dialog.getByRole("button", { name: t("team.remove"), exact: true }).click();
-  await expect(page.getByText(t("team.removed", { name }))).toBeVisible();
-  await expect(row(page, person.email)).toHaveCount(0);
+  await page.getByRole("button", { name: acc("revoke") }).click();
+  await page.getByRole("dialog").filter({ hasText: acc("revokeTitle") }).getByRole("button", { name: acc("revokeConfirm") }).click();
+  await expect(page.getByText(acc("revoked", { name: person.name }))).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.reload();
+  await expect(tableRow(page, person.name)).toContainText(acc("none"));
   await owner.context.close();
 });
 
@@ -213,38 +170,36 @@ test.describe("acceso a Personal según el rol", () => {
       await page.goto("/es/empleados?status=active");
       await expect(page).toHaveURL(/\/es\/personal\?tab=empleados&status=active$/);
       await page.goto("/es/equipo");
-      await expect(page).toHaveURL(/\/es\/personal\?tab=acceso$/);
-      await expect(page.getByRole("tab", { name: t("people.tabs.access"), selected: true })).toBeVisible();
+      await expect(page).toHaveURL(/\/es\/personal\?tab=empleados$/);
+      await expect(page.getByRole("tab", { name: "Acceso" })).toHaveCount(0);
     });
   });
 
   test.describe("gerente", () => {
     test.use({ storageState: storageStatePath("manager", "volta.demo") });
 
-    test("[EMP-015] el gerente ve Personal solo con Empleados y /equipo no le abre Acceso @regresion", async ({ page }) => {
+    test("[EMP-015] el gerente ve Empleados y Asistencia, sin la columna de acceso @regresion", async ({ page }) => {
       await page.goto("/es/inicio");
       await expect(menu(page).getByRole("link", { name: t("nav.people") })).toBeVisible();
       await page.goto("/es/equipo").catch(() => {});
       await expect(page).toHaveURL(/\/es\/personal\?tab=empleados$/);
-      await expect(page.getByRole("tab")).toHaveCount(0);
+      await expect(page.getByRole("tab")).toHaveCount(2);
+      await expect(page.getByRole("columnheader", { name: acc("column") })).toHaveCount(0);
     });
   });
 
   test.describe("administrador", () => {
     test.use({ storageState: storageStatePath("admin", "volta.demo") });
 
-    test("[EMP-015] el administrador ve Equipo, sin Propietario y sin tocar filas de propietario @regresion", async ({ page }) => {
+    test("[EMP-015] el administrador ve el rol de cada quien y solo ofrece roles hasta el suyo @regresion", async ({ page }) => {
       await page.goto("/es/inicio");
       await menu(page).getByRole("link", { name: t("nav.people") }).click();
-      await page.getByRole("tab", { name: t("people.tabs.access") }).click();
-      await expect(page).toHaveURL(/\/es\/personal\?tab=acceso$/);
+      await expect(page.getByRole("columnheader", { name: acc("column") })).toBeVisible();
+      await expect(tableRow(page, "dueno@volta.demo").or(tableRow(page, role("owner"))).first()).toContainText(role("owner"));
 
-      const owners = row(page, "dueno@volta.demo");
-      await expect(owners).toContainText(role("owner"));
-      await expect(owners.getByRole("combobox")).toHaveCount(0);
-
-      const select = row(page, "manager@volta.demo").getByRole("combobox");
-      await expect(select.getByRole("option")).toHaveText([role("staff"), role("manager"), role("admin")]);
+      await editButton(tableRow(page, role("manager")).first()).click();
+      const select = page.getByLabel(/^Rol de /);
+      await expect(select.getByRole("option", { name: role("owner") })).toHaveCount(0);
     });
   });
 
