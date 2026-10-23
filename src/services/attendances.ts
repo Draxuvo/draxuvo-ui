@@ -1,6 +1,6 @@
 // src/services/attendances.ts
 import { apiClient } from "@/lib/api";
-import type { Attendance, AttendanceFilters, ListParams, MyAttendance, PaginatedResponse } from "@/types";
+import type { Attendance, AttendanceFilters, ListParams, MyAttendance, PaginatedResponse, RosterRow } from "@/types";
 
 export type AttendanceListParams = AttendanceFilters & ListParams;
 
@@ -23,4 +23,12 @@ export const attendancesService = {
   today: (): Promise<MyAttendance> => apiClient.get("/api/v1/my_attendance/today").then((r) => r.data),
   checkIn: (): Promise<MyAttendance> => apiClient.post("/api/v1/my_attendance/check_in").then((r) => r.data),
   checkOut: (): Promise<MyAttendance> => apiClient.post("/api/v1/my_attendance/check_out").then((r) => r.data),
+
+  // Lista del día por empleado y marca de otro empleado, con hora opcional (spec 036).
+  roster: (date?: string): Promise<{ date: string; results: RosterRow[] }> =>
+    apiClient.get("/api/v1/attendances/roster", { params: { date } }).then((r) => r.data),
+  markCheckIn: (employeeId: number, at?: string): Promise<Attendance> =>
+    apiClient.post(`/api/v1/employees/${employeeId}/checkin`, { at }).then((r) => r.data),
+  markCheckOut: (employeeId: number, at?: string): Promise<Attendance> =>
+    apiClient.post(`/api/v1/employees/${employeeId}/checkout`, { at }).then((r) => r.data),
 };

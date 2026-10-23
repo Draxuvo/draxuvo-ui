@@ -1,6 +1,6 @@
 // src/services/employees.ts
 import { apiClient } from "@/lib/api";
-import type { Employee, EmployeeFilters, ListParams, PaginatedResponse } from "@/types";
+import type { CompanyRole, Employee, EmployeeFilters, ListParams, PaginatedResponse } from "@/types";
 
 export type EmployeeListParams = EmployeeFilters & ListParams;
 
@@ -14,14 +14,9 @@ export interface EmployeePayload {
   status: "active" | "inactive";
 }
 
-export interface CreateEmployeeResponse extends Employee {
-  user: {
-    id: number;
-    email: string;
-    role: string;
-    active: boolean;
-  };
-  temp_password: string;
+/** Rol con el que se da acceso al alta (spec 036); se ignora si no hay correo. */
+export interface EmployeeAccessPayload {
+  role: CompanyRole;
 }
 
 export const employeesService = {
@@ -30,18 +25,19 @@ export const employeesService = {
     page_size = 10,
     status,
     search,
+    access,
   }: EmployeeListParams = {}): Promise<PaginatedResponse<Employee>> =>
     apiClient
       .get("/api/v1/employees", {
-        params: { page, page_size, status, search: search?.trim() || undefined },
+        params: { page, page_size, status, access, search: search?.trim() || undefined },
       })
       .then((r) => r.data),
 
   getById: (id: number): Promise<Employee> =>
     apiClient.get(`/api/v1/employees/${id}`).then((r) => r.data),
 
-  create: (data: EmployeePayload): Promise<CreateEmployeeResponse> =>
-    apiClient.post("/api/v1/employees", { employee: data }).then((r) => r.data),
+  create: (data: EmployeePayload, access?: EmployeeAccessPayload): Promise<Employee> =>
+    apiClient.post("/api/v1/employees", { employee: data, access }).then((r) => r.data),
 
   update: (id: number, data: EmployeePayload): Promise<Employee> =>
     apiClient.patch(`/api/v1/employees/${id}`, { employee: data }).then((r) => r.data),
@@ -56,9 +52,11 @@ export const employeesService = {
       })
       .then((r) => r.data),
 
-  checkin: (id: number): Promise<void> =>
-    apiClient.post(`/api/v1/employees/${id}/checkin`).then((r) => r.data),
-
-  checkout: (id: number): Promise<void> =>
-    apiClient.post(`/api/v1/employees/${id}/checkout`).then((r) => r.data),
+  // Acceso al panel desde la ficha (spec 036).
+  grantAccess: (id: number, data: { email: string; phone?: string; role: CompanyRole }): Promise<Employee> =>
+    apiClient.post(`/api/v1/employees/${id}/access`, data).then((r) => r.data),
+  changeAccess: (id: number, role: CompanyRole): Promise<Employee> =>
+    apiClient.patch(`/api/v1/employees/${id}/access`, { role }).then((r) => r.data),
+  revokeAccess: (id: number): Promise<Employee> =>
+    apiClient.delete(`/api/v1/employees/${id}/access`).then((r) => r.data),
 };

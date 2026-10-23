@@ -13,7 +13,6 @@ import {
   BarChart2,
   FileBarChart2,
   CreditCard,
-  CalendarCheck,
   UtensilsCrossed,
   Building2,
   Landmark,
@@ -30,7 +29,6 @@ import { useScreenMode } from "@/components/take-order/use-screen-mode";
 import { cn } from "@/lib/utils";
 
 const ANALYTICS_ROLES = new Set(["admin", "owner", "manager"]);
-const ATTENDANCE_ROLES = new Set(["admin", "owner", "manager"]);
 const REPORTS_ROLES = new Set(["admin", "owner"]);
 const RESTAURANT_ROLES = new Set(["admin", "owner", "manager"]);
 const SUBSCRIPTION_ROLES = new Set(["admin", "owner"]);
@@ -110,7 +108,6 @@ export function Sidebar() {
   const { mode: screen } = useScreenMode();
 
   const showAnalytics = !!role && ANALYTICS_ROLES.has(role);
-  const showAttendance = !!role && ATTENDANCE_ROLES.has(role);
   const showReports = !!role && REPORTS_ROLES.has(role);
   const showRestaurant = !!role && RESTAURANT_ROLES.has(role);
   const showSubscription = !!role && SUBSCRIPTION_ROLES.has(role);
@@ -137,19 +134,9 @@ export function Sidebar() {
     ...(showAnalytics
       ? [{ href: `/${locale}/dashboard`, label: t("dashboard"), icon: BarChart2 }]
       : []),
-    // Personal (spec 029): empleados y acceso en una sola opción. Admin y dueño siempre (el acceso no
-    // depende de módulos); manager solo con el módulo de empleados, y solo ve esa pestaña.
-    ...(showPeople && (showTeam || hasModule("employees"))
+    // Personal (specs 029 y 036): empleados y asistencia en una sola opción; aparece con al menos uno de los dos módulos.
+    ...(showPeople && (hasModule("employees") || hasModule("attendance"))
       ? [{ href: `/${locale}/personal`, label: t("people"), icon: Users }]
-      : []),
-    ...(showAttendance && hasModule("attendance")
-      ? [
-          {
-            href: `/${locale}/asistencia`,
-            label: t("attendance"),
-            icon: CalendarCheck,
-          },
-        ]
       : []),
     ...(hasModule("inventory")
       ? [{ href: `/${locale}/inventario`, label: t("inventory"), icon: Package }]
