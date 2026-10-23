@@ -14,6 +14,16 @@ import {
 import { formatQuantity } from "@/lib/quantity";
 import type { Product, ProductTypeRef } from "@/types";
 
+/** Selección de filas para generar códigos e imprimir etiquetas (spec 035); sobrevive a la paginación. */
+export interface ProductSelection {
+  isSelected: (id: number) => boolean;
+  toggle: (product: Product) => void;
+  pageAll: boolean;
+  pageSome: boolean;
+  togglePage: () => void;
+  labels: { row: (name: string) => string; page: string };
+}
+
 interface ProductActions {
   onEntry: (product: Product) => void;
   onExit: (product: Product) => void;
@@ -31,11 +41,36 @@ export function getProductColumns(
   actions: ProductActions,
   view?: ProductTypeRef | null,
   locale = "es",
+  selection?: ProductSelection,
 ): ColumnDef<Product, unknown>[] {
   const showStock = !view || view.counted;
   const showPrice = !view || view.sellable;
   const money = (value: number | undefined) => (value === undefined || value === null ? "—" : `$${Number(value).toFixed(2)}`);
   const columns: (ColumnDef<Product, unknown> | false)[] = [
+    !!selection && {
+      id: "select",
+      header: () => (
+        <input
+          type="checkbox"
+          aria-label={selection.labels.page}
+          checked={selection.pageAll}
+          ref={(el) => {
+            if (el) el.indeterminate = selection.pageSome && !selection.pageAll;
+          }}
+          onChange={selection.togglePage}
+          className="size-4 rounded border-border accent-primary"
+        />
+      ),
+      cell: ({ row }) => (
+        <input
+          type="checkbox"
+          aria-label={selection.labels.row(row.original.name)}
+          checked={selection.isSelected(row.original.id)}
+          onChange={() => selection.toggle(row.original)}
+          className="size-4 rounded border-border accent-primary"
+        />
+      ),
+    },
     {
       accessorKey: "sku",
       header: t("sku"),

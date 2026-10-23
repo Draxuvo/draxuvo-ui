@@ -253,6 +253,81 @@ export interface StockCount {
   items: StockCountItem[];
 }
 
+// Etiquetas autoadhesivas (spec 035).
+export type LabelFormatKind = "sheet" | "roll";
+
+/** Formato común (id `std:<clave>`) o propio de la empresa (id numérico). Medidas en milímetros. */
+export interface LabelFormat {
+  id: string | number;
+  name: string;
+  custom: boolean;
+  kind: LabelFormatKind;
+  page_width_mm: number;
+  page_height_mm: number;
+  columns: number;
+  rows: number;
+  label_width_mm: number;
+  label_height_mm: number;
+  margin_top_mm: number;
+  margin_left_mm: number;
+  gap_x_mm: number;
+  gap_y_mm: number;
+  labels_per_page: number;
+  /** Etiqueta chica: Nombre y Precio nacen desactivados. */
+  small: boolean;
+}
+
+export type LabelFormatPayload = Pick<
+  LabelFormat,
+  "name" | "kind" | "page_width_mm" | "page_height_mm" | "columns" | "rows" | "label_width_mm" | "label_height_mm" | "margin_top_mm" | "margin_left_mm" | "gap_x_mm" | "gap_y_mm"
+>;
+
+export interface LabelItem {
+  product_id: number;
+  copies: number;
+  /** Código que se imprime; por defecto el primero del producto. */
+  code?: string;
+}
+
+export interface LabelOptions {
+  format_id: string | number;
+  show_name: boolean;
+  show_price: boolean;
+  start_position: number;
+  items: LabelItem[];
+}
+
+export type LabelWarningCode = "code_too_small" | "content_too_big";
+
+export interface LabelWarning {
+  product_id: number;
+  code: LabelWarningCode;
+  message: string;
+}
+
+export interface LabelCheck {
+  labels_count: number;
+  pages: number;
+  warnings: LabelWarning[];
+  skipped: { product_id: number; reason: string }[];
+}
+
+/** Error 422 de las etiquetas: `details.code` dice cuál (no_barcode, too_many_labels, invalid_start…). */
+export interface LabelError {
+  status: number;
+  message: string;
+  details?: { code?: string; products?: { id: number; name: string }[]; [key: string]: unknown } | null;
+}
+
+export type LabelCheckResult = { check: LabelCheck; error?: undefined } | { error: LabelError; check?: undefined };
+
+export interface GenerateBarcodesResult {
+  generated: number;
+  already_had: number;
+  failed: { product_id: number; reason: string }[];
+  products: Product[];
+}
+
 export interface StockReceiptItem {
   product_id: number;
   qty: number;

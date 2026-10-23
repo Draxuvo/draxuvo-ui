@@ -1,6 +1,13 @@
 // src/services/inventory.ts
 import { apiClient } from "@/lib/api";
 import type {
+  GenerateBarcodesResult,
+  LabelCheck,
+  LabelCheckResult,
+  LabelError,
+  LabelFormat,
+  LabelFormatPayload,
+  LabelOptions,
   ListParams,
   PaginatedResponse,
   Product,
@@ -149,6 +156,34 @@ export const inventoryService = {
     apiClient
       .post("/api/v1/stock_receipts", { items, note }, { headers: { "Idempotency-Key": idempotencyKey } })
       .then((r) => r.data),
+
+  /** Reserva códigos de barras propios sin asignarlos (el formulario los guarda con el producto). */
+  generateBarcodes: (count = 1): Promise<string[]> =>
+    apiClient.post("/api/v1/barcodes/generate", { count }).then((r) => r.data.codes),
+
+  /** Un código propio para cada producto de la selección que no tenga ninguno. */
+  generateProductBarcodes: (productIds: number[]): Promise<GenerateBarcodesResult> =>
+    apiClient.post("/api/v1/products/generate_barcodes", { product_ids: productIds }).then((r) => r.data),
+
+  labelFormats: {
+    list: (): Promise<LabelFormat[]> => apiClient.get("/api/v1/label_formats").then((r) => r.data.results),
+    create: (data: LabelFormatPayload): Promise<LabelFormat> =>
+      apiClient.post("/api/v1/label_formats", { label_format: data }).then((r) => r.data),
+    update: (id: number, data: Partial<LabelFormatPayload>): Promise<LabelFormat> =>
+      apiClient.patch(`/api/v1/label_formats/${id}`, { label_format: data }).then((r) => r.data),
+    remove: (id: number): Promise<void> => apiClient.delete(`/api/v1/label_formats/${id}`).then(() => undefined),
+  },
+
+  labels: {
+    /** Resumen y avisos sin armar el archivo. Los 422 (producto sin código, demasiadas etiquetas…) vuelven como `error`. */
+    check: (options: LabelOptions): Promise<LabelCheckResult> =>
+      apiClient
+        .post("/api/v1/labels/check", options, { validateStatus: (s) => s === 200 || s === 422 })
+        .then((r) => (r.status === 200 ? { check: r.data as LabelCheck } : { error: r.data.error as LabelError })),
+    /** El PDF listo para imprimir (también es la vista previa). */
+    pdf: (options: LabelOptions): Promise<Blob> =>
+      apiClient.post("/api/v1/labels/pdf", options, { responseType: "blob" }).then((r) => r.data),
+  },
 
   counts: {
     list: (status?: string): Promise<PaginatedResponse<StockCount>> =>

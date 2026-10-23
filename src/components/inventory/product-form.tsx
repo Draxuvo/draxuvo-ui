@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Barcode, Printer } from "lucide-react";
 import { toast } from "sonner";
 import {
   Sheet,
@@ -21,6 +22,8 @@ import { Label } from "@/components/ui/label";
 import { isAxiosError } from "axios";
 import { BarcodeInput } from "./barcode-input";
 import { IconPicker } from "./icon-picker";
+import { saveLabelSelection, selectionItem } from "@/hooks/use-label-selection";
+import { useAppRouter } from "@/hooks/use-router";
 import { inventoryService, type ProductPayload } from "@/services/inventory";
 import { useModuleGate } from "@/components/subscription/module-locked";
 import { useStations } from "@/hooks/use-restaurant";
@@ -65,7 +68,9 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId, canEdi
   const tc = useTranslations("common");
   const ti = useTranslations("productIcons");
   const tb = useTranslations("inventory.barcodes");
+  const tl = useTranslations("inventory.labels");
   const qc = useQueryClient();
+  const router = useAppRouter();
   const isEdit = !!product;
 
   const types = useProductTypes({ enabled: open });
@@ -92,7 +97,7 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId, canEdi
     [t],
   );
 
-  const { register, handleSubmit, reset, setError, control, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, reset, setError, setValue, control, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema) as Resolver<FormValues>,
     defaultValues: { product_type_id: "", sku: "", name: "", stock: 0, min_stock: 0, unit_cost: 0, price: 0, category: "", description: "", available: true, station_id: "", unit_key: "", icon: "", barcodes: [] },
   });
@@ -124,6 +129,14 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId, canEdi
       barcodes: source?.barcodes ?? initialBarcodes ?? [],
     });
   }, [open, productData, isEdit, reset, defaultTypeId, initialBarcodes]);
+
+  const barcodes = useWatch({ control, name: "barcodes" });
+  // Un código propio nuevo se agrega a la lista (sin quitar los que ya tiene) y se guarda con el producto (spec 035).
+  const generate = useMutation({
+    mutationFn: () => inventoryService.generateBarcodes(1),
+    onSuccess: ([code]) => code && setValue("barcodes", [...(barcodes ?? []), code], { shouldDirty: true }),
+    onError: () => toast.error(tl("generateOneError")),
+  });
 
   const typeId = useWatch({ control, name: "product_type_id" });
   const type = types.data?.find((item) => String(item.id) === typeId);
@@ -268,6 +281,26 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId, canEdi
                 render={({ field }) => <BarcodeInput value={field.value} onChange={field.onChange} />}
               />
               {errors.barcodes && <p role="alert" className="text-xs text-destructive">{errors.barcodes.message as string}</p>}
+              <Button type="button" variant="outline" size="sm" className="gap-1.5" title={tl("generateOneHint")} disabled={generate.isPending} onClick={() => generate.mutate()}>
+                <Barcode size={14} aria-hidden />
+                {tl("generateOne")}
+              </Button>
+              {isEdit && !!productData?.barcodes?.length && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="ml-2 gap-1.5"
+                  onClick={() => {
+                    saveLabelSelection([selectionItem(productData)]);
+                    onOpenChange(false);
+                    router.push("/inventario/etiquetas");
+                  }}
+                >
+                  <Printer size={14} aria-hidden />
+                  {tl("printOne")}
+                </Button>
+              )}
             </div>
 
             {canEditIcon && (

@@ -2,11 +2,15 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
-import type { ProductType } from "@/types";
+import { readLabelSelection } from "@/hooks/use-label-selection";
+import type { Product, ProductType } from "@/types";
+
+const push = vi.hoisted(() => vi.fn());
+vi.mock("@/hooks/use-router", () => ({ useAppRouter: () => ({ push, replace: vi.fn(), back: vi.fn() }) }));
 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("@/services/inventory", () => ({
-  inventoryService: { create: vi.fn(), update: vi.fn(), getById: vi.fn() },
+  inventoryService: { create: vi.fn(), update: vi.fn(), getById: vi.fn(), generateBarcodes: vi.fn() },
 }));
 vi.mock("@/services/restaurant", () => ({ restaurantService: { stations: vi.fn() } }));
 vi.mock("@/services/product-types", () => ({ productTypesService: { list: vi.fn(), units: vi.fn() } }));
@@ -162,6 +166,22 @@ describe("icono del producto (spec 026)", () => {
       expect(vi.mocked(inventoryService.update).mock.calls[0][1].barcodes).toEqual(["222"]);
     });
 
+    it("Generar código agrega uno propio a la lista sin quitar los que ya tiene (spec 035)", async () => {
+      vi.mocked(inventoryService.generateBarcodes).mockResolvedValue(["2900000000018"]);
+      renderWithProviders(<ProductForm open onOpenChange={() => {}} />);
+      const user = userEvent.setup();
+      await fill(user, "Platillo");
+      await user.type(screen.getByLabelText("Códigos de barras", { selector: "input" }), "7501234567890{Enter}");
+
+      await user.click(screen.getByRole("button", { name: "Generar código" }));
+      expect(await screen.findByRole("button", { name: "Quitar código 2900000000018" })).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "Guardar cambios" }));
+
+      await waitFor(() => expect(inventoryService.create).toHaveBeenCalled());
+      expect(vi.mocked(inventoryService.create).mock.calls[0][0].barcodes).toEqual(["7501234567890", "2900000000018"]);
+      expect(inventoryService.generateBarcodes).toHaveBeenCalledWith(1);
+    });
+
     it("un código de otro producto muestra el mensaje de la API bajo el campo", async () => {
       const error = Object.assign(new Error("x"), {
         isAxiosError: true,
@@ -176,5 +196,28 @@ describe("icono del producto (spec 026)", () => {
 
       expect(await screen.findByRole("alert")).toHaveTextContent("El código 111 ya pertenece a Cuaderno");
     });
+  });
+});
+
+describe("Imprimir etiqueta desde el formulario (spec 035)", () => {
+  const saved = (barcodes: string[]): Product =>
+    ({ id: 5, sku: "S-5", name: "Cuaderno", barcodes, stock: 3, price: 20, unit_cost: 5, min_stock: 0, product_type: { id: 2, name: "Bebida", sellable: true, counted: true, fractional: false } }) as unknown as Product;
+
+  it("abre la pantalla de etiquetas con ese producto y una copia", async () => {
+    window.sessionStorage.clear();
+    vi.mocked(inventoryService.getById).mockResolvedValue(saved(["7501"]));
+    renderWithProviders(<ProductForm open onOpenChange={() => {}} product={saved(["7501"])} />);
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Imprimir etiqueta" }));
+    expect(readLabelSelection()).toMatchObject([{ id: 5, name: "Cuaderno", copies: 1, barcodes: ["7501"] }]);
+    expect(push).toHaveBeenCalledWith("/inventario/etiquetas");
+  });
+
+  it("sin código guardado no se ofrece", async () => {
+    vi.mocked(inventoryService.getById).mockResolvedValue(saved([]));
+    renderWithProviders(<ProductForm open onOpenChange={() => {}} product={saved([])} />);
+    await screen.findByDisplayValue("Cuaderno");
+    expect(screen.queryByRole("button", { name: "Imprimir etiqueta" })).not.toBeInTheDocument();
   });
 });

@@ -14,7 +14,7 @@ const action = (rowLocator: Locator, name: "entry" | "exit" | "edit" | "delete")
 // Cantidades en piezas (spec 016): la etiqueta y la existencia llevan la unidad.
 const QTY = () => t("inventory.quantityIn", { unit: "Pieza" });
 /** Columna de existencia en la vista Todos: SKU, nombre, tipo, existencia. */
-const STOCK_CELL = 3;
+const STOCK_CELL = 4; // la columna 0 es la casilla de selección (spec 035)
 const field = (scope: Locator, label: string) =>
   scope.getByText(label, { exact: true }).locator("xpath=following-sibling::input");
 
