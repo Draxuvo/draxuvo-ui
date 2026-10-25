@@ -113,7 +113,7 @@ describe("vista de empresa del super admin", () => {
     expect(localStorage.getItem("selected_company_id")).toBe("30");
   });
 
-  it("no entra si solo tiene membresías de manager o staff, ni sin membresías", () => {
+  it("no entra si solo tiene membresías de staff, ni sin membresías", () => {
     login([staff]);
     expect(useAuthStore.getState().enterCompanyView()).toBeNull();
     expect(useAuthStore.getState().companyView).toBe(false);

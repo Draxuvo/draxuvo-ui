@@ -92,15 +92,4 @@ test.describe("inicio por rol y plan", () => {
       await expect(page).toHaveURL(/\/es\/inventario\?.*low_stock=true/);
     });
   });
-
-  test.describe("gerente de Don Chuy", () => {
-    test.use({ storageState: storageStatePath("manager", "donchuy.demo") });
-
-    test("[EMP-024] el gerente no ve plan ni suscripción @regresion", async ({ page }) => {
-      await page.goto("/es/inicio");
-      await expect(page.getByText(t("home.activeEmployees"), { exact: true })).toBeVisible();
-      await expect(page.getByText(t("home.activePlan"), { exact: true })).toHaveCount(0);
-      await expect(menu(page).getByRole("link", { name: t("subscription.nav") })).toHaveCount(0);
-    });
-  });
 });

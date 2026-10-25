@@ -29,9 +29,9 @@ async function apiHeaders(page: Page) {
   return { Authorization: `Bearer ${token}`, "X-Company-Id": companyId };
 }
 
-/** El gerente de Volta crea una orden de servicio con $100 de conceptos para quien se indique y devuelve su id. */
-async function managerOrder(browser: Browser, order: { title: string; assignee: string; steps?: string[] }) {
-  const context = await browser.newContext({ storageState: storageStatePath("manager", "volta.demo") });
+/** El administrador de Volta crea una orden de servicio con $100 de conceptos para quien se indique y devuelve su id. */
+async function adminOrder(browser: Browser, order: { title: string; assignee: string; steps?: string[] }) {
+  const context = await browser.newContext({ storageState: storageStatePath("admin", "volta.demo") });
   const page = await context.newPage();
   const id = await createOrderViaUI(page, { ...order, items: [{ description: "Mano de obra", quantity: 1, price: 100 }] });
   await context.close();
@@ -61,8 +61,8 @@ test("[FLU-06] el trabajador asignado ve solo lo suyo, ejecuta, cobra y ve su ti
   const prefix = uniquePrefix(info.workerIndex);
   const mine = `${prefix} mía`;
   const others = `${prefix} de Luis`;
-  const id = await managerOrder(browser, { title: mine, assignee: "Ana", steps: ["Revisar"] });
-  await managerOrder(browser, { title: others, assignee: "Luis" });
+  const id = await adminOrder(browser, { title: mine, assignee: "Ana", steps: ["Revisar"] });
+  await adminOrder(browser, { title: others, assignee: "Luis" });
 
   // 1-2. Ana entra y ve su orden, no la de Luis.
   const { context, page } = await staffOf(browser);
@@ -106,7 +106,7 @@ test.describe("staff de Volta", () => {
   test("[VEM-004] Mis órdenes: bloques, Empezar desde la lista y error de carga @pr", async ({ page, browser }, info) => {
     test.setTimeout(90_000);
     const title = `${uniquePrefix(info.workerIndex)} lista`;
-    await managerOrder(browser, { title, assignee: "Ana", steps: ["Medir", "Instalar"] });
+    await adminOrder(browser, { title, assignee: "Ana", steps: ["Medir", "Instalar"] });
 
     await page.goto("/es/mis-ordenes");
     await expect(page.getByRole("heading", { name: wo("myOrders"), level: 1 })).toBeVisible();
@@ -130,8 +130,8 @@ test.describe("staff de Volta", () => {
     const prefix = uniquePrefix(info.workerIndex);
     const title = `${prefix} detalle`;
     const steps = ["Medir", "Cortar", "Instalar"];
-    const id = await managerOrder(browser, { title, assignee: "Ana", steps });
-    const luisId = await managerOrder(browser, { title: `${prefix} de Luis`, assignee: "Luis" });
+    const id = await adminOrder(browser, { title, assignee: "Ana", steps });
+    const luisId = await adminOrder(browser, { title: `${prefix} de Luis`, assignee: "Luis" });
 
     await page.goto("/es/mis-ordenes");
     await page.getByRole("link", { name: `${wo("staff.open")}: ${title}` }).click();
@@ -176,7 +176,7 @@ test.describe("staff de Volta", () => {
     knownFailure("H-29");
     test.setTimeout(90_000);
     const title = `${uniquePrefix(info.workerIndex)} pasos`;
-    const id = await managerOrder(browser, { title, assignee: "Ana", steps: ["Medir"] });
+    const id = await adminOrder(browser, { title, assignee: "Ana", steps: ["Medir"] });
     await page.goto(`/es/mis-ordenes/${id}`);
     await action(page, "start").click();
     await page.getByRole("checkbox", { name: wo("steps.check", { description: "Medir" }) }).click();

@@ -145,8 +145,8 @@ test("[INV-017] importar un archivo con filas malas informa cuántos entraron y 
   await owner.context.close();
 });
 
-test.describe("manager de Volta", () => {
-  test.use({ storageState: storageStatePath("manager", "volta.demo") });
+test.describe("administrador de Volta", () => {
+  test.use({ storageState: storageStatePath("admin", "volta.demo") });
 
   test("[INV-018] las filas con stock bajo o agotadas llevan la etiqueta Stock bajo @regresion", async ({ page }) => {
     // H-22 se corrigió en la spec 016: la etiqueta usa la regla única de bajo inventario.
@@ -247,7 +247,7 @@ test.describe("dueño de Don Chuy", () => {
   });
 });
 
-test("[INV-020] el gerente registra entradas y salidas desde la fila @pr", async ({ browser, request }, info) => {
+test("[INV-020] el dueño registra entradas y salidas desde la fila @pr", async ({ browser, request }, info) => {
   test.setTimeout(90_000);
   const company = await createCompany(request, { workerIndex: info.workerIndex });
   const sku = uniquePrefix(info.workerIndex);
@@ -305,7 +305,7 @@ test.describe("permisos por rol en inventario", () => {
     });
   });
 
-  for (const role of ["manager", "admin", "owner"] as const) {
+  for (const role of ["admin", "owner"] as const) {
     test.describe(role, () => {
       test.use({ storageState: storageStatePath(role, "volta.demo") });
 

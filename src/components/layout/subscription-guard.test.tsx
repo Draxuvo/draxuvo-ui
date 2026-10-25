@@ -65,8 +65,8 @@ describe("bloqueo por suscripción suspendida (spec 031)", () => {
     expect(screen.queryByText("Tu suscripción está suspendida")).not.toBeInTheDocument();
   });
 
-  it("el gerente lee que la empresa está suspendida y que avise al dueño, sin botón de pago", async () => {
-    as("manager");
+  it("el personal lee que la empresa está suspendida y que avise al dueño, sin botón de pago", async () => {
+    as("staff");
     vi.mocked(apiClient.get).mockResolvedValue({
       status: 403,
       data: { error: { details: { code: "subscription_suspended" } } },

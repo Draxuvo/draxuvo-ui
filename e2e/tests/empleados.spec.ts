@@ -49,7 +49,7 @@ test.describe("permisos por rol en empleados y asistencia", () => {
     });
   });
 
-  for (const role of ["manager", "admin", "owner"] as const) {
+  for (const role of ["admin", "owner"] as const) {
     test.describe(role, () => {
       test.use({ storageState: storageStatePath(role, "volta.demo") });
 
@@ -69,8 +69,8 @@ test.describe("permisos por rol en empleados y asistencia", () => {
   }
 });
 
-test.describe("manager de Volta", () => {
-  test.use({ storageState: storageStatePath("manager", "volta.demo") });
+test.describe("administrador de Volta", () => {
+  test.use({ storageState: storageStatePath("admin", "volta.demo") });
 
   test("[EPL-014] lista, búsqueda y filtro de estado; los filtros viven en la URL @regresion", async ({ page }) => {
     await page.goto("/es/empleados");

@@ -164,8 +164,8 @@ test("[PER-011] el modo y el tema se aplican al instante, se guardan en la cuent
   await context.close();
 });
 
-test.describe("manager de Volta", () => {
-  test.use({ storageState: storageStatePath("manager", "volta.demo") });
+test.describe("administrador de Volta", () => {
+  test.use({ storageState: storageStatePath("admin", "volta.demo") });
 
   test("[PER-012] el idioma cambia de ruta y de textos sin perder la sesión y la API recibe el idioma @regresion", async ({ page }) => {
     /** Recarga y devuelve el idioma que la API recibió en la primera llamada. */

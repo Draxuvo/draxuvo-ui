@@ -4,7 +4,7 @@ import { t } from "../../support/i18n";
 import { API_URL, storageStatePath } from "../../support/session";
 
 test.describe("Sazón (modo pedido, plan Empresa)", () => {
-  test.use({ storageState: storageStatePath("manager", "sazon.demo") });
+  test.use({ storageState: storageStatePath("admin", "sazon.demo") });
 
   test("[FLU-05] pedido con productos del menú, cobro y ticket por WhatsApp @pr", async ({ page }, testInfo) => {
     test.setTimeout(120_000);

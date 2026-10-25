@@ -78,11 +78,11 @@ test("[FLU-02] el dueño da de alta un empleado con correo; entra como staff y, 
   await expect(guestPage).toHaveURL(/\/es\/mis-ordenes$/);
   await expect(menu(guestPage).getByRole("link", { name: t("nav.people") })).toHaveCount(0);
 
-  // 3. El dueño lo sube a Gerente desde su ficha (EMP-010) y el invitado, al volver a entrar, llega a /inicio.
+  // 3. El dueño lo sube a Administrador desde su ficha (EMP-010) y el invitado, al volver a entrar, llega a /inicio.
   await owner.page.goto("/es/personal?tab=empleados");
   await editButton(tableRow(owner.page, person.name)).click();
-  await owner.page.getByLabel(acc("roleOf", { name: person.name })).selectOption({ label: role("manager") });
-  await expect(owner.page.getByText(acc("roleUpdated", { name: person.name, role: role("manager") }))).toBeVisible();
+  await owner.page.getByLabel(acc("roleOf", { name: person.name })).selectOption({ label: role("admin") });
+  await expect(owner.page.getByText(acc("roleUpdated", { name: person.name, role: role("admin") }))).toBeVisible();
 
   await guestPage.getByRole("button", { name: t("nav.logout") }).click();
   await login(guestPage, person.email, E2E_PASSWORD);
@@ -106,7 +106,7 @@ test.describe("dueño de Volta", () => {
     await page.getByRole("button", { name: t("employees.new") }).click();
     const sheet = page.getByRole("dialog");
     await sheet.getByPlaceholder(t("employees.namePlaceholder")).fill(name);
-    await sheet.getByPlaceholder(t("employees.emailPlaceholder")).fill("manager@volta.demo");
+    await sheet.getByPlaceholder(t("employees.emailPlaceholder")).fill("admin@volta.demo");
     await sheet.getByPlaceholder(t("employees.phonePlaceholder")).fill("5512345678");
     await sheet.getByLabel(acc("give")).check();
     await sheet.getByRole("button", { name: t("employees.save") }).click();
@@ -139,7 +139,7 @@ test("[EMP-012] el único propietario no se baja ni se quita y no figura en Empl
   await me.close();
 });
 
-test("[EMP-014] el dueño da acceso desde Nuevo empleado, lo asciende a gerente y sale de la lista sin perder la ficha @regresion", async ({ browser, request }, info) => {
+test("[EMP-014] el dueño da acceso desde Nuevo empleado, lo asciende a administrador y sale de la lista sin perder la ficha @regresion", async ({ browser, request }, info) => {
   test.setTimeout(90_000);
   const company = await createCompany(request, { workerIndex: info.workerIndex });
   const prefix = uniquePrefix(info.workerIndex);
@@ -151,10 +151,10 @@ test("[EMP-014] el dueño da acceso desde Nuevo empleado, lo asciende a gerente 
   await createWithAccess(page, { ...person, role: role("staff") });
   await expect(tableRow(page, person.name)).toContainText(role("staff"));
 
-  // Quien dirige no es personal: al ascenderlo a gerente sale de Empleados y su ficha se conserva.
+  // Quien dirige no es personal: al ascenderlo a administrador sale de Empleados y su ficha se conserva.
   await editButton(tableRow(page, person.name)).click();
-  await page.getByLabel(acc("roleOf", { name: person.name })).selectOption({ label: role("manager") });
-  await expect(page.getByText(acc("roleUpdated", { name: person.name, role: role("manager") }))).toBeVisible();
+  await page.getByLabel(acc("roleOf", { name: person.name })).selectOption({ label: role("admin") });
+  await expect(page.getByText(acc("roleUpdated", { name: person.name, role: role("admin") }))).toBeVisible();
   await page.keyboard.press("Escape");
   await page.reload();
   await expect(tableRow(page, person.name)).toHaveCount(0);
@@ -174,19 +174,6 @@ test.describe("acceso a Personal según el rol", () => {
     });
   });
 
-  test.describe("gerente", () => {
-    test.use({ storageState: storageStatePath("manager", "volta.demo") });
-
-    test("[EMP-015] el gerente ve Empleados y Asistencia, sin la columna de acceso @regresion", async ({ page }) => {
-      await page.goto("/es/inicio");
-      await expect(menu(page).getByRole("link", { name: t("nav.people") })).toBeVisible();
-      await page.goto("/es/equipo").catch(() => {});
-      await expect(page).toHaveURL(/\/es\/personal\?tab=empleados$/);
-      await expect(page.getByRole("tab")).toHaveCount(2);
-      await expect(page.getByRole("columnheader", { name: acc("column") })).toHaveCount(0);
-    });
-  });
-
   test.describe("administrador", () => {
     test.use({ storageState: storageStatePath("admin", "volta.demo") });
 
@@ -194,9 +181,8 @@ test.describe("acceso a Personal según el rol", () => {
       await page.goto("/es/inicio");
       await menu(page).getByRole("link", { name: t("nav.people") }).click();
       await expect(page.getByRole("columnheader", { name: acc("column") })).toBeVisible();
-      // Quien dirige no sale en la lista: el dueño y el gerente no aparecen.
+      // Quien dirige no sale en la lista: el dueño no aparece.
       await expect(tableRow(page, "Dueño Electricidad Volta")).toHaveCount(0);
-      await expect(tableRow(page, "Gerente Electricidad Volta")).toHaveCount(0);
 
       await editButton(tableRow(page, "Ana López").first()).click();
       const select = page.getByLabel(/^Rol de /);

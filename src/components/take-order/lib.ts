@@ -99,15 +99,42 @@ export interface OpenCheck {
   /** `to_pay`: ya se entregó todo y falta cobrar. */
   state: "occupied" | "to_pay";
   waiter: string | null;
+  /** Usuario del mesero; `null` con el mesero oculto. */
+  waiterId: number | null;
   /** `null` en las cuentas ajenas cuando quien pide no es jefe (spec 032, FR-019b). */
   total: number | null;
   openedAt: string;
   mine: boolean;
 }
 
+export interface ClosedCheck {
+  id: number;
+  name: string;
+  takeout: boolean;
+  waiter: string | null;
+  waiterId: number | null;
+  total: number | null;
+  closedAt: string;
+  mine: boolean;
+}
+
+interface ClosedLike {
+  closed_today?: { id: number; name: string | null; takeout_name: string | null; closed_at: string; waiter?: { id: number; name: string } | null; total?: string; mine: boolean }[];
+}
+
+/** Cuentas cobradas hoy, la más reciente primero; con `scope="mine"` solo las que atendió la persona. */
+export function closedChecksOf(overview: ClosedLike | undefined, scope: "all" | "mine"): ClosedCheck[] {
+  return (overview?.closed_today ?? [])
+    .map((c) => ({
+      id: c.id, name: c.name ?? c.takeout_name ?? "", takeout: c.name == null, waiter: c.waiter?.name ?? null, waiterId: c.waiter?.id ?? null,
+      total: c.total == null ? null : Number(c.total) || 0, closedAt: c.closed_at, mine: c.mine,
+    }))
+    .filter((c) => scope === "all" || c.mine);
+}
+
 interface OverviewLike {
-  results: { name: string; active?: boolean; state?: string; check: { id: number; waiter?: { name: string } | null; opened_at: string; total?: string; mine: boolean } | null }[];
-  takeouts: { id: number; takeout_name: string; waiter?: { name: string } | null; opened_at: string; total?: string; mine: boolean; counts?: { new: number; preparing: number; ready: number; delivered: number } }[];
+  results: { name: string; active?: boolean; state?: string; check: { id: number; waiter?: { id: number; name: string } | null; opened_at: string; total?: string; mine: boolean } | null }[];
+  takeouts: { id: number; takeout_name: string; waiter?: { id: number; name: string } | null; opened_at: string; total?: string; mine: boolean; counts?: { new: number; preparing: number; ready: number; delivered: number } }[];
 }
 
 /** Cuentas abiertas del plano: las de las mesas y las para llevar; con `scope="mine"` solo las que atiende la persona. */
@@ -115,11 +142,43 @@ export function openChecksOf(overview: OverviewLike | undefined, scope: "all" | 
   if (!overview) return [];
   const tables = overview.results.flatMap((t) =>
     t.check
-      ? [{ id: t.check.id, name: t.name, takeout: false, state: (t.state === "to_pay" ? "to_pay" : "occupied") as OpenCheck["state"], waiter: t.check.waiter?.name ?? null, total: t.check.total == null ? null : Number(t.check.total) || 0, openedAt: t.check.opened_at, mine: t.check.mine }]
+      ? [{ id: t.check.id, name: t.name, takeout: false, state: (t.state === "to_pay" ? "to_pay" : "occupied") as OpenCheck["state"], waiter: t.check.waiter?.name ?? null, waiterId: t.check.waiter?.id ?? null, total: t.check.total == null ? null : Number(t.check.total) || 0, openedAt: t.check.opened_at, mine: t.check.mine }]
       : [],
   );
   const takeouts = overview.takeouts.map((c) => ({
-    id: c.id, name: c.takeout_name, takeout: true, state: (c.counts && c.counts.new + c.counts.preparing + c.counts.ready === 0 && c.counts.delivered > 0 ? "to_pay" : "occupied") as OpenCheck["state"], waiter: c.waiter?.name ?? null, total: c.total == null ? null : Number(c.total) || 0, openedAt: c.opened_at, mine: c.mine,
+    id: c.id, name: c.takeout_name, takeout: true, state: (c.counts && c.counts.new + c.counts.preparing + c.counts.ready === 0 && c.counts.delivered > 0 ? "to_pay" : "occupied") as OpenCheck["state"], waiter: c.waiter?.name ?? null, waiterId: c.waiter?.id ?? null, total: c.total == null ? null : Number(c.total) || 0, openedAt: c.opened_at, mine: c.mine,
   }));
   return [...tables, ...takeouts].filter((c) => scope === "all" || c.mine);
+}
+
+export type CheckGroup = "to_pay" | "open" | "paid";
+
+export interface CheckFilter {
+  /** Estado elegido en las fichas de Cuentas (`""` = todos). */
+  status: string;
+  /** Usuario del responsable elegido; `null` = cualquiera. */
+  userId: number | null;
+  search: string;
+}
+
+/**
+ * Si una cuenta de mesa cabe en los filtros de Cuentas. Las fichas de estado son las de las órdenes: Terminada es Por
+ * cobrar, Abierta son las abiertas y Cobrada las cobradas hoy; En curso y Cancelada no tienen cuentas de mesa.
+ */
+export function matchesCheckFilter(
+  check: { name: string; waiter: string | null; waiterId: number | null },
+  group: CheckGroup,
+  filter: CheckFilter,
+): boolean {
+  const statusOk =
+    filter.status === "" ||
+    (group === "to_pay" && filter.status === "done") ||
+    (group === "open" && filter.status === "open") ||
+    (group === "paid" && filter.status === "paid");
+  const needle = normalize(filter.search);
+  return (
+    statusOk &&
+    (filter.userId == null || check.waiterId === filter.userId) &&
+    (!needle || normalize(`${check.name} ${check.waiter ?? ""}`).includes(needle))
+  );
 }

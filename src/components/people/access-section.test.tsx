@@ -30,16 +30,16 @@ function Roles() {
 }
 
 describe("useAssignableRoles", () => {
-  it("admin llega hasta admin; owner hasta owner; manager y staff a ninguno", () => {
+  it("admin llega hasta admin; owner hasta owner; staff a ninguno", () => {
     as("admin");
     const { unmount } = renderWithProviders(<Roles />);
-    expect(screen.getByText("staff,manager,admin")).toBeInTheDocument();
+    expect(screen.getByText("staff,admin")).toBeInTheDocument();
     unmount();
     as("owner");
     const second = renderWithProviders(<Roles />);
-    expect(screen.getByText("staff,manager,admin,owner")).toBeInTheDocument();
+    expect(screen.getByText("staff,admin,owner")).toBeInTheDocument();
     second.unmount();
-    as("manager");
+    as("staff");
     const third = renderWithProviders(<Roles />);
     expect(third.container.textContent).toBe("");
   });
@@ -56,7 +56,7 @@ describe("CreateAccessFields", () => {
 
     rerender(<CreateAccessFields enabled onEnabledChange={onEnabled} role="staff" onRoleChange={vi.fn()} />);
     const options = screen.getAllByRole("option").map((o) => o.textContent);
-    expect(options).toHaveLength(3);
+    expect(options).toHaveLength(2);
     expect(options).not.toContain("Propietario");
   });
 });
@@ -75,13 +75,13 @@ describe("EditAccess", () => {
   });
 
   it("con acceso: cambia el rol y lo quita con confirmación", async () => {
-    vi.mocked(employeesService.changeAccess).mockResolvedValue({ ...base, access: { id: 8, email: "marta@x.mx", role: "manager", active: true } });
+    vi.mocked(employeesService.changeAccess).mockResolvedValue({ ...base, access: { id: 8, email: "marta@x.mx", role: "admin", active: true } });
     vi.mocked(employeesService.revokeAccess).mockResolvedValue(base);
     const employee = { ...base, access: { id: 8, email: "marta@x.mx", role: "staff" as const, active: true } };
     renderWithProviders(<EditAccess employee={employee} />);
 
-    fireEvent.change(screen.getByLabelText("Rol de Marta Gómez"), { target: { value: "manager" } });
-    await waitFor(() => expect(employeesService.changeAccess).toHaveBeenCalledWith(4, "manager"));
+    fireEvent.change(screen.getByLabelText("Rol de Marta Gómez"), { target: { value: "admin" } });
+    await waitFor(() => expect(employeesService.changeAccess).toHaveBeenCalledWith(4, "admin"));
 
     fireEvent.click(screen.getByRole("button", { name: "Quitar acceso" }));
     fireEvent.click((await screen.findAllByRole("button", { name: "Quitar acceso" })).at(-1)!);

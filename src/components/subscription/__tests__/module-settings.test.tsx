@@ -60,14 +60,14 @@ describe("módulos de la suscripción en solo lectura (spec 017)", () => {
     expect(await screen.findByText(/Draxuvo los activa y desactiva/)).toBeInTheDocument();
   });
 
-  it("el administrador la ve; el encargado y el operador no", async () => {
+  it("el administrador la ve; el operador no", async () => {
     subscription(base, base);
     auth.role = "admin";
     const first = renderWithProviders(<ModuleSettings />);
     expect(await screen.findByText("Inventario")).toBeInTheDocument();
     first.unmount();
 
-    for (const role of ["manager", "staff"]) {
+    for (const role of ["staff"]) {
       auth.role = role;
       const view = renderWithProviders(<ModuleSettings />);
       expect(view.container).toBeEmptyDOMElement();

@@ -149,10 +149,10 @@ test.describe("empresa con la prueba vencida (Plomería)", () => {
     });
   }
 
-  test.describe("manager", () => {
-    test.use({ storageState: storageStatePath("manager", "plomeria.demo") });
+  test.describe("staff", () => {
+    test.use({ storageState: storageStatePath("staff", "plomeria.demo") });
 
-    test("[SUS-021] el manager ve que venció, sin botón de pago, y puede cerrar sesión @pr", async ({ page }) => {
+    test("[SUS-021] el staff ve que venció, sin botón de pago, y puede cerrar sesión @pr", async ({ page }) => {
       await page.goto("/es/inicio");
       const dialog = page.getByRole("dialog");
       await expect(dialog.getByText(sub("blockedTitleExpired"))).toBeVisible();

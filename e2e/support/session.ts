@@ -1,7 +1,7 @@
 import { join } from "node:path";
 
 /** Rol de prueba; el de la membresía en la empresa, o `super_admin` (global). */
-export type TestRole = "staff" | "manager" | "admin" | "owner" | "super_admin";
+export type TestRole = "staff" | "admin" | "owner" | "super_admin";
 
 export const DEMO_PASSWORD = "Demo12345*";
 export const SUPER_ADMIN_EMAIL = "draxuvo@mailinator.com";
@@ -26,7 +26,6 @@ export type DemoDomain = (typeof DEMO_COMPANIES)[number]["domain"];
 const ROLE_LOCAL: Record<Exclude<TestRole, "super_admin">, string> = {
   owner: "dueno",
   admin: "admin",
-  manager: "manager",
   staff: "staff",
 };
 
@@ -72,7 +71,7 @@ export const SUPER_ADMIN_SESSION: TestSession = {
   companyName: null,
 };
 
-/** Todas las sesiones que global-setup guarda: 5 empresas x 4 roles, multi y super admin. */
+/** Todas las sesiones que global-setup guarda: 5 empresas x 3 roles, multi y super admin. */
 export const SESSIONS: readonly TestSession[] = [
   ...companySessions,
   MULTI_SESSION,

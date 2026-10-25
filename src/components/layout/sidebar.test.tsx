@@ -20,9 +20,9 @@ beforeEach(() => {
   vi.mocked(restaurantService.overview).mockResolvedValue({ results: [], takeouts: [], ready_items: [] });
   plan.modules = ["employees", "inventory", "work_orders", "tickets", "restaurant"];
   useAuthStore.setState({
-    user: { id: 1, role: "manager", companies: [{ id: 1, role: "manager", name: "Sazón", order_mode: "order" }] } as never,
+    user: { id: 1, role: "admin", companies: [{ id: 1, role: "admin", name: "Sazón", order_mode: "order" }] } as never,
     selectedCompanyId: 1,
-    role: "manager",
+    role: "admin",
   });
 });
 
@@ -55,14 +55,6 @@ describe("menú lateral: Terminales es un módulo de Pro y Empresa (spec 030)", 
 
     expect((await screen.findAllByRole("link", { name: "Terminales" })).length).toBeGreaterThan(0);
   });
-
-  it("manager no ve Terminales aunque el módulo esté activo", async () => {
-    plan.modules = [...plan.modules, "terminals"];
-    mount("manager");
-
-    await screen.findAllByRole("link", { name: "Personal" });
-    expect(screen.queryByRole("link", { name: "Terminales" })).not.toBeInTheDocument();
-  });
 });
 
 describe("menú lateral", () => {
@@ -71,13 +63,6 @@ describe("menú lateral", () => {
 
     const links = await screen.findAllByRole("link", { name: "Personal" });
     expect(new Set(links.map((l) => l.getAttribute("href")))).toEqual(new Set(["/es/personal"]));
-    expect(screen.queryByRole("link", { name: "Equipo" })).not.toBeInTheDocument();
-  });
-
-  it("manager conserva Personal (solo Empleados) y no ve Equipo", async () => {
-    mount("manager");
-
-    expect((await screen.findAllByRole("link", { name: "Personal" })).length).toBeGreaterThan(0);
     expect(screen.queryByRole("link", { name: "Equipo" })).not.toBeInTheDocument();
   });
 

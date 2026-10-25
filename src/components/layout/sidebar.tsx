@@ -28,12 +28,12 @@ import { Logo } from "@/components/brand/logo";
 import { useScreenMode } from "@/components/take-order/use-screen-mode";
 import { cn } from "@/lib/utils";
 
-const ANALYTICS_ROLES = new Set(["admin", "owner", "manager"]);
+const ANALYTICS_ROLES = new Set(["admin", "owner"]);
 const REPORTS_ROLES = new Set(["admin", "owner"]);
-const RESTAURANT_ROLES = new Set(["admin", "owner", "manager"]);
+const RESTAURANT_ROLES = new Set(["admin", "owner"]);
 const SUBSCRIPTION_ROLES = new Set(["admin", "owner"]);
 const TEAM_ROLES = new Set(["admin", "owner"]);
-const PEOPLE_ROLES = new Set(["admin", "owner", "manager"]);
+const PEOPLE_ROLES = new Set(["admin", "owner"]);
 
 export interface NavItem {
   href: string;

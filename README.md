@@ -8,7 +8,7 @@ Pantallas por rol, todas bajo `src/app/[locale]/` con rutas en español:
 
 | Quién | Pantallas |
 |---|---|
-| Dueño, administrador, gerente | `/inicio`, `/dashboard`, `/empleados`, `/asistencia`, `/inventario`, `/ordenes`, `/tickets`, `/reportes`, `/equipo`, `/mis-empresas`, `/suscripcion`, `/perfil` |
+| Dueño, administrador | `/inicio`, `/dashboard`, `/empleados`, `/asistencia`, `/inventario`, `/ordenes`, `/tickets`, `/reportes`, `/equipo`, `/mis-empresas`, `/suscripcion`, `/perfil` |
 | Super admin | `/empresas`, `/usuarios`, `/suscripciones`, `/estadisticas` |
 | Staff | `/mis-ordenes`, `/mis-tickets`, `/mi-perfil` |
 | Sin sesión | `/login`, `/registro`, `/recuperar-contrasena`, `/set-password` |
