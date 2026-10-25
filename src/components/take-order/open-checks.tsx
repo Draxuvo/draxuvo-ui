@@ -7,7 +7,7 @@ import { formatDistanceToNowStrict } from "date-fns";
 import { enUS, es } from "date-fns/locale";
 import { ChevronRight } from "lucide-react";
 import { useTablesOverview } from "@/hooks/use-restaurant";
-import { openChecksOf, type OpenCheck } from "./lib";
+import { closedChecksOf, openChecksOf, type ClosedCheck, type OpenCheck } from "./lib";
 import { useScreenMode } from "./use-screen-mode";
 
 /** Cuentas abiertas a mostrar; vacío cuando la empresa no trabaja con mesas. Se actualiza con el sondeo del plano. */
@@ -15,6 +15,13 @@ export function useOpenChecks(scope: "all" | "mine"): OpenCheck[] {
   const { mode, ready } = useScreenMode();
   const overview = useTablesOverview({ enabled: ready && mode === "restaurant" });
   return mode === "restaurant" ? openChecksOf(overview.data, scope) : [];
+}
+
+/** Cuentas cobradas hoy; vacío cuando la empresa no trabaja con mesas. Comparte consulta con el plano. */
+export function useClosedChecks(scope: "all" | "mine"): ClosedCheck[] {
+  const { mode, ready } = useScreenMode();
+  const overview = useTablesOverview({ enabled: ready && mode === "restaurant" });
+  return mode === "restaurant" ? closedChecksOf(overview.data, scope) : [];
 }
 
 export function OpenChecks({
@@ -47,6 +54,53 @@ export function OpenChecks({
                   <span className="block text-sm text-muted-foreground">
                     {check.waiter ? `${t("openChecksWaiter", { name: check.waiter })} · ` : ""}
                     {t("openChecksElapsed", { time: elapsed })}
+                  </span>
+                </span>
+                <span className="flex shrink-0 items-center gap-2">
+                  {check.total != null && (
+                    <span className="font-display text-xl font-extrabold tabular-nums">{money.format(check.total)}</span>
+                  )}
+                  <ChevronRight size={18} className="text-muted-foreground" aria-hidden />
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+/** Cuentas cobradas hoy (spec 038): cada una abre su hoja con el ticket. */
+export function ClosedChecks({
+  checks, from, title, id = "closed-checks-title",
+}: { checks: ClosedCheck[]; from: "ordenes" | "mis-ordenes"; title: string; id?: string }) {
+  const t = useTranslations("takeOrder");
+  const locale = useLocale();
+  const money = new Intl.NumberFormat(locale === "en" ? "en-US" : "es-MX", { style: "currency", currency: "MXN" });
+  const time = new Intl.DateTimeFormat(locale === "en" ? "en-US" : "es-MX", { hour: "2-digit", minute: "2-digit" });
+  if (!checks.length) return null;
+
+  return (
+    <section aria-labelledby={id} className="space-y-3">
+      <h2 id={id} className="font-display text-xl font-extrabold">
+        {title} <span className="text-muted-foreground">({checks.length})</span>
+      </h2>
+      <ul className="grid gap-3 sm:grid-cols-2">
+        {checks.map((check) => {
+          const name = check.takeout ? t("openChecksTakeout", { name: check.name }) : /^(mesa|table)\b/i.test(check.name.trim()) ? check.name : t("openChecksTable", { name: check.name });
+          return (
+            <li key={check.id}>
+              <Link
+                href={`/${locale}/pedido?cuenta=${check.id}&hoja=1&from=${from}`}
+                aria-label={t("closedChecksOpen", { name: check.name })}
+                className="foco-etiqueta flex min-h-16 items-center justify-between gap-3 rounded-etiqueta border border-border bg-card p-4 shadow-etiqueta"
+              >
+                <span className="min-w-0 space-y-0.5">
+                  <span className="block truncate font-semibold text-foreground">{name}</span>
+                  <span className="block text-sm text-muted-foreground">
+                    {check.waiter ? `${t("openChecksWaiter", { name: check.waiter })} · ` : ""}
+                    {t("closedChecksAt", { time: time.format(new Date(check.closedAt)) })}
                   </span>
                 </span>
                 <span className="flex shrink-0 items-center gap-2">

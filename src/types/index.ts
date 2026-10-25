@@ -16,7 +16,7 @@ export interface User {
   preferences?: { theme: string; color_mode: string };
 }
 
-export type CompanyRole = "staff" | "manager" | "admin" | "owner";
+export type CompanyRole = "staff" | "admin" | "owner";
 export type Role = CompanyRole | "super_admin";
 
 /** Membresía del usuario: la empresa con el rol que tiene en ella (R16). */
@@ -65,6 +65,8 @@ export type EmployeeStatus = "active" | "inactive";
 
 export interface Employee {
   id: number;
+  /** Usuario ligado a la ficha, si tiene; une al empleado con el mesero de una cuenta. */
+  user_id?: number | null;
   name: string;
   position?: string;
   department?: string;
@@ -971,7 +973,7 @@ export interface ReadyItem {
   ready_at: string;
 }
 
-/** Resumen vivo del servicio; solo lo recibe dueño, administrador y gerente. */
+/** Resumen vivo del servicio; solo lo recibe dueño y administrador. */
 export interface ServiceOverview {
   open_checks: number;
   to_pay_total: string;
@@ -979,9 +981,23 @@ export interface ServiceOverview {
   oldest_open_minutes: number | null;
 }
 
+/** Cuenta cobrada hoy; mesero y total solo llegan de las cuentas propias o a quien es jefe (spec 032, FR-019b). */
+export interface ClosedCheckSummary {
+  id: number;
+  /** Nombre de la mesa; `null` en las cuentas para llevar. */
+  name: string | null;
+  takeout_name: string | null;
+  closed_at: string;
+  ticket_id: number | null;
+  waiter?: PersonRef | null;
+  total?: string;
+  mine: boolean;
+}
+
 export interface TablesResponse {
   results: TableSummary[];
   takeouts: TakeoutSummary[];
+  closed_today?: ClosedCheckSummary[];
   ready_items: ReadyItem[];
   stock_alerts?: number;
   overview?: ServiceOverview;

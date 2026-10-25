@@ -49,7 +49,7 @@ describe("AttendanceRoster", () => {
     expect(zoe).toHaveTextContent("capturada por Dueño");
   });
 
-  it("el gerente lo ve sin acciones de marcar", async () => {
+  it("sin permiso de marcar lo ve sin acciones de marcar", async () => {
     renderWithProviders(<AttendanceRoster canMark={false} enabled />);
 
     await screen.findByText("Ana Ruiz");

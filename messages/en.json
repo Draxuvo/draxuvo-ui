@@ -845,7 +845,6 @@
     "toggleError": "Error changing user status",
     "roles": {
       "staff": "Staff",
-      "manager": "Manager",
       "admin": "Admin",
       "owner": "Owner"
     }
@@ -2171,7 +2170,9 @@
     "openChecksTakeout": "Takeout: {name}",
     "openChecksTable": "Table {name}",
     "openChecksWaiter": "Served by {name}",
-    "openChecksElapsed": "Open for {time}"
+    "openChecksElapsed": "Open for {time}",
+    "closedChecksOpen": "View paid check of {name}",
+    "closedChecksAt": "Paid at {time}"
   },
   "productIcons": {
     "title": "Icon",

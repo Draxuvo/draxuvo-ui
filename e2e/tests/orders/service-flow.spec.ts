@@ -8,21 +8,21 @@ test("[FLU-04][ORD-021][ORD-022] orden de servicio de Volta: de crear a cobrar, 
   test.setTimeout(120_000);
   const prefix = uniquePrefix(testInfo.workerIndex);
   const title = `${prefix} cambio de apagadores`;
-  const ctx = (role: "manager" | "staff" | "admin") =>
+  const ctx = (role: "staff" | "admin") =>
     browser.newContext({ storageState: storageStatePath(role, "volta.demo") });
 
-  // 1. El gerente crea la orden, con responsable, dos pasos y un concepto de $100.
-  const managerCtx = await ctx("manager");
-  const manager = await managerCtx.newPage();
-  const id = await createOrderViaUI(manager, {
+  // 1. El administrador crea la orden, con responsable, dos pasos y un concepto de $100.
+  const creatorCtx = await ctx("admin");
+  const creator = await creatorCtx.newPage();
+  const id = await createOrderViaUI(creator, {
     title,
     assignee: "Ana",
     steps: ["Medir", "Instalar"],
     items: [{ description: "Mano de obra", quantity: 1, price: 100 }],
   });
-  await expect(manager.getByText(title).first()).toBeVisible();
-  await expect(manager.getByText("$100.00").first()).toBeVisible();
-  await managerCtx.close();
+  await expect(creator.getByText(title).first()).toBeVisible();
+  await expect(creator.getByText("$100.00").first()).toBeVisible();
+  await creatorCtx.close();
 
   // 2. El staff asignado la ejecuta: empieza, marca pasos, nota, y termina.
   const staffCtx = await ctx("staff");

@@ -845,7 +845,6 @@
     "toggleError": "Error al cambiar el estado del usuario",
     "roles": {
       "staff": "Operador",
-      "manager": "Gerente",
       "admin": "Administrador",
       "owner": "Propietario"
     }
@@ -2171,7 +2170,9 @@
     "openChecksTakeout": "Para llevar: {name}",
     "openChecksTable": "Mesa {name}",
     "openChecksWaiter": "Atiende {name}",
-    "openChecksElapsed": "Abierta hace {time}"
+    "openChecksElapsed": "Abierta hace {time}",
+    "closedChecksOpen": "Ver cuenta cobrada de {name}",
+    "closedChecksAt": "Cobrada a las {time}"
   },
   "productIcons": {
     "title": "Icono",

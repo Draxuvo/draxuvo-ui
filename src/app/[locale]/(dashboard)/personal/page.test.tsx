@@ -76,15 +76,6 @@ describe("Personal (specs 029 y 036)", () => {
     expect(replace).toHaveBeenCalledWith("/es/personal?tab=asistencia", { scroll: false });
   });
 
-  it("manager ve las dos pestañas y no la de Nómina", async () => {
-    as("manager");
-    renderWithProviders(<PersonalPage />);
-
-    expect(await screen.findByText("cuerpo empleados")).toBeInTheDocument();
-    expect(await screen.findByRole("tab", { name: "Asistencia" })).toBeInTheDocument();
-    expect(screen.queryByRole("tab", { name: "Nómina" })).not.toBeInTheDocument();
-  });
-
   it("dueño y administrador ven Nómina (spec 037) y ?tab=nomina la abre", async () => {
     as("owner");
     search = "tab=nomina";

@@ -16,7 +16,8 @@ import { StatusBadge } from "@/components/work-orders/status-badge";
 import { ProgressBar } from "@/components/work-orders/progress-bar";
 import { OrderForm } from "@/components/work-orders/order-form";
 import { useScreenMode } from "@/components/take-order/use-screen-mode";
-import { OpenChecks, useOpenChecks } from "@/components/take-order/open-checks";
+import { ClosedChecks, OpenChecks, useClosedChecks, useOpenChecks } from "@/components/take-order/open-checks";
+import { matchesCheckFilter, type CheckFilter } from "@/components/take-order/lib";
 import { useAppRouter } from "@/hooks/use-router";
 import { OrderModeDialog } from "@/components/work-orders/order-mode-dialog";
 import { ModuleLocked, useModuleGate } from "@/components/subscription/module-locked";
@@ -151,6 +152,7 @@ function OrdenesContent() {
   const { mode: screen } = useScreenMode();
   // Con mesas, todas las cuentas abiertas de la empresa se ven aquí (spec 020).
   const openChecks = useOpenChecks("all");
+  const closedChecks = useClosedChecks("all");
   const restaurant = screen === "restaurant";
   const toPayChecks = openChecks.filter((check) => check.state === "to_pay");
   const openOnlyChecks = openChecks.filter((check) => check.state !== "to_pay");
@@ -192,6 +194,16 @@ function OrdenesContent() {
   const showPriority = mode === "service";
   const counts = summary?.counts;
   const employeeName = employeeOptions?.results.find((e) => String(e.id) === employeeId)?.name ?? `#${employeeId}`;
+  // Los filtros también recortan las cuentas de mesa; un responsable sin usuario ligado no atiende ninguna (-1).
+  const checkFilter: CheckFilter = {
+    status: filters.status,
+    userId: employeeId ? (employeeOptions?.results.find((e) => String(e.id) === employeeId)?.user_id ?? -1) : null,
+    search: filters.search,
+  };
+  const shownToPay = toPayChecks.filter((check) => matchesCheckFilter(check, "to_pay", checkFilter));
+  const shownOpen = openOnlyChecks.filter((check) => matchesCheckFilter(check, "open", checkFilter));
+  const shownClosed = closedChecks.filter((check) => matchesCheckFilter(check, "paid", checkFilter));
+  const shownChecks = shownToPay.length + shownOpen.length + shownClosed.length;
   const applied = [
     filters.status && `${t("status")}: ${t(`statuses.${filters.status as WorkOrderStatus}`)}`,
     filters.priority && `${t("priority")}: ${t(`priorities.${filters.priority as WorkOrderPriority}`)}`,
@@ -208,7 +220,7 @@ function OrdenesContent() {
           <h1 className="font-display text-3xl leading-tight font-semibold">{restaurant ? tq("title") : t("title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {flat && isFiltered
-              ? tf("results", { count: data?.info?.total ?? 0 })
+              ? tf("results", { count: (data?.info?.total ?? 0) + (restaurant ? shownChecks : 0) })
               : restaurant
                 ? tq("subtitle", { open: openOnlyChecks.length, toPay: toPayChecks.length })
                 : t("subtitle", { count: summaryTotal(counts) })}
@@ -233,9 +245,10 @@ function OrdenesContent() {
 
       {restaurant ? (
         <>
-          <OpenChecks checks={toPayChecks} from="ordenes" title={tq("toPay")} id="checks-to-pay-title" />
-          <OpenChecks checks={openOnlyChecks} from="ordenes" title={tq("open")} id="checks-open-title" />
-          {openChecks.length === 0 && !flat && <p className="text-sm text-muted-foreground">{tq("empty")}</p>}
+          <OpenChecks checks={shownToPay} from="ordenes" title={tq("toPay")} id="checks-to-pay-title" />
+          <OpenChecks checks={shownOpen} from="ordenes" title={tq("open")} id="checks-open-title" />
+          <ClosedChecks checks={shownClosed} from="ordenes" title={tq("paidToday")} id="checks-paid-title" />
+          {openChecks.length === 0 && closedChecks.length === 0 && !flat && <p className="text-sm text-muted-foreground">{tq("empty")}</p>}
         </>
       ) : (
         <OpenChecks checks={openChecks} from="ordenes" />
@@ -286,7 +299,7 @@ function OrdenesContent() {
         <div className="space-y-2">
           {isLoading ? (
             [0, 1, 2].map((i) => <Skeleton key={i} className="h-24 w-full rounded-etiqueta" />)
-          ) : orders.length === 0 ? (
+          ) : orders.length === 0 && restaurant && shownChecks > 0 ? null : orders.length === 0 ? (
             <div className="py-12 text-center text-sm text-muted-foreground">
               <ClipboardList size={32} strokeWidth={1.75} aria-hidden className="mx-auto mb-3" />
               <p className="font-medium text-foreground">{isFiltered ? tf("noResults") : t(`labels.${mode}.empty`)}</p>
@@ -313,7 +326,7 @@ function OrdenesContent() {
           {!restaurant && (
             <Group title={t("groups.unassigned")} count={counts?.unassigned} filters={{ unassigned: true }} showPriority={showPriority} enabled={gate.enabled} />
           )}
-          <Group title={restaurant ? tq("paidToday") : t("groups.paidToday")} count={counts?.paid_today} filters={{ status: "paid", paid_on: today }} showPriority={showPriority} enabled={gate.enabled} />
+          <Group title={restaurant ? tq("paidToday") : t("groups.paidToday")} count={counts?.paid_today} hideEmpty={restaurant} filters={{ status: "paid", paid_on: today }} showPriority={showPriority} enabled={gate.enabled} />
         </div>
       )}
 

@@ -22,7 +22,7 @@ import { companiesService } from "@/services/companies";
 import { cn } from "@/lib/utils";
 import type { AdminUser, CompanyRole } from "@/types";
 
-const COMPANY_ROLES = ["staff", "manager", "admin", "owner"] as const satisfies readonly CompanyRole[];
+const COMPANY_ROLES = ["staff", "admin", "owner"] as const satisfies readonly CompanyRole[];
 
 interface UserFormProps {
   open: boolean;

@@ -5,10 +5,10 @@ import { storageStatePath } from "../support/session";
 // Spec 032: Restaurante como centro del servicio. Sazón tiene seis mesas libres de arranque.
 const tr = (key: string, values?: Record<string, string | number>) => t(`restaurant.${key}`, values);
 
-test.describe("Sazón: gerente", () => {
-  test.use({ storageState: storageStatePath("manager", "sazon.demo") });
+test.describe("Sazón: administrador", () => {
+  test.use({ storageState: storageStatePath("admin", "sazon.demo") });
 
-  test("[RES-001] el gerente ve el servicio en vivo y no la configuración @pr", async ({ page }) => {
+  test("[RES-001] el administrador ve el servicio en vivo y la configuración @pr", async ({ page }) => {
     await page.goto("/es/restaurante");
 
     await expect(page.getByRole("heading", { name: tr("service.plan") })).toBeVisible();
@@ -16,9 +16,8 @@ test.describe("Sazón: gerente", () => {
     const summary = page.getByRole("group", { name: tr("summary.title") }).or(page.locator("dl"));
     await expect(summary.getByText(tr("summary.openChecks"))).toBeVisible();
     await expect(page.getByRole("button", { name: /^Mesa \d+, Libre$/ }).first()).toBeVisible();
-    // Sin pestañas: Configuración es de dueño y administrador.
-    await expect(page.getByRole("tab", { name: tr("tabSettings") })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: tr("newStation") })).toHaveCount(0);
+    // Configuración es de dueño y administrador.
+    await expect(page.getByRole("tab", { name: tr("tabSettings") })).toBeVisible();
   });
 
   test("[RES-002] tocar una mesa libre abre su cuenta y la mesa pasa a ocupada @pr", async ({ page }) => {

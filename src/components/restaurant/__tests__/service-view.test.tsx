@@ -31,7 +31,7 @@ const response = (extra: Partial<TablesResponse> = {}): TablesResponse => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
-  useAuthStore.setState({ selectedCompanyId: 1, role: "manager" } as never);
+  useAuthStore.setState({ selectedCompanyId: 1, role: "admin" } as never);
   vi.mocked(restaurantService.overview).mockResolvedValue(response());
 });
 

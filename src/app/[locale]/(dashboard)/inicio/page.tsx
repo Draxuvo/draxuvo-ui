@@ -13,7 +13,7 @@ import { StatLinkCard, StatLinkCardSkeleton, type StatLinkCardProps } from "@/co
 import type { ModuleKey, SubscriptionStatus, User } from "@/types";
 
 type Role = User["role"];
-const ANALYTICS_ROLES: Role[] = ["owner", "admin", "manager"];
+const ANALYTICS_ROLES: Role[] = ["owner", "admin"];
 const BILLING_ROLES: Role[] = ["owner", "admin"];
 
 const STATUS_KEY: Record<SubscriptionStatus, string> = {

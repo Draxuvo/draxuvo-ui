@@ -33,7 +33,7 @@ Tests live next to the code (`*.test.ts(x)`); shared helpers in `src/test/` (`se
 | Route group | Roles | Layout | Routes (Spanish) |
 |---|---|---|---|
 | `(auth)` | unauthenticated | none | `/login`, `/recuperar-contrasena`, `/set-password` |
-| `(dashboard)` | owner, admin, manager | Sidebar + Header | `/inicio`, `/dashboard`, `/empleados`, `/inventario`, `/ordenes`, `/tickets`, `/restaurante`, `/suscripcion`, `/perfil` |
+| `(dashboard)` | owner, admin | Sidebar + Header | `/inicio`, `/dashboard`, `/empleados`, `/inventario`, `/ordenes`, `/tickets`, `/restaurante`, `/suscripcion`, `/perfil` |
 | `(super-admin)` | super_admin | SuperAdminSidebar + Header | `/empresas`, `/usuarios`, `/suscripciones`, `/estadisticas` |
 | `(employee)` | staff | EmployeeShell | `/mis-ordenes`, `/mis-tickets` |
 | `(estacion)` | any role | none, full screen | `/estacion/[id]` (kitchen or bar screen of the restaurant module; polls every 3 s, sound on new orders) |
@@ -142,4 +142,4 @@ JWT stored in both `localStorage` (`auth_token`) and as a cookie (for middleware
 Admin role check pattern used in components: `["admin", "owner", "super_admin"].includes(user?.role)`.
 
 ### Role Hierarchy
-`staff` < `manager` < `admin` < `owner` < `super_admin`. The `super_admin` role operates across all companies by passing an explicit `X-Company-Id` header; it bypasses the `<SubscriptionGuard>` and sees all companies via `/super-admin` routes.
+`staff` < `admin` < `owner` < `super_admin`. The `super_admin` role operates across all companies by passing an explicit `X-Company-Id` header; it bypasses the `<SubscriptionGuard>` and sees all companies via `/super-admin` routes.

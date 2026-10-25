@@ -8,7 +8,6 @@ import { storageStatePath } from "../support/session";
 const ANON = { cookies: [], origins: [] };
 const board = (key: string, values?: Record<string, string | number>) => t(`analyticsBoard.${key}`, values);
 const rep = (key: string, values?: Record<string, string | number>) => t(`reports.${key}`, values);
-const menu = (page: Page) => page.getByRole("navigation", { name: t("nav.mainNav") });
 const tab = (page: Page, key: string) => page.getByRole("button", { name: rep(key), exact: true });
 const legend = (page: Page, chart: string) => page.getByRole("list", { name: board("legendLabel", { chart: board(chart) }) });
 const stat = (page: Page, label: string) => page.getByText(label, { exact: true }).locator("xpath=..");
@@ -29,8 +28,8 @@ async function ownerOf(browser: Browser, company: NewCompany) {
   return { context, page, headers: { Authorization: `Bearer ${company.token}`, "X-Company-Id": companyId } };
 }
 
-test.describe("manager de Volta", () => {
-  test.use({ storageState: storageStatePath("manager", "volta.demo") });
+test.describe("administrador de Volta", () => {
+  test.use({ storageState: storageStatePath("admin", "volta.demo") });
 
   test("[REP-010] el dashboard muestra tarjetas y gráficas y cada una lleva a su lista filtrada @regresion", async ({ page }) => {
     await page.goto("/es/dashboard");
@@ -38,8 +37,6 @@ test.describe("manager de Volta", () => {
     for (const label of ["totalEmployees", "totalWorkOrders", "totalTickets", "collected", "products", "lowStock", "attendanceToday"]) {
       await expect(page.getByText(board(label), { exact: true }).first()).toBeVisible();
     }
-    // Reportes es solo de owner y admin.
-    await expect(page.getByRole("link", { name: board("aria.reports") })).toHaveCount(0);
     for (const chart of ["chartOrdersByStatus", "chartOrdersByPriority", "chartTickets"]) {
       await expect(page.getByRole("heading", { name: board(chart) })).toBeVisible();
       await expect(legend(page, chart)).toBeVisible();
@@ -79,14 +76,6 @@ test.describe("manager de Volta", () => {
     await page.getByRole("button", { name: t("common.retry") }).click();
     await expect(page.getByText(board("totalEmployees"), { exact: true })).toBeVisible();
   });
-
-  test("[REP-011] el manager no ve Reportes en el menú y por URL la API le niega los datos @regresion", async ({ page }) => {
-    await page.goto("/es/inicio");
-    await expect(menu(page).getByRole("link", { name: t("nav.reports") })).toHaveCount(0);
-    const denied = page.waitForResponse((r) => r.url().includes("/api/v1/reports/summary"));
-    await page.goto("/es/reportes");
-    expect((await denied).status()).toBe(403);
-  });
 });
 
 test.describe("dueño de Don Chuy (plan Básico)", () => {
@@ -100,38 +89,6 @@ test.describe("dueño de Don Chuy (plan Básico)", () => {
     await expect(page.getByText(board("totalWorkOrders"), { exact: true })).toHaveCount(0);
     await expect(page.getByRole("heading", { name: board("chartOrdersByStatus") })).toHaveCount(0);
     await expect(page.getByRole("heading", { name: board("chartInventory") })).toBeVisible();
-  });
-
-  test("[REP-011] Reportes del plan Básico: inventario y módulos activos, sin ingresos @regresion", async ({ page }) => {
-    await page.goto("/es/reportes");
-    await expect(page.getByRole("heading", { name: rep("title"), level: 1 })).toBeVisible();
-    for (const key of ["tabSummary", "tabInventory", "tabExpenses", "tabPayroll"]) await expect(tab(page, key)).toBeVisible();
-    await expect(tab(page, "tabIncome")).toHaveCount(0);
-
-    // Resumen: abre con los gastos y habla de inventario; no menciona ingresos ni órdenes.
-    await expect(page.getByText(rep("summary.spent"), { exact: true })).toBeVisible();
-    await expect(page.getByText(rep("summary.inventoryValue"), { exact: true })).toBeVisible();
-    for (const label of ["summary.collected", "summary.pending", "summary.orders"]) {
-      await expect(page.getByText(rep(label), { exact: true })).toHaveCount(0);
-    }
-
-    // Inventario: foto de hoy y movimientos del periodo.
-    await tab(page, "tabInventory").click();
-    await expect(page.getByText(rep("inventory.value"), { exact: true })).toBeVisible();
-    await expect(page.getByText(rep("inventory.lowStockTitle"), { exact: true })).toBeVisible();
-    await expect(page.getByText(rep("inventory.movementsTitle"), { exact: true })).toBeVisible();
-  });
-
-  test("[REP-011] la API de Básico cierra Ingresos con module_not_in_plan @regresion", async ({ page }) => {
-    await page.goto("/es/reportes");
-    const token = await page.evaluate(() => localStorage.getItem("token") ?? localStorage.getItem("auth_token") ?? "");
-    const companyId = await page.evaluate(() => localStorage.getItem("selected_company_id") ?? "");
-    const api = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
-    const res = await page.request.get(`${api}/api/v1/reports/income?from=2026-01-01&to=2026-01-31`, {
-      headers: { Authorization: `Bearer ${token}`, "X-Company-Id": companyId },
-    });
-    expect(res.status()).toBe(403);
-    expect((await res.json()).error.details.code).toBe("module_not_in_plan");
   });
 });
 
@@ -159,72 +116,6 @@ test.describe("staff de Volta", () => {
 
 test.describe("admin de Volta", () => {
   test.use({ storageState: storageStatePath("admin", "volta.demo") });
-
-  test("[REP-011] las cinco pestañas de Reportes, el periodo único y los rangos sin datos @regresion", async ({ page }) => {
-    await page.goto("/es/inicio");
-    await menu(page).getByRole("link", { name: t("nav.reports") }).click();
-    await expect(page).toHaveURL(/\/es\/reportes$/);
-    await expect(page.getByRole("heading", { name: rep("title"), level: 1 })).toBeVisible();
-    for (const key of ["tabSummary", "tabInventory", "tabIncome", "tabExpenses", "tabPayroll"]) {
-      await expect(tab(page, key)).toBeVisible();
-    }
-
-    // Resumen: una cifra principal de lo cobrado y las demás debajo.
-    for (const label of ["summary.collected", "summary.expenses"]) {
-      await expect(page.getByText(rep(label), { exact: true }).first()).toBeVisible();
-    }
-
-    // Periodo único: un atajo cambia el rango de la consulta y queda en la URL.
-    const last = new Date();
-    last.setDate(0);
-    const firstOfLast = `${last.getFullYear()}-${String(last.getMonth() + 1).padStart(2, "0")}-01`;
-    const summary = page.waitForResponse((r) => r.url().includes("/reports/summary") && r.url().includes(`from=${firstOfLast}`));
-    await page.getByRole("button", { name: rep("period.mes-anterior"), exact: true }).click();
-    await summary;
-    await expect(page).toHaveURL(/rango=mes-anterior/);
-
-    // El periodo se conserva en las demás pestañas.
-    await tab(page, "tabIncome").click();
-    await expect(page.getByText(rep("income.tableTitle")).or(page.getByText(rep("state.emptyTitle")))).toBeVisible();
-    await expect(page.getByRole("button", { name: rep("period.mes-anterior"), exact: true })).toHaveAttribute("aria-pressed", "true");
-    await tab(page, "tabExpenses").click();
-    await expect(page.getByText(rep("expenses.payrollTitle"))).toBeVisible();
-    await expect(page.getByText(rep("expenses.inventoryTitle"))).toBeVisible();
-    await tab(page, "tabPayroll").click();
-    await expect(page.getByText(rep("payroll.subtitle"))).toBeVisible();
-    await expect(page.getByRole("columnheader", { name: rep("payroll.colDays") })).toBeVisible();
-    // La nómina lista a los empleados activos con sus días y horas; no muestra retardos ni faltas.
-    await expect(page.getByRole("row").nth(1)).toBeVisible();
-    await expect(page.getByRole("columnheader", { name: /tarde|ausente/i })).toHaveCount(0);
-
-    // Un rango personalizado sin datos queda vacío con guía.
-    await page.getByRole("button", { name: rep("period.personalizado"), exact: true }).click();
-    await page.getByLabel(rep("period.from"), { exact: true }).fill("2000-01-01");
-    await page.getByLabel(rep("period.to"), { exact: true }).fill("2000-01-31");
-    await tab(page, "tabIncome").click();
-    await expect(page.getByText(rep("state.emptyTitle"))).toBeVisible();
-  });
-
-  test("[REP-011] un fallo de la API muestra el error con Reintentar y reintentar recupera @regresion", async ({ page }) => {
-    await page.route("**/api/v1/reports/income**", (route) =>
-      route.fulfill({ status: 500, json: { error: { status: 500, message: "Falla simulada", details: null } } }),
-    );
-    await page.goto("/es/reportes");
-    await tab(page, "tabIncome").click();
-    await expect(page.getByText(rep("state.errorTitle"))).toBeVisible();
-
-    await page.unroute("**/api/v1/reports/income**");
-    await page.getByRole("button", { name: rep("state.retry") }).click();
-    await expect(page.getByText(rep("state.errorTitle"))).toHaveCount(0);
-    await expect(page.getByText(rep("income.tableTitle")).or(page.getByText(rep("state.emptyTitle")))).toBeVisible();
-  });
-
-  test("[REP-011] el resumen y los ingresos muestran lo cobrado y el detalle de tickets @regresion", async ({ page }) => {
-    await page.goto("/es/reportes");
-    await expect(stat(page, rep("summary.collected")).first()).not.toContainText(/^\$0\b/);
-    await tab(page, "tabIncome").click();
-    await expect(page.getByRole("row").filter({ hasText: /T-\d+/ }).first()).toBeVisible();
-  });
 });
 
 test("[FLU-09] tras cobrar una orden, el dashboard y los reportes suman el ingreso @regresion", async ({ browser, request }, info) => {

@@ -30,7 +30,7 @@ describe("menú del super admin (spec 029)", () => {
     expect(screen.getAllByRole("link", { name: "Mi empresa" }).length).toBeGreaterThan(0);
   });
 
-  it.each([[[]], [[{ id: 1, role: "staff", name: "A" }]], [[{ id: 1, role: "manager", name: "A" }]]])(
+  it.each([[[]], [[{ id: 1, role: "staff", name: "A" }]]])(
     "no la ofrece sin membresía de administrador o dueño (%j)",
     (companies) => {
       mount(companies);

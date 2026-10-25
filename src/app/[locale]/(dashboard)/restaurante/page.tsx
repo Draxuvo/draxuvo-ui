@@ -27,7 +27,7 @@ export default function RestaurantePage() {
 
   if (gate.isLocked(stations.error)) return <ModuleLocked module="restaurant" />;
 
-  // Configuración es de dueño y administrador (spec 032); el gerente solo ve el servicio.
+  // Configuración es de dueño y administrador (spec 032).
   const canConfigure = role === "owner" || role === "admin" || role === "super_admin";
   const current: Tab = canConfigure ? tab : "service";
   const tabs: { key: Tab; label: string }[] = [

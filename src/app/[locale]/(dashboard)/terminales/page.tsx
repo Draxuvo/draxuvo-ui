@@ -25,7 +25,7 @@ export default function TerminalesPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<PaymentTerminal | null>(null);
 
-  // Manager y staff no administran terminales (staff ya lo bloquea proxy.ts; la API también).
+  // Staff no administra terminales (staff ya lo bloquea proxy.ts; la API también).
   useEffect(() => {
     if (role && !canManage) router.replace(role === "staff" ? "/mis-ordenes" : "/inicio");
   }, [role, canManage, router]);

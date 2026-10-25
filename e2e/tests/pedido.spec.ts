@@ -27,7 +27,7 @@ function tile(page: Page, tableName: string, state: string) {
 const tk = (key: string, values?: Record<string, string | number>) => t(`takeOrder.${key}`, values);
 
 test.describe("Sazón (mesas)", () => {
-  test.use({ storageState: storageStatePath("manager", "sazon.demo") });
+  test.use({ storageState: storageStatePath("admin", "sazon.demo") });
 
   test("[PED-001] elegir una mesa, armar la orden con tarjetas, mandar y cobrar @pr", async ({ page }) => {
     test.setTimeout(120_000);
@@ -94,8 +94,8 @@ test.describe("Sazón (mesas)", () => {
 
   test("[PED-005] las cuentas abiertas se ven en Órdenes (todas) y en Mis órdenes (las del operador) @pr", async ({ page, browser }) => {
     test.setTimeout(120_000);
-    // El encargado abre una mesa y el operador otra.
-    const managerTable = await openFreeTable(page);
+    // El administrador abre una mesa y el operador otra.
+    const adminTable = await openFreeTable(page);
     const staffContext = await browser.newContext({ storageState: storageStatePath("staff", "sazon.demo") });
     const staff = await staffContext.newPage();
     const staffTable = await openFreeTable(staff);
@@ -103,14 +103,14 @@ test.describe("Sazón (mesas)", () => {
     // Mis órdenes del operador: solo la suya.
     await staff.goto("/es/mis-ordenes");
     await expect(staff.getByRole("link", { name: tk("openChecksOpen", { name: staffTable }) })).toBeVisible();
-    await expect(staff.getByRole("link", { name: tk("openChecksOpen", { name: managerTable }) })).toHaveCount(0);
+    await expect(staff.getByRole("link", { name: tk("openChecksOpen", { name: adminTable }) })).toHaveCount(0);
 
-    // Órdenes del encargado: las dos; abrir una lleva a Tomar pedido con esa cuenta y volver regresa a Órdenes.
+    // Órdenes del administrador: las dos; abrir una lleva a Tomar pedido con esa cuenta y volver regresa a Órdenes.
     await page.goto("/es/ordenes");
     await expect(page.getByRole("link", { name: tk("openChecksOpen", { name: staffTable }) })).toBeVisible();
-    await page.getByRole("link", { name: tk("openChecksOpen", { name: managerTable }) }).click();
+    await page.getByRole("link", { name: tk("openChecksOpen", { name: adminTable }) }).click();
     await expect(page).toHaveURL(/\/es\/pedido\?cuenta=\d+&from=ordenes$/);
-    await expect(page.getByRole("heading", { name: managerTable, exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: adminTable, exact: true })).toBeVisible();
     await page.getByRole("button", { name: tk("release") }).click(); // limpia su mesa
     await page.getByRole("button", { name: tk("back") }).click();
     await expect(page).toHaveURL(/\/es\/ordenes$/);

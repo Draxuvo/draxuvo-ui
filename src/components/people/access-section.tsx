@@ -18,8 +18,8 @@ import { employeesService } from "@/services/employees";
 import { cn } from "@/lib/utils";
 import type { CompanyRole, Employee } from "@/types";
 
-const ROLES: CompanyRole[] = ["staff", "manager", "admin", "owner"];
-const RANK: Record<CompanyRole, number> = { staff: 0, manager: 1, admin: 2, owner: 3 };
+const ROLES: CompanyRole[] = ["staff", "admin", "owner"];
+const RANK: Record<CompanyRole, number> = { staff: 0, admin: 1, owner: 2 };
 const ERROR_CODES = ["role_not_allowed", "already_member", "last_owner", "email_required", "no_user"] as const;
 
 const SELECT = cn(
@@ -35,7 +35,7 @@ function errorCode(error: unknown): (typeof ERROR_CODES)[number] | "generic" {
 /** Roles que quien consulta puede dar: hasta el suyo (el super admin, también en su empresa, llega a owner). */
 export function useAssignableRoles(): CompanyRole[] {
   const { user, role } = useAuthStore();
-  // Solo administrador y dueño administran el acceso (el gerente no); el super admin llega a owner.
+  // Solo administrador y dueño administran el acceso; el super admin llega a owner.
   if (role !== "admin" && role !== "owner") return [];
   const isSuperAdmin = user?.role === "super_admin";
   const myRank = isSuperAdmin ? RANK.owner : RANK[role];

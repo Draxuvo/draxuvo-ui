@@ -1,6 +1,6 @@
 // src/app/[locale]/(dashboard)/personal/page.tsx
 // Personal (specs 029 y 036): las personas de la empresa y su asistencia en un solo lugar. Dos pestañas, Empleados
-// (con el acceso de cada quien en su ficha) y Asistencia, según los módulos del plan. Manager las ve en lectura;
+// (con el acceso de cada quien en su ficha) y Asistencia, según los módulos del plan.
 // staff lo bloquea proxy.ts.
 "use client";
 import { Suspense, useEffect } from "react";
@@ -17,8 +17,8 @@ import { cn } from "@/lib/utils";
 import type { ModuleKey } from "@/types";
 
 type Tab = "empleados" | "asistencia" | "nomina";
-const PEOPLE_ROLES = new Set(["admin", "owner", "manager"]);
-// Nómina (spec 037): solo quien administra el negocio; el gerente no la ve.
+const PEOPLE_ROLES = new Set(["admin", "owner"]);
+// Nómina (spec 037): solo quien administra el negocio.
 const PAYROLL_ROLES = new Set(["admin", "owner"]);
 
 export default function PersonalPage() {

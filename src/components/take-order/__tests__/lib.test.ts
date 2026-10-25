@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  categoryColor, filterMenu, inOrderCount, normalize, openChecksOf, runningTotal, screenMode, tapProduct, type Line,
+  categoryColor, closedChecksOf, filterMenu, matchesCheckFilter, inOrderCount, normalize, openChecksOf, runningTotal, screenMode, tapProduct, type Line,
 } from "../lib";
 
 const line = (over: Partial<Line> = {}): Line => ({
@@ -62,11 +62,11 @@ describe("categoryColor", () => {
 });
 
 describe("openChecksOf", () => {
-  const waiter = { name: "Ana" };
+  const waiter = { id: 1, name: "Ana" };
   const overview = {
     results: [
       { name: "1", check: { id: 10, waiter, opened_at: "2026-10-21T10:00:00Z", total: "90.00", mine: true } },
-      { name: "2", check: { id: 11, waiter: { name: "Luis" }, opened_at: "2026-10-21T10:05:00Z", total: "40.50", mine: false } },
+      { name: "2", check: { id: 11, waiter: { id: 2, name: "Luis" }, opened_at: "2026-10-21T10:05:00Z", total: "40.50", mine: false } },
       { name: "3", check: null },
     ],
     takeouts: [{ id: 12, takeout_name: "Mario", waiter, opened_at: "2026-10-21T10:10:00Z", total: "20.00", mine: true }],
@@ -81,4 +81,52 @@ describe("openChecksOf", () => {
     expect(openChecksOf(overview, "mine").map((c) => c.id)).toEqual([10, 12]);
   });
   it("sin datos devuelve lista vacía", () => expect(openChecksOf(undefined, "all")).toEqual([]));
+});
+
+describe("closedChecksOf", () => {
+  const closed_today = [
+    { id: 20, name: "2", takeout_name: null, closed_at: "2026-10-21T12:00:00Z", waiter: { id: 1, name: "Ana" }, total: "380.00", mine: true },
+    { id: 21, name: null, takeout_name: "Mario", closed_at: "2026-10-21T11:00:00Z", mine: false },
+  ];
+
+  it("lista mesas y para llevar; sin total ni mesero en las ajenas", () => {
+    const all = closedChecksOf({ closed_today }, "all");
+    expect(all.map((c) => [c.id, c.name, c.takeout, c.total, c.waiter])).toEqual([[20, "2", false, 380, "Ana"], [21, "Mario", true, null, null]]);
+  });
+  it("con scope mine solo trae las propias", () => {
+    expect(closedChecksOf({ closed_today }, "mine").map((c) => c.id)).toEqual([20]);
+  });
+  it("sin datos devuelve lista vacía", () => {
+    expect(closedChecksOf(undefined, "all")).toEqual([]);
+    expect(closedChecksOf({}, "all")).toEqual([]);
+  });
+});
+
+describe("matchesCheckFilter", () => {
+  const check = { name: "Mesa 2", waiter: "Ana", waiterId: 1 };
+  const any = { status: "", userId: null, search: "" };
+
+  it("sin filtros deja pasar todo", () => {
+    expect(matchesCheckFilter(check, "open", any)).toBe(true);
+    expect(matchesCheckFilter(check, "paid", any)).toBe(true);
+  });
+  it("las fichas de estado llevan cada grupo: Terminada a Por cobrar, Abierta a Abiertas, Cobrada a Cobradas", () => {
+    expect(matchesCheckFilter(check, "to_pay", { ...any, status: "done" })).toBe(true);
+    expect(matchesCheckFilter(check, "open", { ...any, status: "done" })).toBe(false);
+    expect(matchesCheckFilter(check, "open", { ...any, status: "open" })).toBe(true);
+    expect(matchesCheckFilter(check, "paid", { ...any, status: "paid" })).toBe(true);
+    expect(matchesCheckFilter(check, "open", { ...any, status: "paid" })).toBe(false);
+    expect(matchesCheckFilter(check, "open", { ...any, status: "in_progress" })).toBe(false);
+    expect(matchesCheckFilter(check, "paid", { ...any, status: "cancelled" })).toBe(false);
+  });
+  it("el responsable se compara con el mesero de la cuenta", () => {
+    expect(matchesCheckFilter(check, "open", { ...any, userId: 1 })).toBe(true);
+    expect(matchesCheckFilter(check, "open", { ...any, userId: 2 })).toBe(false);
+    expect(matchesCheckFilter({ ...check, waiterId: null }, "open", { ...any, userId: 1 })).toBe(false);
+  });
+  it("la búsqueda ignora acentos y mayúsculas y mira mesa y mesero", () => {
+    expect(matchesCheckFilter(check, "open", { ...any, search: "mesa 2" })).toBe(true);
+    expect(matchesCheckFilter(check, "open", { ...any, search: "ANA" })).toBe(true);
+    expect(matchesCheckFilter(check, "open", { ...any, search: "luis" })).toBe(false);
+  });
 });

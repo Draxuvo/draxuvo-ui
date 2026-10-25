@@ -137,12 +137,12 @@ describe("UserForm: alta con rol por empresa (spec 014, US3)", () => {
     await userEvent.type(screen.getByPlaceholderText("+52 55 0000 0000"), "5511112222");
     await userEvent.type(screen.getByPlaceholderText("juan@empresa.com"), "nueva@persona.test");
     await userEvent.click(await screen.findByRole("checkbox", { name: "Aroma" }));
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Rol en Aroma" }), "manager");
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Rol en Aroma" }), "admin");
     await userEvent.click(screen.getByRole("button", { name: "Guardar" }));
 
     await waitFor(() => expect(adminUsersService.create).toHaveBeenCalled());
     expect(vi.mocked(adminUsersService.create).mock.calls[0][0].memberships).toEqual([
-      { company_id: 3, role: "manager" },
+      { company_id: 3, role: "admin" },
     ]);
   });
 });

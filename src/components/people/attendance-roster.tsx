@@ -1,6 +1,6 @@
 // src/components/people/attendance-roster.tsx
 // "Hoy por empleado" (spec 036): todos los empleados activos con su estado del día. Administrador y dueño marcan
-// entrada y salida desde aquí; el gerente solo lo ve.
+// entrada y salida desde aquí.
 "use client";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";

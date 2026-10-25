@@ -7,7 +7,7 @@ import { storageStatePath } from "../../support/session";
 
 const action = (page: Page, key: string) => page.getByRole("button", { name: t(`workOrders.actions.${key}`) });
 
-async function as(browser: Browser, role: "manager" | "admin" | "owner", id: string) {
+async function as(browser: Browser, role: "admin" | "owner", id: string) {
   const context = await browser.newContext({ storageState: storageStatePath(role, "volta.demo") });
   const page = await context.newPage();
   await page.goto(`/es/ordenes/${id}`);
@@ -15,7 +15,7 @@ async function as(browser: Browser, role: "manager" | "admin" | "owner", id: str
 }
 
 async function newOrder(browser: Browser, testIndex: number, label: string) {
-  const context = await browser.newContext({ storageState: storageStatePath("manager", "volta.demo") });
+  const context = await browser.newContext({ storageState: storageStatePath("admin", "volta.demo") });
   const page = await context.newPage();
   const title = `${uniquePrefix(testIndex)} ${label}`;
   const id = await createOrderViaUI(page, {
@@ -25,14 +25,12 @@ async function newOrder(browser: Browser, testIndex: number, label: string) {
   return { context, page, id, title };
 }
 
-test("[ORD-023] el gerente cancela con motivo y la orden queda bloqueada @regresion", async ({ browser }, info) => {
+test("[ORD-023] el administrador cancela con motivo y la orden queda bloqueada @regresion", async ({ browser }, info) => {
   test.setTimeout(90_000);
   const { context, page } = await newOrder(browser, info.workerIndex, "cancelar");
 
   await expect(action(page, "edit")).toBeVisible();
   await expect(action(page, "cancel")).toBeVisible();
-  await expect(action(page, "delete")).toHaveCount(0);
-  await expect(action(page, "voidCharge")).toHaveCount(0);
 
   await action(page, "cancel").click();
   const dialog = page.getByRole("dialog");
@@ -48,7 +46,7 @@ test("[ORD-023] el gerente cancela con motivo y la orden queda bloqueada @regres
   await context.close();
 });
 
-test("[ORD-012] una orden cobrada no se cambia; solo el admin anula el cobro @pr", async ({ browser }, info) => {
+test("[ORD-012] una orden cobrada no se cambia; el admin anula el cobro @pr", async ({ browser }, info) => {
   test.setTimeout(120_000);
   const { context, page, id } = await newOrder(browser, info.workerIndex, "cobrada");
 
@@ -60,10 +58,10 @@ test("[ORD-012] una orden cobrada no se cambia; solo el admin anula el cobro @pr
   await expect(page.getByText(/Cobrado con folio T-\d+/)).toBeVisible();
   await page.getByRole("button", { name: t("workOrders.charge.done") }).click();
 
-  // El gerente solo ve el ticket: ni edita, ni cancela, ni anula.
+  // Cobrada: se ve el ticket y ya no se edita, cancela ni cobra.
   await expect(page.getByText(t("workOrders.statuses.paid")).first()).toBeVisible();
   await expect(action(page, "viewTicket")).toBeVisible();
-  for (const key of ["edit", "cancel", "delete", "voidCharge", "charge"]) {
+  for (const key of ["edit", "cancel", "charge"]) {
     await expect(action(page, key), key).toHaveCount(0);
   }
   await context.close();
@@ -84,19 +82,19 @@ test("[ORD-012] una orden cobrada no se cambia; solo el admin anula el cobro @pr
 test("[ORD-007] una acción que ya no aplica recarga la orden sin dañarla @regresion", async ({ browser }, info) => {
   knownFailure("H-21");
   test.setTimeout(120_000);
-  const manager = await newOrder(browser, info.workerIndex, "desfasada");
+  const creator = await newOrder(browser, info.workerIndex, "desfasada");
 
-  // Otra persona la empieza mientras el gerente la tiene abierta.
-  const admin = await as(browser, "admin", manager.id);
+  // Otra persona la empieza mientras quien la creó la tiene abierta.
+  const admin = await as(browser, "admin", creator.id);
   await action(admin.page, "start").click();
   await expect(admin.page.getByText(t("workOrders.started"))).toBeVisible();
   await admin.context.close();
 
-  await action(manager.page, "start").click();
-  await expect(manager.page.getByText(t("workOrders.errors.invalid_transition"))).toBeVisible();
-  await expect(manager.page.getByText(t("workOrders.statuses.in_progress")).first()).toBeVisible();
-  await expect(action(manager.page, "start")).toHaveCount(0);
-  await manager.context.close();
+  await action(creator.page, "start").click();
+  await expect(creator.page.getByText(t("workOrders.errors.invalid_transition"))).toBeVisible();
+  await expect(creator.page.getByText(t("workOrders.statuses.in_progress")).first()).toBeVisible();
+  await expect(action(creator.page, "start")).toHaveCount(0);
+  await creator.context.close();
 });
 
 test("[ORD-023] el admin elimina una orden abierta tras confirmar @regresion", async ({ browser }, info) => {

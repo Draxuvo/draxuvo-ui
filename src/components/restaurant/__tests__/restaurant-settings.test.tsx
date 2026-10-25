@@ -168,16 +168,10 @@ describe("configuración del restaurante", () => {
     expect(await screen.findByText("Sin alertas de existencias")).toBeInTheDocument();
   });
 
-  it("el dueño ve las pestañas Servicio y Configuración; el gerente solo el servicio", async () => {
-    const { unmount } = renderWithProviders(<RestaurantePage />);
+  it("el dueño ve las pestañas Servicio y Configuración", async () => {
+    renderWithProviders(<RestaurantePage />);
     expect(await screen.findByRole("tab", { name: "Servicio" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("tab", { name: "Configuración" })).toBeInTheDocument();
-    unmount();
-
-    useAuthStore.setState({ role: "manager" } as never);
-    renderWithProviders(<RestaurantePage />);
-    expect(await screen.findByText("Plano del servicio")).toBeInTheDocument();
-    expect(screen.queryByRole("tab", { name: "Configuración" })).not.toBeInTheDocument();
   });
 
   it("elige el tipo de estación al crearla", async () => {

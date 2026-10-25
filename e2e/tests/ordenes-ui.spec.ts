@@ -27,8 +27,8 @@ async function proOwner(browser: Browser, request: Parameters<typeof createCompa
   return { context, page, headers: { Authorization: `Bearer ${company.token}`, "X-Company-Id": companyId } };
 }
 
-test.describe("manager de Volta", () => {
-  test.use({ storageState: storageStatePath("manager", "volta.demo") });
+test.describe("administrador de Volta", () => {
+  test.use({ storageState: storageStatePath("admin", "volta.demo") });
 
   test("[ORD-020] la pantalla de órdenes trae sus grupos y el botón de nuevo servicio @regresion", async ({ page }) => {
     await page.goto("/es/ordenes");
@@ -89,8 +89,8 @@ test.describe("quien cambia el modo de órdenes", () => {
     });
   });
 
-  test.describe("manager de Sazón", () => {
-    test.use({ storageState: storageStatePath("manager", "sazon.demo") });
+  test.describe("administrador de Sazón", () => {
+    test.use({ storageState: storageStatePath("admin", "sazon.demo") });
 
     test("[ORD-020] en modo pedido el botón dice Nuevo pedido y no hay prioridad @regresion", async ({ page }) => {
       await page.goto("/es/ordenes");
@@ -121,7 +121,7 @@ test("[ORD-020] un grupo con más de cinco órdenes ofrece Ver más y Ver menos 
 
 test("[ORD-024] conceptos, pasos, notas, fotos e historia de una orden @regresion", async ({ browser }, info) => {
   test.setTimeout(150_000);
-  const context = await browser.newContext({ storageState: storageStatePath("manager", "volta.demo") });
+  const context = await browser.newContext({ storageState: storageStatePath("admin", "volta.demo") });
   const page = await context.newPage();
   const title = `${uniquePrefix(info.workerIndex)} partes`;
   await createOrderViaUI(page, { title, assignee: "Ana", steps: ["Medir"], items: [{ description: "Mano de obra", quantity: 1, price: 100 }] });

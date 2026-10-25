@@ -41,7 +41,7 @@ import {
 } from "@/types";
 
 type Role = User["role"];
-const ANALYTICS_ROLES: Role[] = ["owner", "admin", "manager"];
+const ANALYTICS_ROLES: Role[] = ["owner", "admin"];
 const REPORTS_ROLES: Role[] = ["owner", "admin"];
 const BILLING_ROLES: Role[] = ["owner", "admin"];
 

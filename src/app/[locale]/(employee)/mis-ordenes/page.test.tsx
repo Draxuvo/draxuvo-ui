@@ -6,6 +6,7 @@ let checks: unknown[] = [];
 vi.mock("@/components/take-order/open-checks", async (importActual) => ({
   ...(await importActual<typeof import("@/components/take-order/open-checks")>()),
   useOpenChecks: () => checks,
+  useClosedChecks: () => [],
 }));
 vi.mock("@/components/take-order/use-screen-mode", () => ({ useScreenMode: () => ({ mode: "restaurant", ready: true }) }));
 vi.mock("@/hooks/use-router", () => ({ useAppRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }) }));

@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { storageStatePath } from "../support/session";
 import { t } from "../support/i18n";
 
-// Spec 037: pago de nómina en Personal. Corrida de punta a punta con el dueño de Volta y permisos del gerente.
+// Spec 037: pago de nómina en Personal. Corrida de punta a punta con el dueño de Volta.
 // Cada corrida usa un periodo lejano distinto para no empalmarse con las de otras ejecuciones (la base demo conserva
 // las corridas pagadas).
 
@@ -54,15 +54,5 @@ test.describe("nómina (spec 037)", () => {
     const receipt = page.getByRole("article", { name: t("payroll.receipt.title") });
     await expect(receipt).toContainText(t("payroll.method.transfer"));
     await expect(receipt).toContainText("SPEI e2e");
-  });
-});
-
-test.describe("nómina, permisos (spec 037)", () => {
-  test.use({ storageState: storageStatePath("manager", "volta.demo") });
-
-  test("[NOM-002] el gerente no ve la pestaña Nómina @pr", async ({ page }) => {
-    await page.goto("/es/personal");
-    await expect(page.getByRole("tab", { name: t("people.tabs.employees") })).toBeVisible();
-    await expect(page.getByRole("tab", { name: t("people.tabs.payroll") })).toHaveCount(0);
   });
 });
