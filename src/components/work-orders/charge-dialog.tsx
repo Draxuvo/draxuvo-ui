@@ -2,6 +2,7 @@
 // Cobrar desde la orden con uno o varios pagos (spec 015): efectivo con lo recibido y el cambio, tarjeta con la
 // terminal en que se cobró (y, si se quiere, autorización y últimos 4) y transferencia con su referencia. Con
 // un solo pago de tarjeta o transferencia el monto es el total. Al confirmar muestra el folio, el PDF y WhatsApp.
+import { useDemoInfo } from "@/hooks/use-demo";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -53,6 +54,8 @@ function newKey() {
 
 export function ChargeDialog({ order, open, onOpenChange }: { order: WorkOrder; open: boolean; onOpenChange: (open: boolean) => void }) {
   const t = useTranslations("workOrders");
+  const td = useTranslations("demo");
+  const { isDemo } = useDemoInfo();
   const locale = useLocale();
   const money = new Intl.NumberFormat(locale === "en" ? "en-US" : "es-MX", { style: "currency", currency: "MXN" });
   const total = Number(order.total ?? 0);
@@ -161,7 +164,7 @@ export function ChargeDialog({ order, open, onOpenChange }: { order: WorkOrder; 
                   onClick={() =>
                     whatsapp.mutate(
                       { id: ticket.id, phone: phone || undefined },
-                      { onSuccess: () => toast.success(t("charge.whatsappSent")), onError: () => toast.error(t("charge.whatsappError")) },
+                      { onSuccess: () => toast.success(isDemo ? td("simulated") : t("charge.whatsappSent")), onError: () => toast.error(t("charge.whatsappError")) },
                     )
                   }
                 >

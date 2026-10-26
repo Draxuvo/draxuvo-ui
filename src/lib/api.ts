@@ -2,6 +2,7 @@
 import axios from "axios";
 import { toast } from "sonner";
 import { getApiT, getLocale } from "@/lib/api-i18n";
+import { notifyDemoExpired, readDemoInfo } from "@/lib/demo";
 import es from "../../messages/es.json";
 import en from "../../messages/en.json";
 
@@ -63,9 +64,18 @@ apiClient.interceptors.response.use(
           : undefined;
     const message: string | undefined = details ?? err?.message;
 
+    // Demo por plan (spec 039): vencida, terminada o ya borrada. La pantalla de «tu demo terminó» lo explica.
+    if (status === 403 && err?.details?.code === "demo_expired") {
+      notifyDemoExpired();
+      return Promise.reject(error);
+    }
+
     if (status === 401) {
       const hasToken = !!localStorage.getItem("auth_token");
-      if (hasToken) {
+      // Una demo purgada deja el token sin usuario: no es un cierre de sesión sino el fin de la demo.
+      if (hasToken && readDemoInfo()) {
+        notifyDemoExpired();
+      } else if (hasToken) {
         localStorage.removeItem("auth_token");
         window.location.href = "/login";
       } else {

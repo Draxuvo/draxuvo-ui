@@ -97,7 +97,8 @@
     "backToGlobal": "Volver al panel global",
     "myCompanies": "Mis empresas",
     "restaurant": "Restaurante",
-    "terminals": "Terminales"
+    "terminals": "Terminales",
+    "demos": "Demos"
   },
   "home": {
     "welcome": "Bienvenido, {name}",
@@ -2437,6 +2438,172 @@
       "method": "Método",
       "paidOn": "Fecha",
       "close": "Cerrar"
+    }
+  },
+  "demo": {
+    "entry": {
+      "title": "Prueba Draxuvo con datos de ejemplo",
+      "subtitle": "Entra a un negocio de demostración y recorre el panel del plan que te interesa. Sin cuenta y sin tarjeta.",
+      "planTitle": "¿Qué plan quieres ver?",
+      "scenarioTitle": "¿Qué tipo de negocio?",
+      "scenarios": {
+        "basic_retail": "Abarrotes",
+        "basic_retailDesc": "Inventario, personal, asistencia y reportes",
+        "pro_service": "Servicio técnico",
+        "pro_serviceDesc": "Órdenes de trabajo, tickets y terminales de cobro",
+        "pro_restaurant": "Restaurante",
+        "pro_restaurantDesc": "Mesas, cuentas, cocina y barra",
+        "enterprise_restaurant": "Restaurante con sucursal",
+        "enterprise_restaurantDesc": "Todo lo de Pro más sucursales y WhatsApp"
+      },
+      "contactTitle": "¿Quieres que te ayudemos a empezar? (opcional)",
+      "contactHint": "Déjanos tus datos y te contactamos. Puedes entrar a la demo sin darlos.",
+      "fields": {
+        "name": "Nombre",
+        "email": "Correo electrónico",
+        "phone": "WhatsApp"
+      },
+      "placeholders": {
+        "name": "Tu nombre",
+        "email": "tu@negocio.com",
+        "phone": "10 dígitos"
+      },
+      "errors": {
+        "emailInvalid": "Ingresa un correo válido",
+        "phoneInvalid": "El teléfono debe tener 10 dígitos",
+        "nameTooLong": "El nombre es demasiado largo"
+      },
+      "privacy": "Usamos estos datos solo para darte seguimiento. Lee nuestro",
+      "privacyLink": "aviso de privacidad",
+      "submit": "Entrar a la demo",
+      "opening": "Preparando tu demo…",
+      "notice": "Es una demostración con datos de ejemplo: nada de lo que hagas es real y todo se borra al terminar.",
+      "createAccount": "Mejor crear mi cuenta gratis",
+      "replaceTitle": "Ya tienes una sesión abierta",
+      "replaceBody": "Entrar a la demo cerrará tu sesión actual. Podrás volver a entrar después.",
+      "replaceConfirm": "Entrar a la demo",
+      "replaceCancel": "Cancelar",
+      "errorGeneric": "No pudimos abrir la demo. Intenta de nuevo.",
+      "busy": "Hay muchas demos abiertas ahora. Intenta en unos minutos o crea tu cuenta con 30 días gratis.",
+      "rateLimited": "Abriste muchas demos seguidas. Intenta más tarde o crea tu cuenta con 30 días gratis."
+    },
+    "invite": {
+      "title": "Tu demo de Draxuvo",
+      "subtitle": "Esta invitación abre una demostración del plan {plan}.",
+      "checking": "Revisando tu invitación…",
+      "invalidTitle": "No pudimos abrir esta invitación",
+      "notFound": "No encontramos esta invitación. Revisa que el enlace esté completo.",
+      "expired": "Esta invitación ya venció.",
+      "revoked": "Esta invitación ya no está disponible.",
+      "tryAnother": "Probar otra demo",
+      "createAccount": "Crear mi cuenta"
+    },
+    "banner": {
+      "text": "Estás en una demostración del plan {plan}. Los datos son de ejemplo y se borran al terminar.",
+      "create": "Crear mi cuenta",
+      "leave": "Salir de la demo",
+      "leaving": "Saliendo…"
+    },
+    "expired": {
+      "title": "Tu demostración terminó",
+      "body": "Los datos de ejemplo ya se borraron. Abre otra demo o crea tu cuenta con 30 días gratis, sin tarjeta.",
+      "another": "Abrir otra demo",
+      "create": "Crear mi cuenta"
+    },
+    "simulated": "Simulado en la demostración",
+    "restricted": "No está disponible en la demostración",
+    "subscriptionNotice": "Esta es una demostración: aquí no hay pagos ni cambios de plan. Crea tu cuenta para contratar.",
+    "admin": {
+      "title": "Demos",
+      "subtitle": "Genera enlaces de demo para tus prospectos y revisa quién los abrió.",
+      "tabs": {
+        "label": "Secciones de demos",
+        "invites": "Invitaciones",
+        "sessions": "Aperturas"
+      },
+      "loadError": "No pudimos cargar la lista.",
+      "retry": "Reintentar",
+      "all": "Todos",
+      "invites": {
+        "new": "Nueva invitación",
+        "empty": "Aún no hay invitaciones",
+        "emptyHint": "Crea una para dar la demo de un plan a un prospecto.",
+        "columns": {
+          "label": "Prospecto",
+          "plan": "Plan",
+          "scenario": "Giro",
+          "status": "Estado",
+          "opens": "Aperturas",
+          "lastOpened": "Última apertura",
+          "expires": "Vence"
+        },
+        "status": {
+          "active": "Activa",
+          "expired": "Vencida",
+          "revoked": "Revocada"
+        },
+        "filters": {
+          "status": "Estado",
+          "plan": "Plan",
+          "search": "Buscar prospecto…"
+        },
+        "revoke": "Revocar",
+        "revokeTitle": "¿Revocar esta invitación?",
+        "revokeBody": "El enlace dejará de abrir la demo. Las demos que ya se abrieron siguen hasta que terminen.",
+        "revokeConfirm": "Revocar",
+        "revokeCancel": "Cancelar",
+        "revoked": "Invitación revocada",
+        "neverOpened": "Sin abrir"
+      },
+      "dialog": {
+        "title": "Nueva invitación a la demo",
+        "description": "Se genera un enlace que abre una demo limpia del plan que elijas.",
+        "plan": "Plan",
+        "scenario": "Giro",
+        "label": "Prospecto o negocio",
+        "labelPlaceholder": "Café La Plaza",
+        "days": "Vigencia (días)",
+        "create": "Crear invitación",
+        "creating": "Creando…",
+        "errorLabel": "Escribe de 2 a 120 caracteres.",
+        "errorDays": "Elige de 1 a 60 días.",
+        "errorGeneric": "No pudimos crear la invitación.",
+        "doneTitle": "Invitación lista",
+        "doneBody": "Copia el enlace y compártelo. Por seguridad solo se muestra ahora.",
+        "link": "Enlace de la invitación",
+        "copy": "Copiar enlace",
+        "copied": "Enlace copiado",
+        "close": "Listo"
+      },
+      "sessions": {
+        "empty": "Aún no hay aperturas",
+        "emptyHint": "Aquí aparecerá quién abre una demo, por su cuenta o con una invitación.",
+        "columns": {
+          "date": "Fecha",
+          "plan": "Plan",
+          "origin": "Origen",
+          "contact": "Contacto",
+          "outcome": "Resultado"
+        },
+        "origin": {
+          "self": "Por su cuenta"
+        },
+        "outcome": {
+          "open": "En curso",
+          "left": "Salió",
+          "signup": "Pasó al registro",
+          "expired": "Venció"
+        },
+        "filters": {
+          "withContact": "Solo con contacto",
+          "search": "Buscar nombre o correo…",
+          "plan": "Plan"
+        },
+        "conversion": "En las últimas {count} aperturas, {percent} % pasó al registro.",
+        "export": "Exportar CSV",
+        "noContact": "—"
+      },
+      "refresh": "Actualizar"
     }
   }
 }

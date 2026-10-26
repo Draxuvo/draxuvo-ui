@@ -27,6 +27,8 @@ export interface UserCompany {
   role: CompanyRole;
   parent_company_id: number | null;
   order_mode: OrderMode;
+  /** Empresa de demostración (spec 039): se muestra el aviso de demo y no hay pagos reales. */
+  demo?: boolean;
 }
 
 /** Empresa principal o sucursal (`/company/branches`, R17). */
@@ -400,6 +402,8 @@ export interface PlansResponse {
 
 export interface Subscription {
   id?: number;
+  /** La empresa es una demostración: sin pagos ni cambios de plan (spec 039). */
+  demo?: boolean;
   plan: PlanKey;
   billing_cycle: BillingCycle | null;
   status: SubscriptionStatus;
@@ -456,6 +460,79 @@ export type RegistrationRequest = RegistrationPayload;
 export interface AuthResponse {
   token: string;
   user: User;
+}
+
+// ---------- Demo por plan (spec 039) ----------
+
+export type DemoPlan = "basic" | "pro" | "enterprise";
+export type DemoScenario = "basic_retail" | "pro_service" | "pro_restaurant" | "enterprise_restaurant";
+export type DemoLocale = "es" | "en";
+export type DemoEndedReason = "left" | "signup" | "expired";
+export type DemoInviteStatus = "active" | "expired" | "revoked";
+
+/** Contacto que el prospecto puede dejar, todo opcional. */
+export interface DemoContact {
+  name?: string;
+  email?: string;
+  phone?: string;
+}
+
+export interface DemoSessionPayload {
+  plan?: DemoPlan;
+  scenario?: DemoScenario;
+  invite_token?: string;
+  locale: DemoLocale;
+  contact?: DemoContact;
+}
+
+/** Respuesta de `POST /demo_sessions`: la sesión ya iniciada y cuándo termina la demo. */
+export interface DemoSessionResponse extends AuthResponse {
+  company_id: number;
+  plan: DemoPlan;
+  scenario: DemoScenario;
+  expires_at: string;
+}
+
+export interface DemoInviteResolution {
+  plan: DemoPlan;
+  scenario: DemoScenario;
+}
+
+export interface DemoInvite {
+  id: number;
+  plan: DemoPlan;
+  scenario: DemoScenario;
+  label: string;
+  status: DemoInviteStatus;
+  expires_at: string;
+  revoked_at: string | null;
+  created_by: { id: number; name: string } | null;
+  opens_count: number;
+  last_opened_at: string | null;
+  /** Solo en la respuesta de creación: el enlace completo y el token en claro, que no se vuelven a mostrar. */
+  token?: string;
+  url?: string;
+}
+
+export interface DemoInvitePayload {
+  plan: DemoPlan;
+  scenario: DemoScenario;
+  label: string;
+  expires_in_days?: number;
+}
+
+export interface DemoSession {
+  id: number;
+  plan: DemoPlan;
+  scenario: DemoScenario;
+  locale: DemoLocale;
+  created_at: string;
+  expires_at: string;
+  ended_at: string | null;
+  ended_reason: DemoEndedReason | null;
+  purged_at: string | null;
+  invite: { id: number; label: string } | null;
+  contact: { name: string | null; email: string | null; phone: string | null } | null;
 }
 
 export type WorkOrderStatus = "open" | "in_progress" | "done" | "paid" | "cancelled";

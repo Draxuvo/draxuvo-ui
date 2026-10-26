@@ -143,3 +143,12 @@ Admin role check pattern used in components: `["admin", "owner", "super_admin"].
 
 ### Role Hierarchy
 `staff` < `admin` < `owner` < `super_admin`. The `super_admin` role operates across all companies by passing an explicit `X-Company-Id` header; it bypasses the `<SubscriptionGuard>` and sees all companies via `/super-admin` routes.
+
+## Demo por plan (spec 039)
+
+- `/demo` y `/demo/[token]` (grupo `(auth)`, públicas también con sesión: `proxy.ts` no redirige) abren una demo con `demoService.open` y guardan la
+  sesión como el registro. `src/lib/demo.ts` recuerda plan, giro y vencimiento en `localStorage` (`draxuvo_demo`).
+- `DemoBanner` (aviso permanente, «Crear mi cuenta» y «Salir de la demo») va en los layouts del panel, de la vista de empleado y de
+  estación/Tomar pedido; monta `DemoExpired`, que bloquea la pantalla con `demo_expired` (lo emite el cliente de la API).
+- `/demos` (super admin): invitaciones y aperturas. Variables opcionales: `NEXT_PUBLIC_SITE_URL` (destino de «Salir de la demo»; por
+  defecto `/login`) y `NEXT_PUBLIC_PRIVACY_URL` (aviso de privacidad del formulario de contacto: debe existir antes de abrir la demo al público).

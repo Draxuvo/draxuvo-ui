@@ -1,5 +1,6 @@
 // src/components/employees/employee-form.tsx
 "use client";
+import { useDemoInfo } from "@/hooks/use-demo";
 import { useEffect, useState } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,6 +29,8 @@ interface EmployeeFormProps {
 
 export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps) {
   const t = useTranslations("employees");
+  const td = useTranslations("demo");
+  const { isDemo } = useDemoInfo();
   const qc = useQueryClient();
   const isEdit = !!employee;
   const assignable = useAssignableRoles();
@@ -104,7 +107,7 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
         : employeesService.create(payload, giveAccess ? { role: assignable.includes(accessRole) ? accessRole : "staff" } : undefined);
     },
     onSuccess: () => {
-      toast.success(isEdit ? t("updateSuccess") : t("createSuccess"));
+      toast.success(isEdit ? t("updateSuccess") : giveAccess && isDemo ? `${t("createSuccess")} · ${td("simulated")}` : t("createSuccess"));
       qc.invalidateQueries({ queryKey: ["employees"] });
       handleOpenChange(false);
     },

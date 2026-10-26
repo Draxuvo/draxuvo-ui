@@ -35,6 +35,8 @@ export function TrialBanner() {
   const bare = pathname.replace(/^\/(es|en)(?=\/|$)/, "") || "/";
   if (BANNER_EXEMPT.some((r) => bare.startsWith(r))) return null;
   if (!canBill || !subscription) return null;
+  // Una demo (spec 039) tiene su propio aviso y no tiene renovación ni prueba que contar.
+  if (subscription.demo) return null;
   // En una sucursal el cobro se administra en la principal: el aviso queda, sin acciones de pago.
   const managedByParent = !!subscription.managed_by_parent;
 

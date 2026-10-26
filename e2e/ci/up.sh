@@ -21,6 +21,9 @@ export SUPER_ADMIN_PASSWORD="${SUPER_ADMIN_PASSWORD:-E2eSuperAdmin123*}"
 export STRIPE_WEBHOOK_SECRET="${STRIPE_WEBHOOK_SECRET:-whsec_e2e_test}"
 export FRONTEND_URL="$UI_URL"
 export REGISTRATION_RATE_LIMIT="${REGISTRATION_RATE_LIMIT:-1000}"
+# Spec 039: los e2e abren varias demos desde la misma IP y varias a la vez.
+export DEMO_RATE_LIMIT="${DEMO_RATE_LIMIT:-1000}"
+export DEMO_MAX_PROVISIONING="${DEMO_MAX_PROVISIONING:-10}"
 export RAILS_ENV=development
 
 wait_for() { # url, nombre, intentos

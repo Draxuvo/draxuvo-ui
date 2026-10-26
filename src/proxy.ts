@@ -32,6 +32,10 @@ export default function middleware(request: NextRequest) {
   const role = request.cookies.get("user_role")?.value;
   const isPublic = PUBLIC_ROUTES.includes(bare);
 
+  // Demo por plan (spec 039): pública y accesible con o sin sesión. A diferencia de las demás rutas públicas no
+  // redirige a quien ya entró: el formulario pide confirmar antes de reemplazar su sesión.
+  if (bare === "/demo" || bare.startsWith("/demo/")) return intlMiddleware(request);
+
   if (!token && !isPublic) {
     return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
   }
