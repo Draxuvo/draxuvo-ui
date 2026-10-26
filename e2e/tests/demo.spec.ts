@@ -146,8 +146,12 @@ test.describe("el equipo comercial", () => {
     const visitor = await browser.newContext({ storageState: ANON });
     const guest = await visitor.newPage();
     await guest.goto(link);
-    await guest.getByLabel(d("entry.fields.name")).fill("Ana E2E");
-    await guest.getByLabel(d("entry.fields.email")).fill("ana-e2e@ejemplo.mx");
+    // El contacto solo se pide con un aviso de privacidad configurado (NEXT_PUBLIC_PRIVACY_URL en la compilación de la UI).
+    const askContact = (await guest.getByLabel(d("entry.fields.email")).count()) > 0;
+    if (askContact) {
+      await guest.getByLabel(d("entry.fields.name")).fill("Ana E2E");
+      await guest.getByLabel(d("entry.fields.email")).fill("ana-e2e@ejemplo.mx");
+    }
     await guest.getByRole("button", { name: d("entry.submit") }).click();
     await expect(guest).toHaveURL(/\/es\/inicio$/);
     await expect(guest.getByRole("status").filter({ hasText: d("banner.create") })).toBeVisible();
@@ -155,7 +159,8 @@ test.describe("el equipo comercial", () => {
     // El equipo ve la apertura con el contacto y cuenta una apertura en la invitación.
     await page.getByRole("tab", { name: d("admin.tabs.sessions") }).click();
     const opening = page.getByRole("row").filter({ hasText: label });
-    await expect(opening).toContainText("ana-e2e@ejemplo.mx");
+    await expect(opening).toBeVisible();
+    if (askContact) await expect(opening).toContainText("ana-e2e@ejemplo.mx");
     await page.getByRole("tab", { name: d("admin.tabs.invites") }).click();
     const invite = page.getByRole("row").filter({ hasText: label });
     await expect(invite).toContainText(d("admin.invites.status.active"));

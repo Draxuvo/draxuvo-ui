@@ -46,6 +46,8 @@ wait_for "$API_URL/up" "API"
 
 echo "[e2e] construyendo y arrancando la UI en $UI_URL"
 export NEXT_PUBLIC_API_URL="$API_URL"
+# Spec 039: con esta variable la demo pide el contacto (opcional); así el e2e cubre ese camino.
+export NEXT_PUBLIC_PRIVACY_URL="${NEXT_PUBLIC_PRIVACY_URL:-https://example.test/aviso-de-privacidad}"
 (cd "$UI_DIR" && npm run build) >"$LOG_DIR/ui-build.log" 2>&1
 (cd "$UI_DIR" && nohup npx next start -p 4200 >"$LOG_DIR/ui.log" 2>&1 & echo $! >"$LOG_DIR/ui.pid")
 wait_for "$UI_URL/es/login" "UI"

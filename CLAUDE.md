@@ -151,4 +151,4 @@ Admin role check pattern used in components: `["admin", "owner", "super_admin"].
 - `DemoBanner` (aviso permanente, «Crear mi cuenta» y «Salir de la demo») va en los layouts del panel, de la vista de empleado y de
   estación/Tomar pedido; monta `DemoExpired`, que bloquea la pantalla con `demo_expired` (lo emite el cliente de la API).
 - `/demos` (super admin): invitaciones y aperturas. Variables opcionales: `NEXT_PUBLIC_SITE_URL` (destino de «Salir de la demo»; por
-  defecto `/login`) y `NEXT_PUBLIC_PRIVACY_URL` (aviso de privacidad del formulario de contacto: debe existir antes de abrir la demo al público).
+  defecto `/login`) y `NEXT_PUBLIC_PRIVACY_URL` (aviso de privacidad: el formulario de contacto de la demo solo se muestra si está configurada; sin ella la demo es anónima).

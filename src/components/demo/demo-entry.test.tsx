@@ -1,5 +1,5 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
 import { useAuthStore } from "@/store/auth";
 import type { DemoSessionResponse, User } from "@/types";
@@ -24,6 +24,8 @@ const session = (over: Partial<DemoSessionResponse> = {}): DemoSessionResponse =
 });
 
 const axiosError = (status: number) => Object.assign(new Error("x"), { isAxiosError: true, response: { status, data: {} } });
+
+afterEach(() => vi.unstubAllEnvs());
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -72,6 +74,7 @@ describe("DemoEntry", () => {
   });
 
   it("el contacto es opcional: si se deja, viaja solo con lo que se escribió y el teléfono en dígitos", async () => {
+    vi.stubEnv("NEXT_PUBLIC_PRIVACY_URL", "https://draxuvo.test/privacidad");
     vi.mocked(demoService.open).mockResolvedValue(session());
     renderWithProviders(<DemoEntry initialPlan="basic" />);
 
@@ -84,6 +87,7 @@ describe("DemoEntry", () => {
   });
 
   it("un correo o un teléfono inválidos se avisan y no abren la demo", async () => {
+    vi.stubEnv("NEXT_PUBLIC_PRIVACY_URL", "https://draxuvo.test/privacidad");
     renderWithProviders(<DemoEntry initialPlan="basic" />);
 
     fireEvent.change(screen.getByLabelText("Correo electrónico"), { target: { value: "no-es-correo" } });
@@ -159,5 +163,26 @@ describe("DemoEntry", () => {
     renderWithProviders(<DemoEntry initialPlan="enterprise" />);
 
     expect(screen.getByRole("link", { name: "Mejor crear mi cuenta gratis" })).toHaveAttribute("href", "/es/registro?plan=enterprise");
+  });
+
+  it("sin aviso de privacidad publicado no pide ningún dato de contacto y la demo es anónima", async () => {
+    vi.mocked(demoService.open).mockResolvedValue(session());
+    renderWithProviders(<DemoEntry initialPlan="basic" />);
+
+    expect(screen.queryByLabelText("Correo electrónico")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("WhatsApp")).not.toBeInTheDocument();
+    expect(screen.queryByText("aviso de privacidad")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Entrar a la demo" }));
+
+    await waitFor(() => expect(demoService.open).toHaveBeenCalled());
+    expect(vi.mocked(demoService.open).mock.calls[0][0].contact).toBeUndefined();
+  });
+
+  it("con el aviso publicado pide el contacto y enlaza al aviso", () => {
+    vi.stubEnv("NEXT_PUBLIC_PRIVACY_URL", "https://draxuvo.test/privacidad");
+    renderWithProviders(<DemoEntry initialPlan="basic" />);
+
+    expect(screen.getByLabelText("Correo electrónico")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "aviso de privacidad" })).toHaveAttribute("href", "https://draxuvo.test/privacidad");
   });
 });

@@ -75,7 +75,9 @@ export function DemoEntry({
     formState: { errors },
   } = useForm<ContactValues>({ resolver: zodResolver(schema), defaultValues: { name: "", email: "", phone: "" } });
 
+  // El contacto son datos personales: solo se pide si hay un aviso de privacidad publicado al que enlazar.
   const privacyUrl = process.env.NEXT_PUBLIC_PRIVACY_URL;
+  const askContact = !!privacyUrl;
   const shownPlan = invite?.plan ?? plan;
 
   function pickPlan(next: DemoPlan) {
@@ -89,7 +91,7 @@ export function DemoEntry({
     open.mutate(
       {
         locale: locale === "en" ? "en" : "es",
-        contact: contactOf(values),
+        contact: askContact ? contactOf(values) : undefined,
         ...(invite ? { invite_token: invite.token } : { plan, scenario }),
       },
       {
@@ -122,48 +124,46 @@ export function DemoEntry({
             <PlanPicker plan={plan} scenario={scenario} onPlan={pickPlan} onScenario={setScenario} />
           )}
 
-          <fieldset className="space-y-3">
-            <legend className="text-sm font-semibold">{t("contactTitle")}</legend>
-            <p className="text-sm text-muted-foreground">{t("contactHint")}</p>
-            <div className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
-              {(["name", "email", "phone"] as const).map((field) => {
-                const error = errors[field]?.message;
-                return (
-                  <div key={field} className={field === "name" ? "space-y-1.5 sm:col-span-2" : "space-y-1.5"}>
-                    <Label htmlFor={`demo-${field}`} className="text-sm font-semibold">
-                      {t(`fields.${field}`)}
-                    </Label>
-                    <Input
-                      id={`demo-${field}`}
-                      type={field === "email" ? "email" : field === "phone" ? "tel" : "text"}
-                      autoComplete={field === "name" ? "name" : field}
-                      placeholder={t(`placeholders.${field}`)}
-                      aria-invalid={!!error}
-                      aria-describedby={error ? `demo-${field}-error` : undefined}
-                      className={FIELD}
-                      {...register(field)}
-                    />
-                    {error && (
-                      <p id={`demo-${field}-error`} className="text-sm text-destructive">
-                        {error}
-                      </p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {t("privacy")}{" "}
-              {privacyUrl ? (
+          {askContact && (
+            <fieldset className="space-y-3">
+              <legend className="text-sm font-semibold">{t("contactTitle")}</legend>
+              <p className="text-sm text-muted-foreground">{t("contactHint")}</p>
+              <div className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+                {(["name", "email", "phone"] as const).map((field) => {
+                  const error = errors[field]?.message;
+                  return (
+                    <div key={field} className={field === "name" ? "space-y-1.5 sm:col-span-2" : "space-y-1.5"}>
+                      <Label htmlFor={`demo-${field}`} className="text-sm font-semibold">
+                        {t(`fields.${field}`)}
+                      </Label>
+                      <Input
+                        id={`demo-${field}`}
+                        type={field === "email" ? "email" : field === "phone" ? "tel" : "text"}
+                        autoComplete={field === "name" ? "name" : field}
+                        placeholder={t(`placeholders.${field}`)}
+                        aria-invalid={!!error}
+                        aria-describedby={error ? `demo-${field}-error` : undefined}
+                        className={FIELD}
+                        {...register(field)}
+                      />
+                      {error && (
+                        <p id={`demo-${field}-error`} className="text-sm text-destructive">
+                          {error}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t("privacy")}{" "}
                 <a href={privacyUrl} target="_blank" rel="noreferrer" className={TEXT_LINK}>
                   {t("privacyLink")}
                 </a>
-              ) : (
-                t("privacyLink")
-              )}
-              .
-            </p>
-          </fieldset>
+                .
+              </p>
+            </fieldset>
+          )}
 
           {formError && (
             <p role="alert" className="rounded-etiqueta border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
