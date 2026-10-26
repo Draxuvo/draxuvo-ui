@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { apiClient } from "@/lib/api";
 import { applyAppearance, fromPreferences } from "@/lib/appearance";
+import { clearDemoInfo } from "@/lib/demo";
 import { queryClient } from "@/lib/query";
 import type { AuthResponse, Role, User } from "@/types";
 
@@ -78,6 +79,8 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   setSession: (session: AuthResponse) => void;
   logout: () => void;
+  /** Cierra la sesión y va a `redirectTo` (p. ej. al salir de una demo: el registro o el sitio público). */
+  endSession: (redirectTo: string) => void;
   fetchMe: () => Promise<void>;
   /** Actualiza el usuario (p. ej. tras crear una sucursal) conservando la empresa activa si sigue. */
   setUser: (user: User) => void;
@@ -126,15 +129,18 @@ export const useAuthStore = create<AuthState>()(
         set({ token, user, selectedCompanyId, role, companyView: false, isLoading: false });
       },
 
-      logout: () => {
+      logout: () => get().endSession("/login"),
+
+      endSession: (redirectTo) => {
         localStorage.removeItem("auth_token");
+        clearDemoInfo();
         localStorage.removeItem(COMPANY_KEY);
         document.cookie = "auth_token=; path=/; max-age=0";
         writeRoleCookie(null);
         clearAttendancePrompts();
         queryClient.clear();
         set({ user: null, token: null, selectedCompanyId: null, role: null, companyView: false });
-        window.location.href = "/login";
+        window.location.href = redirectTo;
       },
 
       fetchMe: async () => {

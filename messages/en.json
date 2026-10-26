@@ -97,7 +97,8 @@
     "backToGlobal": "Back to the global panel",
     "myCompanies": "My companies",
     "restaurant": "Restaurant",
-    "terminals": "Terminals"
+    "terminals": "Terminals",
+    "demos": "Demos"
   },
   "home": {
     "welcome": "Welcome, {name}",
@@ -2437,6 +2438,172 @@
       "method": "Method",
       "paidOn": "Date",
       "close": "Close"
+    }
+  },
+  "demo": {
+    "entry": {
+      "title": "Try Draxuvo with sample data",
+      "subtitle": "Step into a demo business and walk through the panel of the plan you like. No account and no card.",
+      "planTitle": "Which plan do you want to see?",
+      "scenarioTitle": "What kind of business?",
+      "scenarios": {
+        "basic_retail": "Corner store",
+        "basic_retailDesc": "Inventory, staff, attendance and reports",
+        "pro_service": "Technical service",
+        "pro_serviceDesc": "Work orders, tickets and card terminals",
+        "pro_restaurant": "Restaurant",
+        "pro_restaurantDesc": "Tables, checks, kitchen and bar",
+        "enterprise_restaurant": "Restaurant with a branch",
+        "enterprise_restaurantDesc": "Everything in Pro plus branches and WhatsApp"
+      },
+      "contactTitle": "Want us to help you get started? (optional)",
+      "contactHint": "Leave your details and we'll get in touch. You can enter the demo without giving them.",
+      "fields": {
+        "name": "Name",
+        "email": "Email",
+        "phone": "WhatsApp"
+      },
+      "placeholders": {
+        "name": "Your name",
+        "email": "you@business.com",
+        "phone": "10 digits"
+      },
+      "errors": {
+        "emailInvalid": "Enter a valid email",
+        "phoneInvalid": "The phone must have 10 digits",
+        "nameTooLong": "The name is too long"
+      },
+      "privacy": "We only use these details to follow up. Read our",
+      "privacyLink": "privacy notice",
+      "submit": "Enter the demo",
+      "opening": "Getting your demo ready…",
+      "notice": "This is a demo with sample data: nothing you do is real and everything is deleted when it ends.",
+      "createAccount": "I'd rather create my free account",
+      "replaceTitle": "You already have a session open",
+      "replaceBody": "Entering the demo will sign you out of your current session. You can sign back in later.",
+      "replaceConfirm": "Enter the demo",
+      "replaceCancel": "Cancel",
+      "errorGeneric": "We couldn't open the demo. Try again.",
+      "busy": "Many demos are open right now. Try again in a few minutes or create your account with 30 free days.",
+      "rateLimited": "You opened many demos in a row. Try again later or create your account with 30 free days."
+    },
+    "invite": {
+      "title": "Your Draxuvo demo",
+      "subtitle": "This invitation opens a demo of the {plan} plan.",
+      "checking": "Checking your invitation…",
+      "invalidTitle": "We couldn't open this invitation",
+      "notFound": "We couldn't find this invitation. Check that the link is complete.",
+      "expired": "This invitation has expired.",
+      "revoked": "This invitation is no longer available.",
+      "tryAnother": "Try another demo",
+      "createAccount": "Create my account"
+    },
+    "banner": {
+      "text": "You're in a demo of the {plan} plan. The data is sample data and is deleted when it ends.",
+      "create": "Create my account",
+      "leave": "Leave the demo",
+      "leaving": "Leaving…"
+    },
+    "expired": {
+      "title": "Your demo has ended",
+      "body": "The sample data has been deleted. Open another demo or create your account with 30 free days, no card needed.",
+      "another": "Open another demo",
+      "create": "Create my account"
+    },
+    "simulated": "Simulated in the demo",
+    "restricted": "Not available in the demo",
+    "subscriptionNotice": "This is a demo: there are no payments or plan changes here. Create your account to subscribe.",
+    "admin": {
+      "title": "Demos",
+      "subtitle": "Create demo links for your prospects and see who opened them.",
+      "tabs": {
+        "label": "Demo sections",
+        "invites": "Invitations",
+        "sessions": "Openings"
+      },
+      "loadError": "We couldn't load the list.",
+      "retry": "Retry",
+      "all": "All",
+      "invites": {
+        "new": "New invitation",
+        "empty": "No invitations yet",
+        "emptyHint": "Create one to give a prospect a demo of a plan.",
+        "columns": {
+          "label": "Prospect",
+          "plan": "Plan",
+          "scenario": "Business type",
+          "status": "Status",
+          "opens": "Openings",
+          "lastOpened": "Last opened",
+          "expires": "Expires"
+        },
+        "status": {
+          "active": "Active",
+          "expired": "Expired",
+          "revoked": "Revoked"
+        },
+        "filters": {
+          "status": "Status",
+          "plan": "Plan",
+          "search": "Search prospect…"
+        },
+        "revoke": "Revoke",
+        "revokeTitle": "Revoke this invitation?",
+        "revokeBody": "The link will stop opening the demo. Demos already opened keep running until they end.",
+        "revokeConfirm": "Revoke",
+        "revokeCancel": "Cancel",
+        "revoked": "Invitation revoked",
+        "neverOpened": "Never opened"
+      },
+      "dialog": {
+        "title": "New demo invitation",
+        "description": "Creates a link that opens a clean demo of the plan you choose.",
+        "plan": "Plan",
+        "scenario": "Business type",
+        "label": "Prospect or business",
+        "labelPlaceholder": "Corner Café",
+        "days": "Valid for (days)",
+        "create": "Create invitation",
+        "creating": "Creating…",
+        "errorLabel": "Write 2 to 120 characters.",
+        "errorDays": "Choose 1 to 60 days.",
+        "errorGeneric": "We couldn't create the invitation.",
+        "doneTitle": "Invitation ready",
+        "doneBody": "Copy the link and share it. For security it is only shown now.",
+        "link": "Invitation link",
+        "copy": "Copy link",
+        "copied": "Link copied",
+        "close": "Done"
+      },
+      "sessions": {
+        "empty": "No openings yet",
+        "emptyHint": "Here you'll see who opens a demo, on their own or with an invitation.",
+        "columns": {
+          "date": "Date",
+          "plan": "Plan",
+          "origin": "Origin",
+          "contact": "Contact",
+          "outcome": "Outcome"
+        },
+        "origin": {
+          "self": "On their own"
+        },
+        "outcome": {
+          "open": "In progress",
+          "left": "Left",
+          "signup": "Signed up",
+          "expired": "Expired"
+        },
+        "filters": {
+          "withContact": "With contact only",
+          "search": "Search name or email…",
+          "plan": "Plan"
+        },
+        "conversion": "In the last {count} openings, {percent} % went on to sign up.",
+        "export": "Export CSV",
+        "noContact": "—"
+      },
+      "refresh": "Refresh"
     }
   }
 }

@@ -3,6 +3,7 @@
 // interruptor y un rol; al editar, dar acceso, cambiar el rol o quitarlo. Nadie ofrece un rol mayor al suyo; los
 // códigos de error de la API se muestran como mensajes propios (role_not_allowed, already_member, last_owner).
 "use client";
+import { useDemoInfo } from "@/hooks/use-demo";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -93,6 +94,8 @@ export function CreateAccessFields({
 export function EditAccess({ employee }: { employee: Employee }) {
   const t = useTranslations("employees.access");
   const tRoles = useTranslations("adminUsers.roles");
+  const td = useTranslations("demo");
+  const { isDemo } = useDemoInfo();
   const qc = useQueryClient();
   const assignable = useAssignableRoles();
   const isSuperAdmin = useAuthStore((s) => s.user?.role === "super_admin");
@@ -105,7 +108,8 @@ export function EditAccess({ employee }: { employee: Employee }) {
   const [confirmRemove, setConfirmRemove] = useState(false);
 
   const done = (message: string) => {
-    toast.success(message);
+    // En una demo el correo de acceso no sale (spec 039): se dice que fue simulado.
+    toast.success(isDemo ? td("simulated") : message);
     qc.invalidateQueries({ queryKey: ["employees"] });
   };
   const fail = (error: unknown) => {

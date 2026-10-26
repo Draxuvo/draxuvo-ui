@@ -21,6 +21,9 @@ export SUPER_ADMIN_PASSWORD="${SUPER_ADMIN_PASSWORD:-E2eSuperAdmin123*}"
 export STRIPE_WEBHOOK_SECRET="${STRIPE_WEBHOOK_SECRET:-whsec_e2e_test}"
 export FRONTEND_URL="$UI_URL"
 export REGISTRATION_RATE_LIMIT="${REGISTRATION_RATE_LIMIT:-1000}"
+# Spec 039: los e2e abren varias demos desde la misma IP y varias a la vez.
+export DEMO_RATE_LIMIT="${DEMO_RATE_LIMIT:-1000}"
+export DEMO_MAX_PROVISIONING="${DEMO_MAX_PROVISIONING:-10}"
 export RAILS_ENV=development
 
 wait_for() { # url, nombre, intentos
@@ -43,6 +46,8 @@ wait_for "$API_URL/up" "API"
 
 echo "[e2e] construyendo y arrancando la UI en $UI_URL"
 export NEXT_PUBLIC_API_URL="$API_URL"
+# Spec 039: con esta variable la demo pide el contacto (opcional); así el e2e cubre ese camino.
+export NEXT_PUBLIC_PRIVACY_URL="${NEXT_PUBLIC_PRIVACY_URL:-https://example.test/aviso-de-privacidad}"
 (cd "$UI_DIR" && npm run build) >"$LOG_DIR/ui-build.log" 2>&1
 (cd "$UI_DIR" && nohup npx next start -p 4200 >"$LOG_DIR/ui.log" 2>&1 & echo $! >"$LOG_DIR/ui.pid")
 wait_for "$UI_URL/es/login" "UI"

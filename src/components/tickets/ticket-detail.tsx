@@ -1,5 +1,6 @@
 // src/components/tickets/ticket-detail.tsx
 "use client";
+import { useDemoInfo } from "@/hooks/use-demo";
 import { useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
@@ -39,6 +40,8 @@ export function TicketDetail({
 }) {
   const t = useTranslations("tickets");
   const tc = useTranslations("common");
+  const td = useTranslations("demo");
+  const { isDemo } = useDemoInfo();
   const locale = useLocale();
   const role = useAuthStore((s) => s.role);
 
@@ -71,7 +74,7 @@ export function TicketDetail({
   async function handleSendWhatsapp() {
     try {
       await sendWhatsapp.mutateAsync(phone.trim() || undefined);
-      toast.success(t("whatsappSent"));
+      toast.success(isDemo ? td("simulated") : t("whatsappSent"));
     } catch {
       toast.error(tc("error"));
     } finally {

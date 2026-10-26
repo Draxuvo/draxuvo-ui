@@ -3,6 +3,7 @@ import { LayoutSidebar } from "@/components/layout/layout-sidebar";
 import { Header } from "@/components/layout/header";
 import { SidebarProvider } from "@/components/layout/sidebar-context";
 import { TrialBanner } from "@/components/layout/trial-banner";
+import { DemoBanner } from "@/components/demo/demo-banner";
 import { SubscriptionGuard } from "@/components/layout/subscription-guard";
 import { EntryDialog } from "@/components/attendance/entry-dialog";
 
@@ -17,6 +18,7 @@ export default function DashboardLayout({
         <LayoutSidebar />
         <div className="flex min-w-0 flex-1 flex-col">
           <Header />
+          <DemoBanner />
           <TrialBanner />
           <SubscriptionGuard />
           <EntryDialog />

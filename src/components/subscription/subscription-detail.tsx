@@ -32,6 +32,7 @@ const DATE_LOCALES = { es, en: enUS };
 export function SubscriptionDetail() {
   const t = useTranslations("subscription");
   const tp = useTranslations("plans");
+  const td = useTranslations("demo");
   const locale = useLocale() as "es" | "en";
   const companyId = useAuthStore((s) => s.selectedCompanyId);
   const companies = useAuthStore((s) => s.user?.companies);
@@ -53,11 +54,13 @@ export function SubscriptionDetail() {
   const cycle: BillingCycle = pickedCycle ?? subscription?.billing_cycle ?? "monthly";
   // Sucursal (R17): la suscripción es la de la principal y el cobro se hace allá.
   const managedByParent = !!subscription?.managed_by_parent;
+  // Demo (spec 039): la pantalla es informativa; no hay pagos ni cambios de plan.
+  const isDemo = !!subscription?.demo;
   const parentId = companies?.find((c) => c.id === companyId)?.parent_company_id;
   const parent = companies?.find((c) => c.id === parentId);
   const canPay =
-    !managedByParent && (status === "trialing" || status === "expired" || status === "cancelled");
-  const canManage = !managedByParent && (status === "active" || status === "past_due" || status === "suspended");
+    !managedByParent && !isDemo && (status === "trialing" || status === "expired" || status === "cancelled");
+  const canManage = !managedByParent && !isDemo && (status === "active" || status === "past_due" || status === "suspended");
   const busy = redirecting !== null;
   // Durante la prueba el plan solo lo cambia el super admin (spec 031): se puede pagar el plan asignado.
   const trialLockedPlan = status === "trialing" ? subscription?.plan ?? null : null;
@@ -144,6 +147,12 @@ export function SubscriptionDetail() {
             )}
 
             <StatusPanel subscription={subscription} formatDate={formatDate} />
+
+            {isDemo && (
+              <p role="note" className="rounded-etiqueta border border-border bg-background px-3 py-2 text-sm text-muted-foreground">
+                {td("subscriptionNotice")}
+              </p>
+            )}
 
             {managedByParent && (
               <Panel

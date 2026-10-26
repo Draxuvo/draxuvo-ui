@@ -24,7 +24,7 @@ Variables:
 | `SUPER_ADMIN_PASSWORD` | la del super admin de tu base local; por defecto `SuperAdmin12345*` |
 | `STRIPE_WEBHOOK_SECRET` | el mismo que usa la API; firma los webhooks simulados |
 
-La API debe arrancar con `REGISTRATION_RATE_LIMIT=1000`: varias pruebas crean empresas y el tope normal es 5 por hora por IP.
+La API debe arrancar con `REGISTRATION_RATE_LIMIT=1000`: varias pruebas crean empresas y el tope normal es 5 por hora por IP. Lo mismo con las demos (spec 039): `DEMO_RATE_LIMIT=1000` y `DEMO_MAX_PROVISIONING=10`, porque los e2e abren varias a la vez desde la misma IP; `e2e/ci/up.sh` ya los exporta.
 
 ## Cómo está organizado
 
