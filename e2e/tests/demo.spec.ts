@@ -15,8 +15,11 @@ async function enterDemo(page: Page, plan: string, giro?: string) {
   // Las opciones son etiquetas con el radio oculto: se elige tocando la etiqueta.
   if (giro) await page.locator("label").filter({ hasText: new RegExp(`^${giro}`) }).click();
   await page.getByRole("button", { name: d("entry.submit") }).click();
-  await expect(page).toHaveURL(/\/es\/inicio$/);
+  await expect(page).toHaveURL(/\/es\/inicio$/, ENTER);
 }
+
+// Aprovisionar una demo (sobre todo la de restaurante, con más de 600 consultas) tarda varios segundos en un CI lento.
+const ENTER = { timeout: 30_000 };
 
 const nav = (page: Page, name: string) => page.getByRole("navigation").getByRole("link", { name, exact: true });
 
@@ -91,7 +94,7 @@ test.describe("la demo de cada plan", () => {
       await page.goto("/es/demo?plan=pro");
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
       await page.getByRole("button", { name: d("entry.submit") }).click();
-      await expect(page).toHaveURL(/\/es\/inicio$/);
+      await expect(page).toHaveURL(/\/es\/inicio$/, ENTER);
 
       await expect(page.getByRole("status").filter({ hasText: d("banner.create") })).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
@@ -153,7 +156,7 @@ test.describe("el equipo comercial", () => {
       await guest.getByLabel(d("entry.fields.email")).fill("ana-e2e@ejemplo.mx");
     }
     await guest.getByRole("button", { name: d("entry.submit") }).click();
-    await expect(guest).toHaveURL(/\/es\/inicio$/);
+    await expect(guest).toHaveURL(/\/es\/inicio$/, ENTER);
     await expect(guest.getByRole("status").filter({ hasText: d("banner.create") })).toBeVisible();
 
     // El equipo ve la apertura con el contacto y cuenta una apertura en la invitación.
