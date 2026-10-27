@@ -36,6 +36,7 @@ class FakeAudio {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  window.localStorage.clear();
   vi.stubGlobal("AudioContext", FakeAudio);
   window.AudioContext = FakeAudio as never;
   vi.mocked(restaurantService.advanceItem).mockResolvedValue(undefined);
@@ -161,6 +162,29 @@ describe("pantalla de estación", () => {
     await waitFor(() => expect(summary).toHaveTextContent("2 comandas"));
     expect(summary).toHaveTextContent("2 en preparación");
     expect(summary).toHaveTextContent("La más lenta: 14 min");
+  });
+
+  it("suena el tono de urgencia una sola vez al volverse atrasada", async () => {
+    vi.mocked(restaurantService.board).mockResolvedValue(board([order(1, [taco])]));
+    const { queryClient } = renderWithProviders(<StationBoard stationId={1} />);
+    const user = userEvent.setup();
+    await screen.findByText("Mesa 4");
+    await user.click(screen.getByRole("button", { name: "Activar sonido" }));
+    chime.mockClear();
+
+    const slow = order(2, [sopa], { table: "5", sent_at: new Date(Date.now() - 14.5 * 60_000).toISOString() });
+    vi.mocked(restaurantService.board).mockResolvedValue(board([order(1, [taco]), slow]));
+    await act(async () => {
+      await queryClient.invalidateQueries({ queryKey: ["restaurant", "board", 1] });
+    });
+
+    await screen.findByText("Mesa 5");
+    await waitFor(() => expect(chime).toHaveBeenCalled());
+    const calls = chime.mock.calls.length;
+    await act(async () => {
+      await queryClient.invalidateQueries({ queryKey: ["restaurant", "board", 1] });
+    });
+    expect(chime.mock.calls.length).toBe(calls);
   });
 
   it("sin comandas el resumen está en cero y no flota ningún texto de sonido", async () => {

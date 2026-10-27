@@ -54,6 +54,7 @@ const check = (over: Partial<Check> = {}): Check => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  window.localStorage.clear();
   search = "";
   useAuthStore.setState({
     selectedCompanyId: 1, role: "staff",
