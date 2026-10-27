@@ -22,6 +22,8 @@ import { OrderPanel } from "./order-panel";
 import { TablePlan } from "./table-plan";
 import { useOrderSource, type Selection, type SourceTile } from "./use-order-source";
 import { useScreenMode } from "./use-screen-mode";
+import { SoundToggle } from "@/components/restaurant/sound-toggle";
+import { useReadySound } from "@/hooks/use-ready-sound";
 
 type Tab = "tables" | "order" | "menu";
 
@@ -68,6 +70,7 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
   const source = useOrderSource(mode, selection);
   const menuQuery = useSaleMenu();
   const finish = useFinishOrder(selection?.kind === "order" ? selection.id : 0);
+  const readySound = useReadySound(mode === "restaurant");
 
   const menu: MenuSection[] = (menuQuery.data ?? []).map((section) => ({
     category: section.category,
@@ -174,6 +177,11 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
           <ArrowLeft size={18} aria-hidden />
         </Button>
         <h1 className="font-display text-xl font-extrabold">{t("title")}</h1>
+        {mode === "restaurant" && (
+          <div className="ml-auto">
+            <SoundToggle enabled={readySound.enabled} volume={readySound.volume} onToggle={readySound.toggle} onVolumeChange={readySound.setVolume} />
+          </div>
+        )}
       </header>
 
       <nav aria-label={t("title")} className="grid grid-cols-3 gap-1 border-b border-border p-1 lg:hidden">

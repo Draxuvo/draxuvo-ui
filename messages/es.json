@@ -1963,6 +1963,7 @@
       "soundOn": "Sonido activado",
       "soundOff": "Activar sonido",
       "waitingSound": "Toca para activar el sonido de nuevas comandas",
+      "volume": "Volumen",
       "table": "Mesa {name}",
       "takeout": "Para llevar: {name}",
       "waiter": "Mesero: {name}",

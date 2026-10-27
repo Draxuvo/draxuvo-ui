@@ -1,12 +1,11 @@
-// src/components/restaurant/station-board.tsx
 "use client";
 import { useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { WifiOff } from "lucide-react";
 import { useNow } from "@/hooks/use-now";
 import { useAdvance, useStationBoard } from "@/hooks/use-restaurant";
-import { SoundToggle, useChime } from "./sound-toggle";
-import { SLOW_AFTER_MINUTES, StationCard } from "./station-card";
+import { SoundToggle, useSound } from "./sound-toggle";
+import { minutesSince, SLOW_AFTER_MINUTES, StationCard } from "./station-card";
 import { STATION_KIND } from "./station-kind";
 import { StationSummary } from "./station-summary";
 import { cn } from "@/lib/utils";
@@ -16,23 +15,41 @@ export function StationBoard({ stationId }: { stationId: number }) {
   const t = useTranslations("restaurant.station");
   const board = useStationBoard(stationId);
   const advance = useAdvance(stationId);
-  const sound = useChime();
   const now = useNow();
   const seen = useRef<Set<number> | null>(null);
+  const slowSeen = useRef<Set<number> | null>(null);
+
+  const kind: StationKind = board.data?.station.kind ?? "kitchen";
+  const sound = useSound(`station:${stationId}`, kind);
+  const { playNew, playUrgent, enabled, volume, setVolume, toggle } = sound;
+  const offset = board.data?.offset ?? 0;
 
   // Una comanda que no se había visto hace sonar el aviso; la primera carga no suena.
   const orders = board.data?.orders;
-  const { chime, enabled: soundOn } = sound;
   useEffect(() => {
     if (!orders) return;
     const ids = new Set(orders.map((order) => order.id));
-    if (seen.current && [...ids].some((id) => !seen.current!.has(id)) && soundOn) chime();
+    if (seen.current && [...ids].some((id) => !seen.current!.has(id))) playNew();
     seen.current = ids;
-  }, [orders, soundOn, chime]);
+  }, [orders, playNew]);
+
+  // Una comanda que se vuelve lenta suena una sola vez con el tono de urgencia.
+  useEffect(() => {
+    if (!orders) return;
+    const nowMs = now + offset;
+    const slowIds = new Set(
+      orders.filter((order) => minutesSince(order.sent_at, nowMs) >= SLOW_AFTER_MINUTES).map((order) => order.id),
+    );
+    if (slowSeen.current) {
+      for (const id of slowIds) {
+        if (!slowSeen.current.has(id)) playUrgent();
+      }
+    }
+    slowSeen.current = slowIds;
+  }, [orders, now, offset, playUrgent]);
 
   const pending = advance.item.isPending || advance.order.isPending;
   const list = board.data?.orders ?? [];
-  const kind: StationKind = board.data?.station.kind ?? "kitchen";
   const { Icon, tone, chip } = STATION_KIND[kind];
 
   return (
@@ -49,8 +66,8 @@ export function StationBoard({ stationId }: { stationId: number }) {
             )}
           </div>
         </div>
-        <StationSummary orders={list} now={now + (board.data?.offset ?? 0)} slowAfter={SLOW_AFTER_MINUTES} />
-        <SoundToggle enabled={sound.enabled} onToggle={sound.toggle} />
+        <StationSummary orders={list} now={now + offset} slowAfter={SLOW_AFTER_MINUTES} />
+        <SoundToggle enabled={enabled} volume={volume} onToggle={toggle} onVolumeChange={setVolume} />
       </header>
 
       {board.isError && (
@@ -72,7 +89,7 @@ export function StationBoard({ stationId }: { stationId: number }) {
             <StationCard
               key={order.id}
               order={order}
-              now={now + (board.data?.offset ?? 0)}
+              now={now + offset}
               pending={pending}
               onAdvanceItem={(id) => advance.item.mutate(id)}
               onAdvanceAll={(id) => advance.order.mutate(id)}

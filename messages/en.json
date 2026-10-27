@@ -1963,6 +1963,7 @@
       "soundOn": "Sound on",
       "soundOff": "Turn on sound",
       "waitingSound": "Tap to turn on the new order sound",
+      "volume": "Volume",
       "table": "Table {name}",
       "takeout": "Takeout: {name}",
       "waiter": "Waiter: {name}",
