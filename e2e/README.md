@@ -35,6 +35,8 @@ La API debe arrancar con `REGISTRATION_RATE_LIMIT=1000`: varias pruebas crean em
 
 Reglas: toda prueba que crea datos usa `uniquePrefix`; las que cambian plan, módulos, modo de órdenes o miembros crean una empresa nueva; ninguna cambia la contraseña ni el rol de los usuarios demo; los terceros (Stripe, correo, WhatsApp) se simulan.
 
+Excepción (spec 047, `whatsapp.spec.ts`): `[WAP-004]` intenta conectar WhatsApp con una **llave inventada** y por eso llama a Meta de verdad (`graph.facebook.com`), así que va en `@regresion` y no en `@pr`. Meta la rechaza (190) o, sin red, la API responde que no pudo contactarla; en los dos casos no se guarda nada. Las demás pruebas de WhatsApp (`[WAP-001]` a `[WAP-003]`) no salen a internet. Ninguna prueba de e2e conecta una cuenta real.
+
 ## Fallos conocidos e inestables
 
 - Una prueba que falla por un hallazgo del plan (`H-01` a `H-99`, en `40-criterios-salida.md`) llama `knownFailure("H-xx")`. Si el hallazgo se corrige y la prueba pasa, la corrida falla y pide quitar la marca.

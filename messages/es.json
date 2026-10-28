@@ -105,6 +105,10 @@
   "whatsapp": {
     "title": "WhatsApp",
     "subtitle": "Conecta la cuenta de WhatsApp Business de Draxuvo y decide qué mensajes salen.",
+    "forbidden": {
+      "title": "Solo para el equipo de Draxuvo",
+      "body": "La configuración de WhatsApp de la plataforma solo la administra el super admin."
+    },
     "error": {
       "title": "No se pudo cargar la configuración de WhatsApp",
       "retry": "Reintentar"

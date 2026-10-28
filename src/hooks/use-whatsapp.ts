@@ -16,8 +16,8 @@ export function useWhatsappEvents(page: number, pageSize = 10) {
   });
 }
 
-export function useWhatsappState() {
-  return useQuery({ queryKey: WHATSAPP_KEY, queryFn: whatsappService.state });
+export function useWhatsappState({ enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery({ queryKey: WHATSAPP_KEY, queryFn: whatsappService.state, enabled });
 }
 
 /**

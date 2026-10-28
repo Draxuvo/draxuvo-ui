@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
 import { useAuthStore } from "@/store/auth";
 import type { User, WhatsappConnection, WhatsappEvent, WhatsappGuideItem, WhatsappMessageType, WhatsappState } from "@/types";
+import WhatsappPage from "@/app/[locale]/(super-admin)/whatsapp/page";
 import { ChannelSwitch } from "./channel-switch";
 import { HistoryTable } from "./history-table";
 import { ConnectionCard } from "./connection-card";
@@ -649,6 +650,28 @@ describe("HistoryTable (spec 047, US5)", () => {
     await user.click(screen.getByRole("button", { name: "Siguiente" }));
 
     await waitFor(() => expect(service.events).toHaveBeenCalledWith({ page: 2, page_size: 10 }));
+  });
+});
+
+describe("página /whatsapp (spec 047)", () => {
+  it("quien no es super admin ve un aviso y no se consulta la API", () => {
+    useAuthStore.setState({ user: { role: "owner" } as unknown as User });
+    renderWithProviders(<WhatsappPage />);
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Solo para el equipo de Draxuvo");
+    expect(service.state).not.toHaveBeenCalled();
+  });
+
+  it("el super admin ve conexión, interruptor, mensajes e historial", async () => {
+    useAuthStore.setState({ user: { role: "super_admin" } as unknown as User });
+    service.state.mockResolvedValue(stateWith(messageType()));
+    service.events.mockResolvedValue(page([event()]));
+    renderWithProviders(<WhatsappPage />);
+
+    expect(await screen.findByRole("heading", { name: "Conexión" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Enviar mensajes por WhatsApp" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Mensajes" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Historial" })).toBeInTheDocument();
   });
 });
 

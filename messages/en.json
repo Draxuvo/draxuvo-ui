@@ -105,6 +105,10 @@
   "whatsapp": {
     "title": "WhatsApp",
     "subtitle": "Connect Draxuvo's WhatsApp Business account and choose which messages go out.",
+    "forbidden": {
+      "title": "Only for the Draxuvo team",
+      "body": "The platform's WhatsApp settings are managed only by the super admin."
+    },
     "error": {
       "title": "Couldn't load the WhatsApp settings",
       "retry": "Try again"

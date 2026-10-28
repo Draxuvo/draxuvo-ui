@@ -9,10 +9,23 @@ import { ConnectionCard } from "@/components/whatsapp/connection-card";
 import { HistoryTable } from "@/components/whatsapp/history-table";
 import { MessageTypesSection } from "@/components/whatsapp/message-types-section";
 import { useWhatsappState } from "@/hooks/use-whatsapp";
+import { useAuthStore } from "@/store/auth";
 
 export default function WhatsappPage() {
   const t = useTranslations("whatsapp");
-  const { data, isLoading, isError, refetch } = useWhatsappState();
+  const user = useAuthStore((s) => s.user);
+  // La API ya responde 403 a cualquier otro rol; aquí ni siquiera se consulta.
+  const forbidden = !!user && user.role !== "super_admin";
+  const { data, isLoading, isError, refetch } = useWhatsappState({ enabled: !!user && !forbidden });
+
+  if (forbidden) {
+    return (
+      <div role="alert" className="rounded-etiqueta border border-border bg-card p-6">
+        <h1 className="font-display text-2xl font-semibold">{t("forbidden.title")}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t("forbidden.body")}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -21,14 +34,14 @@ export default function WhatsappPage() {
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
 
-      {isLoading && <Skeleton className="h-64 w-full" aria-busy="true" />}
+      {(isLoading || !user) && <Skeleton className="h-64 w-full" aria-busy="true" />}
 
       {data && <ConnectionCard state={data} />}
       {data && data.source !== "env" && <ChannelSwitch state={data} />}
       {data && <MessageTypesSection state={data} />}
       {data && <HistoryTable />}
 
-      {!isLoading && (isError || !data) && (
+      {!isLoading && user && (isError || !data) && (
         <div role="alert" className="rounded-etiqueta border border-border bg-card p-6 text-center">
           <p className="text-sm font-medium text-foreground">{t("error.title")}</p>
           <Button type="button" variant="outline" className="mt-3 min-h-11" onClick={() => refetch()}>
