@@ -10,6 +10,8 @@ vi.mock("@/services/restaurant", () => ({
 
 import { restaurantService } from "@/services/restaurant";
 import { StationBoard } from "../station-board";
+import { installFakeAudio } from "@/test/audio";
+import { resetEngine } from "@/lib/sounds/engine";
 
 const board = (orders: Board["orders"] = [], station: Board["station"] = { id: 1, name: "Cocina", kind: "kitchen" }): Board => ({
   station,
@@ -35,6 +37,7 @@ class FakeAudio {
 }
 
 beforeEach(() => {
+  resetEngine();
   vi.clearAllMocks();
   window.localStorage.clear();
   vi.stubGlobal("AudioContext", FakeAudio);
@@ -108,6 +111,47 @@ describe("pantalla de estación", () => {
 
     await screen.findByText("Mesa 5");
     await waitFor(() => expect(chime).toHaveBeenCalled());
+  });
+
+  it("una comanda nueva y otra atrasada en el mismo sondeo suenan una sola vez, con el sonido de atrasada", async () => {
+    const audio = installFakeAudio();
+    vi.mocked(restaurantService.board).mockResolvedValue(board([order(1, [taco])]));
+    const { queryClient } = renderWithProviders(<StationBoard stationId={1} />);
+    const user = userEvent.setup();
+    await screen.findByText("Mesa 4");
+    await user.click(screen.getByRole("button", { name: "Activar sonido" }));
+    await waitFor(() => expect(audio.played).toHaveLength(1)); // la prueba al activar
+    audio.played.length = 0;
+
+    const slow = new Date(Date.now() - 20 * 60_000).toISOString();
+    vi.mocked(restaurantService.board).mockResolvedValue(board([order(1, [taco]), order(2, [sopa], { table: "5", sent_at: slow })]));
+    await act(async () => {
+      await queryClient.invalidateQueries({ queryKey: ["restaurant", "board", 1] });
+    });
+
+    await screen.findByText("Mesa 5");
+    await waitFor(() => expect(audio.played).toHaveLength(1));
+    expect(audio.played[0].url).toBe("/sounds/urgente.wav");
+  });
+
+  it("solo una comanda nueva suena con el sonido elegido para la estación", async () => {
+    const audio = installFakeAudio();
+    window.localStorage.setItem("draxuvo.sound-choices", JSON.stringify({ new_kitchen: "campana" }));
+    vi.mocked(restaurantService.board).mockResolvedValue(board([order(1, [taco])]));
+    const { queryClient } = renderWithProviders(<StationBoard stationId={1} />);
+    const user = userEvent.setup();
+    await screen.findByText("Mesa 4");
+    await user.click(screen.getByRole("button", { name: "Activar sonido" }));
+    await waitFor(() => expect(audio.played).toHaveLength(1));
+    audio.played.length = 0;
+
+    vi.mocked(restaurantService.board).mockResolvedValue(board([order(1, [taco]), order(2, [sopa], { table: "5" })]));
+    await act(async () => {
+      await queryClient.invalidateQueries({ queryKey: ["restaurant", "board", 1] });
+    });
+
+    await screen.findByText("Mesa 5");
+    await waitFor(() => expect(audio.played.map((p) => p.url)).toEqual(["/sounds/campana.wav"]));
   });
 
   it("no suena si el sonido está apagado", async () => {
