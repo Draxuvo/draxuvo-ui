@@ -128,6 +128,64 @@
       "rate_limited": "Meta limitó las peticiones por un momento; inténtalo más tarde.",
       "unknown": "Meta rechazó la petición."
     },
+    "history": {
+      "title": "Historial",
+      "subtitle": "Quién cambió qué y cuándo. Nunca incluye la llave y los teléfonos aparecen enmascarados.",
+      "empty": "Aún no hay cambios registrados.",
+      "error": "No se pudo cargar el historial.",
+      "retry": "Reintentar",
+      "system": "Draxuvo (automático)",
+      "connectionTarget": "la conexión",
+      "metaCode": "código de Meta {code}",
+      "pagination": "Paginación del historial",
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "page": "Página {page} de {pages}",
+      "columns": {
+        "when": "Cuándo",
+        "who": "Quién",
+        "what": "Qué",
+        "result": "Resultado"
+      },
+      "results": {
+        "ok": "Correcto",
+        "failed": "Con error"
+      },
+      "actions": {
+        "connected": "Conectó WhatsApp",
+        "token_replaced": "Reemplazó la llave de acceso",
+        "disconnected": "Desconectó WhatsApp",
+        "channel_on": "Encendió el envío por WhatsApp",
+        "channel_off": "Apagó el envío por WhatsApp",
+        "type_on": "Encendió {target}",
+        "type_off": "Apagó {target}",
+        "template_changed": "Cambió la plantilla de {target}",
+        "verified": "Verificó {target}",
+        "test_sent": "Mandó una prueba de {target}",
+        "auto_off": "Se apagó solo {target}",
+        "connection_error": "La conexión tuvo un error",
+        "alert_sent": "Avisó al equipo por correo ({target})"
+      },
+      "detail": {
+        "template": "{from} → {to}",
+        "to": "A {to}",
+        "status": "Estado: {status}"
+      }
+    },
+    "test": {
+      "open": "Enviar prueba",
+      "title": "Prueba de {type}",
+      "description": "Manda un mensaje marcado como prueba (empresa «PRUEBA Draxuvo», sin productos, código 000000). Funciona con el canal apagado; exige la conexión y, si usa plantilla, que esté aprobada.",
+      "phone": "Teléfono de destino",
+      "phoneHelp": "De 10 a 15 dígitos. Se muestra enmascarado en el historial.",
+      "remaining": "{count, plural, =0 {No te quedan pruebas esta hora.} one {Te queda # prueba esta hora.} other {Te quedan # pruebas esta hora.}}",
+      "limit": "Llegaste al límite de 5 pruebas por hora; inténtalo más tarde.",
+      "errorPhone": "Escribe un número de 10 a 15 dígitos.",
+      "sent": "Enviado a {to} a las {time}.",
+      "send": "Enviar prueba",
+      "sending": "Enviando…",
+      "close": "Cerrar"
+    },
     "channel": {
       "title": "Enviar mensajes por WhatsApp",
       "description": "Interruptor general de toda la plataforma. Apagarlo detiene todos los mensajes y conserva lo elegido en cada tipo.",

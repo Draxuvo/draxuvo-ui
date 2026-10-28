@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChannelSwitch } from "@/components/whatsapp/channel-switch";
 import { ConnectionCard } from "@/components/whatsapp/connection-card";
+import { HistoryTable } from "@/components/whatsapp/history-table";
 import { MessageTypesSection } from "@/components/whatsapp/message-types-section";
 import { useWhatsappState } from "@/hooks/use-whatsapp";
 
@@ -25,6 +26,7 @@ export default function WhatsappPage() {
       {data && <ConnectionCard state={data} />}
       {data && data.source !== "env" && <ChannelSwitch state={data} />}
       {data && <MessageTypesSection state={data} />}
+      {data && <HistoryTable />}
 
       {!isLoading && (isError || !data) && (
         <div role="alert" className="rounded-etiqueta border border-border bg-card p-6 text-center">

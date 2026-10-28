@@ -34,6 +34,9 @@ export const whatsappService = {
   verifyConnection: (): Promise<WhatsappState> =>
     apiClient.post(`${base}/connection/verify`, {}, { skipErrorToast: true }).then((r) => r.data),
 
+  testMessage: (kind: WhatsappKind, phone: string): Promise<{ result: "sent" | "simulated"; to: string; tests_remaining: number }> =>
+    apiClient.post(`${base}/message_types/${kind}/test`, { phone }, { skipErrorToast: true }).then((r) => r.data),
+
   setChannel: (payload: { enabled: boolean; lock_version?: number }): Promise<WhatsappState> =>
     apiClient.patch(`${base}/channel`, payload, { skipErrorToast: true }).then((r) => r.data),
 

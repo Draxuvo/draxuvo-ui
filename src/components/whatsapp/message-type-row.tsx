@@ -15,6 +15,7 @@ import { useUpdateMessageType, useVerifyMessageType } from "@/hooks/use-whatsapp
 import type { WhatsappMessageType, WhatsappTemplateStatus } from "@/types";
 import { useErrorText } from "./connection-dialogs";
 import { TemplateGuideDialog } from "./template-guide-dialog";
+import { TestDialog } from "./test-dialog";
 
 const STATUS_VARIANT: Record<WhatsappTemplateStatus, "secondary" | "default" | "destructive" | "outline"> = {
   unknown: "secondary",
@@ -32,9 +33,11 @@ interface MessageTypeRowProps {
   connected: boolean;
   /** Con solo variables de entorno no hay interruptores: el panel aún no manda. */
   controllable?: boolean;
+  /** Mensajes de prueba que le quedan a quien administra en esta hora. */
+  testsRemaining?: number;
 }
 
-export function MessageTypeRow({ type, connected, controllable = true }: MessageTypeRowProps) {
+export function MessageTypeRow({ type, connected, controllable = true, testsRemaining = 5 }: MessageTypeRowProps) {
   const t = useTranslations("whatsapp");
   const locale = useLocale();
   const errorText = useErrorText();
@@ -44,6 +47,7 @@ export function MessageTypeRow({ type, connected, controllable = true }: Message
   const [name, setName] = useState(type.template_name ?? "");
   const [language, setLanguage] = useState(type.template_language ?? "");
   const [guideOpen, setGuideOpen] = useState(false);
+  const [testOpen, setTestOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const dateLocale = locale === "es" ? es : enUS;
@@ -155,6 +159,9 @@ export function MessageTypeRow({ type, connected, controllable = true }: Message
             <Button type="button" variant="outline" className="min-h-11" disabled={!connected || verify.isPending} onClick={verifyNow}>
               {verify.isPending ? t("template.verifying") : t("template.verify")}
             </Button>
+            <Button type="button" variant="outline" className="min-h-11" disabled={!connected} onClick={() => setTestOpen(true)}>
+              {t("test.open")}
+            </Button>
             <Button type="button" variant="outline" className="min-h-11" onClick={() => setGuideOpen(true)}>
               {t("template.guide")}
             </Button>
@@ -167,8 +174,17 @@ export function MessageTypeRow({ type, connected, controllable = true }: Message
           {guideOpen && <TemplateGuideDialog open kind={type.kind} onOpenChange={(open) => !open && setGuideOpen(false)} />}
         </>
       ) : (
-        <p className="text-sm text-muted-foreground">{t("template.none")}</p>
+        <>
+          <p className="text-sm text-muted-foreground">{t("template.none")}</p>
+          <div>
+            <Button type="button" variant="outline" className="min-h-11" disabled={!connected} onClick={() => setTestOpen(true)}>
+              {t("test.open")}
+            </Button>
+          </div>
+        </>
       )}
+
+      {testOpen && <TestDialog open kind={type.kind} testsRemaining={testsRemaining} onOpenChange={(open) => !open && setTestOpen(false)} />}
     </li>
   );
 }

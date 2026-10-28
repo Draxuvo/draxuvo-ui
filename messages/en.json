@@ -128,6 +128,64 @@
       "rate_limited": "Meta limited requests for a moment; try again later.",
       "unknown": "Meta rejected the request."
     },
+    "history": {
+      "title": "History",
+      "subtitle": "Who changed what and when. It never includes the key and phone numbers are masked.",
+      "empty": "No changes recorded yet.",
+      "error": "The history couldn't be loaded.",
+      "retry": "Try again",
+      "system": "Draxuvo (automatic)",
+      "connectionTarget": "the connection",
+      "metaCode": "Meta code {code}",
+      "pagination": "History pagination",
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {page} of {pages}",
+      "columns": {
+        "when": "When",
+        "who": "Who",
+        "what": "What",
+        "result": "Result"
+      },
+      "results": {
+        "ok": "Success",
+        "failed": "Error"
+      },
+      "actions": {
+        "connected": "Connected WhatsApp",
+        "token_replaced": "Replaced the access key",
+        "disconnected": "Disconnected WhatsApp",
+        "channel_on": "Turned WhatsApp sending on",
+        "channel_off": "Turned WhatsApp sending off",
+        "type_on": "Turned on {target}",
+        "type_off": "Turned off {target}",
+        "template_changed": "Changed the template of {target}",
+        "verified": "Verified {target}",
+        "test_sent": "Sent a test of {target}",
+        "auto_off": "{target} turned itself off",
+        "connection_error": "The connection had an error",
+        "alert_sent": "Warned the team by email ({target})"
+      },
+      "detail": {
+        "template": "{from} → {to}",
+        "to": "To {to}",
+        "status": "Status: {status}"
+      }
+    },
+    "test": {
+      "open": "Send test",
+      "title": "Test of {type}",
+      "description": "Sends a message marked as a test (company \"TEST Draxuvo\", no products, code 000000). It works with the channel off; it needs the connection and, if it uses a template, that it is approved.",
+      "phone": "Destination phone",
+      "phoneHelp": "10 to 15 digits. It is masked in the history.",
+      "remaining": "{count, plural, =0 {You have no tests left this hour.} one {You have # test left this hour.} other {You have # tests left this hour.}}",
+      "limit": "You reached the limit of 5 tests per hour; try again later.",
+      "errorPhone": "Enter a number with 10 to 15 digits.",
+      "sent": "Sent to {to} at {time}.",
+      "send": "Send test",
+      "sending": "Sending…",
+      "close": "Close"
+    },
     "channel": {
       "title": "Send messages over WhatsApp",
       "description": "General switch for the whole platform. Turning it off stops every message and keeps what was chosen for each type.",

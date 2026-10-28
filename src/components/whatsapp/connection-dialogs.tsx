@@ -14,6 +14,9 @@ import type { WhatsappConnection } from "@/types";
 
 type Translate = ReturnType<typeof useTranslations>;
 
+/** Códigos con que la API explica por qué un tipo no se puede encender ni probar. */
+const BLOCKED_CODES = ["connection_error", "template_not_approved", "template_incompatible"];
+
 /** Texto del error de una acción: el motivo del rechazo de Meta, el conflicto de edición o uno genérico. */
 export function useErrorText() {
   const t = useTranslations("whatsapp");
@@ -23,6 +26,9 @@ export function useErrorText() {
     if (info.code === "meta_unreachable") return t("reasons.meta_unreachable");
     if (info.code === "token_required") return t("errors.tokenRequired");
     if (info.code === "not_connected") return t("errors.notConnected");
+    if (info.code === "tests_limit") return t("test.limit");
+    if (info.code === "invalid_phone") return t("test.errorPhone");
+    if (info.code && BLOCKED_CODES.includes(info.code)) return t(`types.blocked.${info.code}`);
     if (info.reason) return reasonText(t, info.reason) + (info.metaCode ? ` (${t("errors.metaCode", { code: info.metaCode })})` : "");
     return t("errors.generic");
   };

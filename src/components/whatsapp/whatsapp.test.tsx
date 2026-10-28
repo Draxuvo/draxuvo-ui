@@ -3,11 +3,14 @@ import userEvent from "@testing-library/user-event";
 import { AxiosError, type AxiosResponse } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
-import type { WhatsappConnection, WhatsappGuideItem, WhatsappMessageType, WhatsappState } from "@/types";
+import { useAuthStore } from "@/store/auth";
+import type { User, WhatsappConnection, WhatsappEvent, WhatsappGuideItem, WhatsappMessageType, WhatsappState } from "@/types";
 import { ChannelSwitch } from "./channel-switch";
+import { HistoryTable } from "./history-table";
 import { ConnectionCard } from "./connection-card";
 import { MessageTypeRow } from "./message-type-row";
 import { TemplateGuideDialog } from "./template-guide-dialog";
+import { TestDialog } from "./test-dialog";
 
 const service = vi.hoisted(() => ({
   state: vi.fn(),
@@ -18,6 +21,8 @@ const service = vi.hoisted(() => ({
   updateMessageType: vi.fn(),
   verifyMessageType: vi.fn(),
   setChannel: vi.fn(),
+  testMessage: vi.fn(),
+  events: vi.fn(),
 }));
 
 vi.mock("@/services/whatsapp", () => ({ whatsappService: service }));
@@ -71,6 +76,123 @@ function apiError(status: number, details: Record<string, unknown>) {
 
 beforeEach(() => {
   Object.values(service).forEach((fn) => fn.mockReset());
+});
+
+function apiFailure(status: number, details: Record<string, unknown>) {
+  return new AxiosError("fail", "ERR", undefined, undefined, {
+    status,
+    data: { error: { status, message: "x", details } },
+  } as AxiosResponse);
+}
+
+describe("TestDialog (spec 047, US4)", () => {
+  beforeEach(() => {
+    useAuthStore.setState({ user: { phone: "5598765432" } as unknown as User });
+  });
+
+  const stockType = (): WhatsappMessageType => ({
+    kind: "stock_alert",
+    uses_template: true,
+    enabled: false,
+    template_name: "stock_bajo",
+    template_language: "es_MX",
+    template_status: "approved",
+    template_detail: null,
+    template_checked_at: null,
+    expected_variables: 3,
+    can_enable: true,
+    blocked_reason: null,
+    lock_version: 2,
+  });
+
+  function open(testsRemaining = 5) {
+    return renderWithProviders(<TestDialog open kind="stock_alert" testsRemaining={testsRemaining} onOpenChange={() => {}} />);
+  }
+
+  it("prellena el teléfono del perfil y muestra las pruebas restantes", () => {
+    open(4);
+
+    expect(screen.getByLabelText("Teléfono de destino")).toHaveValue("5598765432");
+    expect(screen.getByText("Te quedan 4 pruebas esta hora.")).toBeInTheDocument();
+  });
+
+  it("manda solo los dígitos y muestra «Enviado» con la hora", async () => {
+    const user = userEvent.setup();
+    service.testMessage.mockResolvedValue({ result: "sent", to: "••••5678", tests_remaining: 4 });
+    open();
+
+    const phone = screen.getByLabelText("Teléfono de destino");
+    await user.clear(phone);
+    await user.type(phone, "55 1234 5678");
+    await user.click(screen.getByRole("button", { name: "Enviar prueba" }));
+
+    await waitFor(() => expect(service.testMessage).toHaveBeenCalledWith("stock_alert", "5512345678"));
+    expect(await screen.findByRole("status")).toHaveTextContent(/Enviado a ••••5678 a las/);
+  });
+
+  it("valida el teléfono antes de llamar a la API", async () => {
+    const user = userEvent.setup();
+    open();
+
+    const phone = screen.getByLabelText("Teléfono de destino");
+    await user.clear(phone);
+    await user.type(phone, "123");
+    await user.click(screen.getByRole("button", { name: "Enviar prueba" }));
+
+    expect(screen.getByText("Escribe un número de 10 a 15 dígitos.")).toBeInTheDocument();
+    expect(service.testMessage).not.toHaveBeenCalled();
+  });
+
+  it("muestra el motivo en español cuando Meta rechaza al destinatario", async () => {
+    const user = userEvent.setup();
+    service.testMessage.mockRejectedValue(
+      apiFailure(422, { code: "test_failed", reason: "not_authorized_recipient", meta_code: "131030" }),
+    );
+    open();
+
+    await user.click(screen.getByRole("button", { name: "Enviar prueba" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/Meta rechazó la petición/);
+  });
+
+  it("la plantilla no aprobada se explica en palabras", async () => {
+    const user = userEvent.setup();
+    service.testMessage.mockRejectedValue(apiFailure(422, { code: "template_not_approved", template_status: "pending" }));
+    open();
+
+    await user.click(screen.getByRole("button", { name: "Enviar prueba" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("La plantilla aún no está aprobada en Meta.");
+  });
+
+  it("con 429 muestra el mensaje de límite", async () => {
+    const user = userEvent.setup();
+    service.testMessage.mockRejectedValue(apiFailure(429, { code: "tests_limit" }));
+    open();
+
+    await user.click(screen.getByRole("button", { name: "Enviar prueba" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/límite de 5 pruebas por hora/);
+  });
+
+  it("sin pruebas restantes bloquea el envío y lo dice", () => {
+    open(0);
+
+    expect(screen.getByRole("button", { name: "Enviar prueba" })).toBeDisabled();
+    expect(screen.getByText(/límite de 5 pruebas por hora/)).toBeInTheDocument();
+  });
+
+  it("el botón de la fila abre el diálogo y está deshabilitado sin conexión", async () => {
+    const user = userEvent.setup();
+    const { unmount } = renderWithProviders(<MessageTypeRow type={stockType()} connected />);
+
+    await user.click(screen.getByRole("button", { name: "Enviar prueba" }));
+    expect(screen.getByText("Prueba de Aviso de stock bajo")).toBeInTheDocument();
+    unmount();
+
+    renderWithProviders(<MessageTypeRow type={stockType()} connected={false} />);
+    expect(screen.getByRole("button", { name: "Enviar prueba" })).toBeDisabled();
+  });
 });
 
 describe("ConnectionCard (spec 047, US1)", () => {
@@ -450,5 +572,103 @@ describe("MessageTypeRow switches (spec 047, US3)", () => {
     renderWithProviders(<MessageTypeRow type={messageType()} connected={false} controllable={false} />);
 
     expect(screen.queryByRole("switch")).not.toBeInTheDocument();
+  });
+});
+
+function event(over: Partial<WhatsappEvent> = {}): WhatsappEvent {
+  return {
+    id: 1,
+    action: "type_off",
+    target: "stock_alert",
+    result: "ok",
+    user: { id: 9, name: "Super Admin" },
+    data: {},
+    meta_code: null,
+    created_at: "2026-10-28T17:40:00Z",
+    ...over,
+  };
+}
+
+function page(results: WhatsappEvent[], total = results.length) {
+  return { info: { page_size: 10, page_index: 1, total, page_start: 1, page_end: results.length, pages_total: Math.ceil(total / 10) }, results };
+}
+
+describe("HistoryTable (spec 047, US5)", () => {
+  it("cuenta cada cambio en palabras, con quién lo hizo y el detalle", async () => {
+    service.events.mockResolvedValue(
+      page([
+        event({ id: 3, action: "template_changed", data: { from: { name: "stock_bajo" }, to: { name: "mi_aviso" } } }),
+        event({ id: 2, action: "test_sent", target: "ticket", data: { to: "••••5678" } }),
+        event({ id: 1, action: "auto_off", user: null, result: "failed", meta_code: "132001", data: { reason: "template_missing" } }),
+      ]),
+    );
+    renderWithProviders(<HistoryTable />);
+
+    expect(await screen.findByText("Cambió la plantilla de Aviso de stock bajo")).toBeInTheDocument();
+    expect(screen.getByText("stock_bajo → mi_aviso")).toBeInTheDocument();
+    expect(screen.getByText("Mandó una prueba de Ticket")).toBeInTheDocument();
+    expect(screen.getByText("A ••••5678")).toBeInTheDocument();
+    expect(screen.getByText("Se apagó solo Aviso de stock bajo")).toBeInTheDocument();
+    expect(screen.getByText("Draxuvo (automático)")).toBeInTheDocument();
+    expect(screen.getByText(/código de Meta 132001/)).toBeInTheDocument();
+    expect(screen.getAllByText("Super Admin")).toHaveLength(2);
+  });
+
+  it("los eventos de la conexión nombran «la conexión»", async () => {
+    service.events.mockResolvedValue(page([event({ action: "verified", target: "connection" })]));
+    renderWithProviders(<HistoryTable />);
+
+    expect(await screen.findByText("Verificó la conexión")).toBeInTheDocument();
+  });
+
+  it("sin cambios muestra el vacío", async () => {
+    service.events.mockResolvedValue(page([]));
+    renderWithProviders(<HistoryTable />);
+
+    expect(await screen.findByText("Aún no hay cambios registrados.")).toBeInTheDocument();
+  });
+
+  it("ante un error ofrece reintentar", async () => {
+    const user = userEvent.setup();
+    service.events.mockRejectedValueOnce(new Error("boom")).mockResolvedValue(page([event()]));
+    renderWithProviders(<HistoryTable />);
+
+    expect(await screen.findByText("No se pudo cargar el historial.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Reintentar" }));
+
+    expect(await screen.findByText("Apagó Aviso de stock bajo")).toBeInTheDocument();
+  });
+
+  it("pagina de 10 en 10", async () => {
+    const user = userEvent.setup();
+    service.events.mockResolvedValue(page([event()], 25));
+    renderWithProviders(<HistoryTable />);
+
+    expect(await screen.findByText("Página 1 de 3")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Anterior" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Siguiente" }));
+
+    await waitFor(() => expect(service.events).toHaveBeenCalledWith({ page: 2, page_size: 10 }));
+  });
+});
+
+describe("conflicto de edición 409 (spec 047, US5)", () => {
+  it("avisa que alguien cambió esto, muestra el valor vigente y deja volver a intentar con el nuevo lock_version", async () => {
+    const user = userEvent.setup();
+    const current = stateWith(messageType({ template_name: "plantilla_de_otra_persona", lock_version: 7 }));
+    service.updateMessageType
+      .mockRejectedValueOnce(apiFailure(409, { code: "stale_object", current }))
+      .mockResolvedValue(current);
+    const { queryClient } = renderWithProviders(<MessageTypeRow type={messageType()} connected />);
+
+    const field = screen.getByLabelText("Nombre de la plantilla");
+    await user.clear(field);
+    await user.type(field, "mi_aviso");
+    await user.click(screen.getByRole("button", { name: "Guardar plantilla" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/Alguien cambió esto hace un momento/);
+    // El estado vigente queda en caché para que la pantalla lo muestre antes de pisarlo.
+    expect(queryClient.getQueryData(["whatsapp"])).toEqual(current);
+    expect(service.updateMessageType).toHaveBeenCalledTimes(1);
   });
 });
