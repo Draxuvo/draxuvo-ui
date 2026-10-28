@@ -2026,7 +2026,36 @@
       "configure": "Configurar mesas"
     },
     "takeOrder": "Tomar pedido",
-    "takeOrderHint": "Plano de mesas, orden y menú en una sola pantalla."
+    "takeOrderHint": "Plano de mesas, orden y menú en una sola pantalla.",
+    "sounds": {
+      "title": "Sonidos de alerta",
+      "open": "Sonidos",
+      "new_kitchen": "Comanda nueva en cocina",
+      "new_bar": "Comanda nueva en barra",
+      "new_other": "Comanda nueva en otra estación",
+      "urgent": "Comanda atrasada",
+      "ready": "Comanda lista",
+      "choose": "Sonido de {alert}",
+      "preview": "Probar",
+      "previewLabel": "Probar {sound}",
+      "reset": "Restablecer",
+      "resetAll": "Restablecer todo",
+      "duplicate": "Suena igual que otra alerta",
+      "playError": "No se pudo reproducir el sonido",
+      "hint": "Se guarda en este dispositivo.",
+      "cocina": "Cocina",
+      "barra": "Barra",
+      "otra": "Otra estación",
+      "urgente": "Urgente",
+      "listo": "Listo",
+      "clasico": "Clásico",
+      "campana": "Campana",
+      "marimba": "Marimba",
+      "gota": "Gota",
+      "timbre": "Timbre",
+      "pulso": "Pulso",
+      "arpegio": "Arpegio"
+    }
   },
   "terminals": {
     "title": "Terminales de cobro",
