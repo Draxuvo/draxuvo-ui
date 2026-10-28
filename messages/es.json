@@ -98,7 +98,8 @@
     "myCompanies": "Mis empresas",
     "restaurant": "Restaurante",
     "terminals": "Terminales",
-    "demos": "Demos"
+    "demos": "Demos",
+    "alerts": "Alertas"
   },
   "home": {
     "welcome": "Bienvenido, {name}",
@@ -2614,6 +2615,103 @@
         "noContact": "—"
       },
       "refresh": "Actualizar"
+    }
+  },
+  "alerts": {
+    "title": "Alertas",
+    "subtitle": "Pedidos, mesas y stock que piden tu atención.",
+    "tabs": {
+      "active": "Activas",
+      "settings": "Configuración"
+    },
+    "bell": {
+      "label": "Alertas",
+      "labelCount": "Alertas, {count} activas"
+    },
+    "kinds": {
+      "kitchen_wait": "Comanda sin atender",
+      "kitchen_preparing": "Comanda tardando",
+      "work_order_stalled": "Orden estancada",
+      "table_open": "Mesa abierta mucho tiempo",
+      "low_stock": "Stock bajo"
+    },
+    "severity": {
+      "warning": "Atención",
+      "critical": "Urgente"
+    },
+    "elapsed": "Lleva {time} (límite {limit})",
+    "owner": {
+      "waiter": "Mesero: {name}",
+      "station": "Estación: {name}",
+      "employee": "Responsable: {name}"
+    },
+    "total": "Total {amount}",
+    "stock": "Existencia {stock} · Mínimo {min}",
+    "open": "Abrir",
+    "time": {
+      "minutes": "{count} min",
+      "hours": "{count} h",
+      "hoursMinutes": "{hours} h {minutes} min",
+      "days": "{count} d",
+      "daysHours": "{days} d {hours} h"
+    },
+    "snooze": {
+      "action": "Posponer",
+      "m30": "30 minutos",
+      "m60": "1 hora",
+      "m120": "2 horas",
+      "until": "Pospuesta hasta las {time}",
+      "by": "por {name}",
+      "undo": "Quitar posposición",
+      "done": "Alerta pospuesta",
+      "undone": "La alerta vuelve a contar"
+    },
+    "snoozedTitle": "Pospuestas ({count})",
+    "countActive": "{count, plural, one {# alerta activa} other {# alertas activas}}",
+    "empty": {
+      "title": "Todo en orden",
+      "body": "No hay pedidos, mesas ni stock que atender ahora."
+    },
+    "error": {
+      "title": "No pudimos cargar las alertas",
+      "retry": "Reintentar"
+    },
+    "more": "Ver más",
+    "capped": "Mostrando las {shown} más urgentes de {total}.",
+    "settings": {
+      "title": "Tiempos de las alertas",
+      "intro": "Cuándo una comanda, una mesa o una orden empieza a contar como demasiado tiempo. Los cambios aplican de inmediato.",
+      "minutes": "minutos",
+      "sections": {
+        "kitchen_wait": "Comanda sin atender",
+        "kitchen_preparing": "Comanda en preparación",
+        "table_open": "Mesa abierta",
+        "work_order_stalled": "Orden de trabajo estancada",
+        "summary": "Resumen diario de stock bajo"
+      },
+      "stations": {
+        "kitchen": "Cocina",
+        "bar": "Barra",
+        "other": "Otra"
+      },
+      "default": "Por omisión: {value} min",
+      "summaryHour": "Hora del resumen",
+      "timeZone": "Zona horaria",
+      "summaryHint": "A esta hora se manda un resumen con los productos que siguen en o bajo su mínimo. Si no hay ninguno, no se manda nada.",
+      "save": "Guardar cambios",
+      "saved": "Configuración guardada",
+      "range": "Escribe un número entero entre 1 y 10,080",
+      "loadError": "No pudimos cargar la configuración"
+    },
+    "mine": {
+      "title": "Mis avisos de stock bajo",
+      "intro": "Por dónde quieres que te avisemos cuando un producto llegue a su mínimo, además de verlo en el panel.",
+      "email": "Correo",
+      "whatsapp": "WhatsApp",
+      "phoneMissing": "Guarda tu teléfono en tu perfil para activar el WhatsApp.",
+      "goProfile": "Ir a mi perfil",
+      "notAvailable": "El envío por WhatsApp aún no está disponible en el servidor. Mientras tanto te llega por correo y lo ves en el panel.",
+      "saved": "Preferencia guardada"
     }
   }
 }

@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
+  Bell,
   Users,
   Package,
   ClipboardList,
@@ -34,6 +35,8 @@ const RESTAURANT_ROLES = new Set(["admin", "owner"]);
 const SUBSCRIPTION_ROLES = new Set(["admin", "owner"]);
 const TEAM_ROLES = new Set(["admin", "owner"]);
 const PEOPLE_ROLES = new Set(["admin", "owner"]);
+// Alertas operativas (spec 045): solo dueño y administrador.
+const ALERTS_ROLES = new Set(["admin", "owner"]);
 
 export interface NavItem {
   href: string;
@@ -113,6 +116,7 @@ export function Sidebar() {
   const showSubscription = !!role && SUBSCRIPTION_ROLES.has(role);
   const showTeam = !!role && TEAM_ROLES.has(role);
   const showPeople = !!role && PEOPLE_ROLES.has(role);
+  const showAlerts = !!role && ALERTS_ROLES.has(role);
 
   const { data: subscription } = useQuery({
     queryKey: ["subscription", selectedCompanyId],
@@ -163,6 +167,8 @@ export function Sidebar() {
     ...(showTeam && hasModule("terminals")
       ? [{ href: `/${locale}/terminales`, label: t("terminals"), icon: Landmark }]
       : []),
+    // Alertas operativas (spec 045): comandas, órdenes, mesas y stock que piden atención.
+    ...(showAlerts ? [{ href: `/${locale}/alertas`, label: t("alerts"), icon: Bell }] : []),
     ...(showMyCompanies
       ? [{ href: `/${locale}/mis-empresas`, label: t("myCompanies"), icon: Building2 }]
       : []),

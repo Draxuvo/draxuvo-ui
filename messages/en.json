@@ -98,7 +98,8 @@
     "myCompanies": "My companies",
     "restaurant": "Restaurant",
     "terminals": "Terminals",
-    "demos": "Demos"
+    "demos": "Demos",
+    "alerts": "Alerts"
   },
   "home": {
     "welcome": "Welcome, {name}",
@@ -2614,6 +2615,103 @@
         "noContact": "—"
       },
       "refresh": "Refresh"
+    }
+  },
+  "alerts": {
+    "title": "Alerts",
+    "subtitle": "Orders, tables and stock that need your attention.",
+    "tabs": {
+      "active": "Active",
+      "settings": "Settings"
+    },
+    "bell": {
+      "label": "Alerts",
+      "labelCount": "Alerts, {count} active"
+    },
+    "kinds": {
+      "kitchen_wait": "Order not started",
+      "kitchen_preparing": "Order taking long",
+      "work_order_stalled": "Stalled work order",
+      "table_open": "Table open for too long",
+      "low_stock": "Low stock"
+    },
+    "severity": {
+      "warning": "Attention",
+      "critical": "Urgent"
+    },
+    "elapsed": "For {time} (limit {limit})",
+    "owner": {
+      "waiter": "Waiter: {name}",
+      "station": "Station: {name}",
+      "employee": "Assigned to: {name}"
+    },
+    "total": "Total {amount}",
+    "stock": "On hand {stock} · Minimum {min}",
+    "open": "Open",
+    "time": {
+      "minutes": "{count} min",
+      "hours": "{count} h",
+      "hoursMinutes": "{hours} h {minutes} min",
+      "days": "{count} d",
+      "daysHours": "{days} d {hours} h"
+    },
+    "snooze": {
+      "action": "Snooze",
+      "m30": "30 minutes",
+      "m60": "1 hour",
+      "m120": "2 hours",
+      "until": "Snoozed until {time}",
+      "by": "by {name}",
+      "undo": "Remove snooze",
+      "done": "Alert snoozed",
+      "undone": "The alert counts again"
+    },
+    "snoozedTitle": "Snoozed ({count})",
+    "countActive": "{count, plural, one {# active alert} other {# active alerts}}",
+    "empty": {
+      "title": "All good",
+      "body": "No orders, tables or stock need attention right now."
+    },
+    "error": {
+      "title": "We couldn't load the alerts",
+      "retry": "Retry"
+    },
+    "more": "Show more",
+    "capped": "Showing the {shown} most urgent of {total}.",
+    "settings": {
+      "title": "Alert times",
+      "intro": "When an order, a table or a work order starts counting as taking too long. Changes apply right away.",
+      "minutes": "minutes",
+      "sections": {
+        "kitchen_wait": "Order not started",
+        "kitchen_preparing": "Order being prepared",
+        "table_open": "Table open",
+        "work_order_stalled": "Stalled work order",
+        "summary": "Daily low stock summary"
+      },
+      "stations": {
+        "kitchen": "Kitchen",
+        "bar": "Bar",
+        "other": "Other"
+      },
+      "default": "Default: {value} min",
+      "summaryHour": "Summary time",
+      "timeZone": "Time zone",
+      "summaryHint": "At this time we send a summary of the products still at or below their minimum. If there are none, nothing is sent.",
+      "save": "Save changes",
+      "saved": "Settings saved",
+      "range": "Enter a whole number between 1 and 10,080",
+      "loadError": "We couldn't load the settings"
+    },
+    "mine": {
+      "title": "My low stock notices",
+      "intro": "How you want to be told when a product reaches its minimum, besides seeing it in the panel.",
+      "email": "Email",
+      "whatsapp": "WhatsApp",
+      "phoneMissing": "Save your phone in your profile to turn on WhatsApp.",
+      "goProfile": "Go to my profile",
+      "notAvailable": "WhatsApp delivery is not available on the server yet. Meanwhile you get it by email and see it in the panel.",
+      "saved": "Preference saved"
     }
   }
 }
