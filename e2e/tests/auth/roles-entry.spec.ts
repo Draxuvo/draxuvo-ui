@@ -51,6 +51,8 @@ test.describe("super admin", () => {
       t("nav.users"),
       t("nav.subscriptions"),
       t("nav.reports"),
+      t("nav.demos"),
+      t("nav.whatsapp"),
     ]);
     await expect(page.getByRole("button", { name: /Cambiar de empresa/ })).toHaveCount(0);
 
