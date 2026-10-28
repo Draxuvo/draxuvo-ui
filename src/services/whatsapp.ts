@@ -16,6 +16,7 @@ export interface ConnectionPayload {
 export interface MessageTypePayload {
   template_name?: string;
   template_language?: string;
+  enabled?: boolean;
   lock_version?: number;
 }
 
@@ -32,6 +33,9 @@ export const whatsappService = {
 
   verifyConnection: (): Promise<WhatsappState> =>
     apiClient.post(`${base}/connection/verify`, {}, { skipErrorToast: true }).then((r) => r.data),
+
+  setChannel: (payload: { enabled: boolean; lock_version?: number }): Promise<WhatsappState> =>
+    apiClient.patch(`${base}/channel`, payload, { skipErrorToast: true }).then((r) => r.data),
 
   updateMessageType: (kind: WhatsappKind, payload: MessageTypePayload): Promise<WhatsappState> =>
     apiClient.patch(`${base}/message_types/${kind}`, payload, { skipErrorToast: true }).then((r) => r.data),

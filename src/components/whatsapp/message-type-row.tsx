@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useUpdateMessageType, useVerifyMessageType } from "@/hooks/use-whatsapp";
 import type { WhatsappMessageType, WhatsappTemplateStatus } from "@/types";
 import { useErrorText } from "./connection-dialogs";
@@ -24,7 +25,16 @@ const STATUS_VARIANT: Record<WhatsappTemplateStatus, "secondary" | "default" | "
   incompatible: "destructive",
 };
 
-export function MessageTypeRow({ type, connected }: { type: WhatsappMessageType; connected: boolean }) {
+const PROBLEM_STATUSES: WhatsappTemplateStatus[] = ["rejected", "not_found", "incompatible"];
+
+interface MessageTypeRowProps {
+  type: WhatsappMessageType;
+  connected: boolean;
+  /** Con solo variables de entorno no hay interruptores: el panel aún no manda. */
+  controllable?: boolean;
+}
+
+export function MessageTypeRow({ type, connected, controllable = true }: MessageTypeRowProps) {
   const t = useTranslations("whatsapp");
   const locale = useLocale();
   const errorText = useErrorText();
@@ -59,6 +69,17 @@ export function MessageTypeRow({ type, connected }: { type: WhatsappMessageType;
     );
   }
 
+  function toggle(next: boolean) {
+    setError(null);
+    update.mutate(
+      { enabled: next, lock_version: type.lock_version },
+      {
+        onSuccess: () => toast.success(next ? t("types.turnedOn") : t("types.turnedOff")),
+        onError: (err) => setError(errorText(err)),
+      },
+    );
+  }
+
   function verifyNow() {
     setError(null);
     verify.mutate(undefined, {
@@ -78,10 +99,33 @@ export function MessageTypeRow({ type, connected }: { type: WhatsappMessageType;
           <h3 className="font-display text-lg font-semibold">{t(`types.${type.kind}.label`)}</h3>
           <p className="text-sm text-muted-foreground">{t(`types.${type.kind}.description`)}</p>
         </div>
-        {type.uses_template && (
-          <Badge variant={STATUS_VARIANT[status]}>{t(`template.status.${status}`)}</Badge>
-        )}
+        <div className="flex shrink-0 items-center gap-3">
+          {type.uses_template && <Badge variant={STATUS_VARIANT[status]}>{t(`template.status.${status}`)}</Badge>}
+          {controllable && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-foreground" aria-hidden>
+                {type.enabled ? t("types.on") : t("types.off")}
+              </span>
+              <Switch
+                checked={type.enabled}
+                // Apagar nunca se bloquea; encender exige conexión y, con plantilla, que esté aprobada.
+                disabled={(!type.enabled && !type.can_enable) || update.isPending}
+                aria-label={t("types.switchLabel", { type: t(`types.${type.kind}.label`) })}
+                onCheckedChange={toggle}
+              />
+            </div>
+          )}
+        </div>
       </div>
+
+      {controllable && !type.enabled && type.blocked_reason && (
+        <p className="text-sm text-muted-foreground">{t(`types.blocked.${type.blocked_reason}`)}</p>
+      )}
+      {controllable && !type.enabled && type.template_status && PROBLEM_STATUSES.includes(type.template_status) && checkedAt && (
+        <p role="status" className="rounded-etiqueta border border-border bg-muted p-3 text-sm text-muted-foreground">
+          {t("types.autoOff", { date: checkedAt })}
+        </p>
+      )}
 
       {type.uses_template ? (
         <>

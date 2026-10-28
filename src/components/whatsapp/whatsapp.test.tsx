@@ -4,6 +4,7 @@ import { AxiosError, type AxiosResponse } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
 import type { WhatsappConnection, WhatsappGuideItem, WhatsappMessageType, WhatsappState } from "@/types";
+import { ChannelSwitch } from "./channel-switch";
 import { ConnectionCard } from "./connection-card";
 import { MessageTypeRow } from "./message-type-row";
 import { TemplateGuideDialog } from "./template-guide-dialog";
@@ -16,6 +17,7 @@ const service = vi.hoisted(() => ({
   disconnect: vi.fn(),
   updateMessageType: vi.fn(),
   verifyMessageType: vi.fn(),
+  setChannel: vi.fn(),
 }));
 
 vi.mock("@/services/whatsapp", () => ({ whatsappService: service }));
@@ -344,5 +346,109 @@ describe("TemplateGuideDialog (spec 047, US2)", () => {
     await user.click(screen.getByRole("button", { name: "Copiar Texto del cuerpo" }));
 
     await waitFor(() => expect(writeText).toHaveBeenCalledWith("Stock bajo en {{1}}: {{2}} producto(s) ({{3}})."));
+  });
+});
+
+describe("ChannelSwitch (spec 047, US3)", () => {
+  it("sin conexión el interruptor general está bloqueado y dice por qué", () => {
+    renderWithProviders(<ChannelSwitch state={state()} />);
+
+    expect(screen.getByRole("switch", { name: "Enviar mensajes por WhatsApp" })).toBeDisabled();
+    expect(screen.getByText(/primero conecta la cuenta/)).toBeInTheDocument();
+  });
+
+  it("con la conexión en error no se puede encender y se explica", () => {
+    renderWithProviders(<ChannelSwitch state={connected({ status: "error" })} />);
+
+    expect(screen.getByRole("switch", { name: "Enviar mensajes por WhatsApp" })).toBeDisabled();
+    expect(screen.getByText(/corrige el error de la conexión/)).toBeInTheDocument();
+  });
+
+  it("encendido con la conexión en error avisa que no está disponible y no bloquea apagarlo", () => {
+    renderWithProviders(<ChannelSwitch state={connected({ status: "error", enabled: true })} />);
+
+    expect(screen.getByRole("switch", { name: "Enviar mensajes por WhatsApp" })).toBeEnabled();
+    expect(screen.getByRole("status")).toHaveTextContent(/no está disponible mientras la conexión tenga un error/);
+  });
+
+  it("apagado con conexión válida dice «no disponible» y deja encender", async () => {
+    const user = userEvent.setup();
+    service.setChannel.mockResolvedValue(connected({ enabled: true }));
+    renderWithProviders(<ChannelSwitch state={connected()} />);
+
+    expect(screen.getByText(/No disponible: el interruptor general está apagado/)).toBeInTheDocument();
+    await user.click(screen.getByRole("switch", { name: "Enviar mensajes por WhatsApp" }));
+
+    await waitFor(() => expect(service.setChannel).toHaveBeenCalledWith({ enabled: true, lock_version: 3 }));
+  });
+
+  it("apagar el general manda enabled: false", async () => {
+    const user = userEvent.setup();
+    service.setChannel.mockResolvedValue(connected());
+    renderWithProviders(<ChannelSwitch state={connected({ enabled: true })} />);
+
+    await user.click(screen.getByRole("switch", { name: "Enviar mensajes por WhatsApp" }));
+
+    await waitFor(() => expect(service.setChannel).toHaveBeenCalledWith({ enabled: false, lock_version: 3 }));
+  });
+});
+
+describe("MessageTypeRow switches (spec 047, US3)", () => {
+  const switchName = "Enviar Aviso de stock bajo";
+
+  it("un tipo sin plantilla aprobada no se puede encender y muestra el motivo", () => {
+    renderWithProviders(
+      <MessageTypeRow
+        type={messageType({ template_status: "pending", can_enable: false, blocked_reason: "template_not_approved" })}
+        connected
+      />,
+    );
+
+    expect(screen.getByRole("switch", { name: switchName })).toBeDisabled();
+    expect(screen.getByText("La plantilla aún no está aprobada en Meta.")).toBeInTheDocument();
+  });
+
+  it("sin conexión el motivo es que falta conectar", () => {
+    renderWithProviders(
+      <MessageTypeRow type={messageType({ can_enable: false, blocked_reason: "not_connected" })} connected={false} />,
+    );
+
+    expect(screen.getByText("Falta conectar la cuenta de WhatsApp.")).toBeInTheDocument();
+  });
+
+  it("apagar un tipo llama al servicio solo para ese tipo, con su lock_version", async () => {
+    const user = userEvent.setup();
+    service.updateMessageType.mockResolvedValue(stateWith(messageType({ enabled: false })));
+    renderWithProviders(<MessageTypeRow type={messageType({ enabled: true })} connected />);
+
+    await user.click(screen.getByRole("switch", { name: switchName }));
+
+    await waitFor(() => expect(service.updateMessageType).toHaveBeenCalledWith("stock_alert", { enabled: false, lock_version: 2 }));
+    expect(service.setChannel).not.toHaveBeenCalled();
+  });
+
+  it("un tipo encendido siempre se puede apagar, aunque ya no se pueda encender", () => {
+    renderWithProviders(
+      <MessageTypeRow type={messageType({ enabled: true, can_enable: false, blocked_reason: "connection_error" })} connected />,
+    );
+
+    expect(screen.getByRole("switch", { name: switchName })).toBeEnabled();
+  });
+
+  it("avisa cuando un tipo se apagó solo porque su plantilla dejó de servir", () => {
+    renderWithProviders(
+      <MessageTypeRow
+        type={messageType({ template_status: "rejected", template_detail: "PAUSED", can_enable: false, blocked_reason: "template_not_approved" })}
+        connected
+      />,
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent(/Se apagó porque su plantilla dejó de servir/);
+  });
+
+  it("con solo variables de entorno no hay interruptores", () => {
+    renderWithProviders(<MessageTypeRow type={messageType()} connected={false} controllable={false} />);
+
+    expect(screen.queryByRole("switch")).not.toBeInTheDocument();
   });
 });

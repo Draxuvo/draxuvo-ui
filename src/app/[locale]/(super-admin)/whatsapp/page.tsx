@@ -4,6 +4,7 @@
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ChannelSwitch } from "@/components/whatsapp/channel-switch";
 import { ConnectionCard } from "@/components/whatsapp/connection-card";
 import { MessageTypesSection } from "@/components/whatsapp/message-types-section";
 import { useWhatsappState } from "@/hooks/use-whatsapp";
@@ -22,6 +23,7 @@ export default function WhatsappPage() {
       {isLoading && <Skeleton className="h-64 w-full" aria-busy="true" />}
 
       {data && <ConnectionCard state={data} />}
+      {data && data.source !== "env" && <ChannelSwitch state={data} />}
       {data && <MessageTypesSection state={data} />}
 
       {!isLoading && (isError || !data) && (

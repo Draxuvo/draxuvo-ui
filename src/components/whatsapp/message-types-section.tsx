@@ -27,7 +27,7 @@ export function MessageTypesSection({ state }: { state: WhatsappState }) {
       </div>
       <ul className="space-y-3">
         {state.message_types.map((type) => (
-          <MessageTypeRow key={type.kind} type={type} connected={connected} />
+          <MessageTypeRow key={type.kind} type={type} connected={connected} controllable={state.source !== "env"} />
         ))}
       </ul>
       {guideOpen && <TemplateGuideDialog open onOpenChange={(open) => !open && setGuideOpen(false)} />}

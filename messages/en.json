@@ -128,9 +128,34 @@
       "rate_limited": "Meta limited requests for a moment; try again later.",
       "unknown": "Meta rejected the request."
     },
+    "channel": {
+      "title": "Send messages over WhatsApp",
+      "description": "General switch for the whole platform. Turning it off stops every message and keeps what was chosen for each type.",
+      "on": "On",
+      "off": "Off",
+      "turnedOn": "WhatsApp turned on",
+      "turnedOff": "WhatsApp turned off",
+      "blockedNotConnected": "To turn it on, connect the WhatsApp account first.",
+      "blockedError": "To turn it on, fix the connection error and verify it first.",
+      "unavailableConnection": "The channel is on, but unavailable while the connection has an error. It resumes by itself once it recovers.",
+      "unavailableOff": "Unavailable: the general switch is off. Email and panel alerts keep working.",
+      "sending": "Every message type that is turned on goes out over WhatsApp."
+    },
     "types": {
       "title": "Messages",
       "subtitle": "Which messages Draxuvo sends over WhatsApp and which Meta template each one uses.",
+      "on": "On",
+      "off": "Off",
+      "switchLabel": "Send {type}",
+      "turnedOn": "Message type turned on",
+      "turnedOff": "Message type turned off",
+      "autoOff": "It turned itself off because its template stopped working (last verified: {date}). Once it's approved again, turn it on by hand.",
+      "blocked": {
+        "not_connected": "Connect the WhatsApp account first.",
+        "connection_error": "The connection has an error; verify it first.",
+        "template_not_approved": "The template isn't approved in Meta yet.",
+        "template_incompatible": "The template has a different number of variables than Draxuvo expects."
+      },
       "verification_code": {
         "label": "Verification code",
         "description": "The code sent to confirm a person's phone."

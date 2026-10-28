@@ -128,9 +128,34 @@
       "rate_limited": "Meta limitó las peticiones por un momento; inténtalo más tarde.",
       "unknown": "Meta rechazó la petición."
     },
+    "channel": {
+      "title": "Enviar mensajes por WhatsApp",
+      "description": "Interruptor general de toda la plataforma. Apagarlo detiene todos los mensajes y conserva lo elegido en cada tipo.",
+      "on": "Encendido",
+      "off": "Apagado",
+      "turnedOn": "WhatsApp encendido",
+      "turnedOff": "WhatsApp apagado",
+      "blockedNotConnected": "Para encenderlo, primero conecta la cuenta de WhatsApp.",
+      "blockedError": "Para encenderlo, primero corrige el error de la conexión y verifícala.",
+      "unavailableConnection": "El canal está encendido, pero no está disponible mientras la conexión tenga un error. Se reanuda solo al recuperarse.",
+      "unavailableOff": "No disponible: el interruptor general está apagado. El correo y las alertas del panel siguen funcionando.",
+      "sending": "Los tipos de mensaje que estén encendidos se mandan por WhatsApp."
+    },
     "types": {
       "title": "Mensajes",
       "subtitle": "Qué mensajes manda Draxuvo por WhatsApp y qué plantilla de Meta usa cada uno.",
+      "on": "Encendido",
+      "off": "Apagado",
+      "switchLabel": "Enviar {type}",
+      "turnedOn": "Tipo de mensaje encendido",
+      "turnedOff": "Tipo de mensaje apagado",
+      "autoOff": "Se apagó porque su plantilla dejó de servir (última verificación: {date}). Cuando vuelva a estar aprobada, enciéndelo de nuevo a mano.",
+      "blocked": {
+        "not_connected": "Falta conectar la cuenta de WhatsApp.",
+        "connection_error": "La conexión tiene un error; verifícala primero.",
+        "template_not_approved": "La plantilla aún no está aprobada en Meta.",
+        "template_incompatible": "La plantilla tiene otro número de variables del que espera Draxuvo."
+      },
       "verification_code": {
         "label": "Código de verificación",
         "description": "El código que se manda para confirmar el teléfono de una persona."

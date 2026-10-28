@@ -38,6 +38,10 @@ export function useGuide() {
   return useQuery({ queryKey: [...WHATSAPP_KEY, "guide"], queryFn: whatsappService.guide, staleTime: Infinity });
 }
 
+export function useSetChannel() {
+  return useStateMutation((payload: { enabled: boolean; lock_version?: number }) => whatsappService.setChannel(payload));
+}
+
 export function useUpdateMessageType(kind: WhatsappKind) {
   return useStateMutation((payload: MessageTypePayload) => whatsappService.updateMessageType(kind, payload));
 }
