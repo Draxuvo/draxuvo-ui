@@ -1,54 +1,58 @@
 "use client";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSoundChoices } from "@/hooks/use-sound-choices";
 import { useSoundPreference } from "@/hooks/use-sound-preference";
+import { ALERT_KINDS, type AlertKind } from "@/lib/sounds/catalog";
+import { pickAlert, resolve } from "@/lib/sounds/choices";
+import { ensureContext, hasContext, play, preload } from "@/lib/sounds/engine";
 import type { StationKind } from "@/types";
+import { SoundSettings } from "./sound-settings";
 
-type AudioWindow = Window & { webkitAudioContext?: typeof AudioContext };
-
-const NEW_TONES: Record<StationKind, number[]> = {
-  kitchen: [660, 880],
-  bar: [523, 784],
-  other: [392, 523],
+const NEW_ALERT: Record<StationKind, AlertKind> = {
+  kitchen: "new_kitchen",
+  bar: "new_bar",
+  other: "new_other",
 };
-const URGENT_TONES = [196, 262];
-const READY_TONES = [880, 660];
 
-function scheduleTone(audio: AudioContext, frequencies: number[], volume: number): void {
-  const now = audio.currentTime;
-  frequencies.forEach((frequency, i) => {
-    const oscillator = audio.createOscillator();
-    const gain = audio.createGain();
-    oscillator.frequency.value = frequency;
-    gain.gain.setValueAtTime(0.0001, now + i * 0.18);
-    gain.gain.exponentialRampToValueAtTime(0.35 * volume, now + i * 0.18 + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.18 + 0.16);
-    oscillator.connect(gain).connect(audio.destination);
-    oscillator.start(now + i * 0.18);
-    oscillator.stop(now + i * 0.18 + 0.18);
-  });
-}
-
-/** Los navegadores solo dejan sonar tras un gesto: el contexto de audio se crea al activar el botón. */
+/**
+ * Los navegadores solo dejan sonar tras un gesto: el contexto de audio se crea al activar el botón.
+ * El sonido de cada alerta sale de las elecciones del dispositivo (spec 046); las alertas que coinciden
+ * en el mismo ciclo suenan una sola vez, la de mayor prioridad.
+ */
 export function useSound(surfaceKey: string, kind: StationKind = "kitchen") {
-  const context = useRef<AudioContext | null>(null);
   const { enabled, volume, setEnabled, setVolume } = useSoundPreference(surfaceKey);
+  const { choices } = useSoundChoices();
+  const latest = useRef({ enabled, volume, choices });
+  // Los avisos se vacían en una microtarea: leen lo último que se pintó, sin depender de qué efecto corrió antes.
+  useEffect(() => {
+    latest.current = { enabled, volume, choices };
+  }, [enabled, volume, choices]);
+  const queue = useRef<AlertKind[]>([]);
+  const newAlert = NEW_ALERT[kind] ?? "new_other";
 
-  const ensureContext = useCallback(() => {
-    const Ctor = window.AudioContext ?? (window as AudioWindow).webkitAudioContext;
-    if (!Ctor) return null;
-    context.current ??= new Ctor();
-    void context.current.resume();
-    return context.current;
+  useEffect(() => {
+    if (enabled && hasContext()) preload(ALERT_KINDS.map((alert) => resolve(alert, choices)).filter((id) => id !== undefined));
+  }, [enabled, choices]);
+
+  const flush = useCallback(() => {
+    const picked = pickAlert(queue.current);
+    queue.current = [];
+    const { enabled: on, volume: level, choices: chosen } = latest.current;
+    if (!picked || !on || !hasContext()) return;
+    const id = resolve(picked, chosen);
+    if (id) void play(id, level, picked);
   }, []);
 
-  const play = useCallback((frequencies: number[], level: number) => {
-    const audio = context.current;
-    if (!audio) return;
-    scheduleTone(audio, frequencies, level);
-  }, []);
+  const queueAlert = useCallback(
+    (alert: AlertKind) => {
+      queue.current.push(alert);
+      if (queue.current.length === 1) queueMicrotask(flush);
+    },
+    [flush],
+  );
 
   const toggle = useCallback(() => {
     if (enabled) {
@@ -57,30 +61,15 @@ export function useSound(surfaceKey: string, kind: StationKind = "kitchen") {
     }
     if (!ensureContext()) return;
     setEnabled(true);
-    play(NEW_TONES[kind], volume);
-  }, [enabled, setEnabled, volume, kind, ensureContext, play]);
+    const id = resolve(newAlert, choices);
+    if (id) void play(id, volume, newAlert);
+  }, [enabled, setEnabled, volume, choices, newAlert]);
 
-  const playNew = useCallback(() => {
-    if (enabled && context.current) play(NEW_TONES[kind], volume);
-  }, [enabled, volume, kind, play]);
+  const playNew = useCallback(() => queueAlert(newAlert), [queueAlert, newAlert]);
+  const playUrgent = useCallback(() => queueAlert("urgent"), [queueAlert]);
+  const playReady = useCallback(() => queueAlert("ready"), [queueAlert]);
 
-  const playUrgent = useCallback(() => {
-    if (enabled && context.current) play(URGENT_TONES, volume);
-  }, [enabled, volume, play]);
-
-  const playReady = useCallback(() => {
-    if (enabled && context.current) play(READY_TONES, volume);
-  }, [enabled, volume, play]);
-
-  return {
-    enabled,
-    volume,
-    setVolume,
-    toggle,
-    playNew,
-    playUrgent,
-    playReady,
-  };
+  return { enabled, volume, setVolume, toggle, queueAlert, playNew, playUrgent, playReady };
 }
 
 export function SoundToggle({
@@ -124,6 +113,7 @@ export function SoundToggle({
           />
         </label>
       )}
+      <SoundSettings volume={volume} />
     </div>
   );
 }

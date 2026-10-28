@@ -2027,7 +2027,36 @@
       "configure": "Set up tables"
     },
     "takeOrder": "Take order",
-    "takeOrderHint": "Table plan, order and menu on one screen."
+    "takeOrderHint": "Table plan, order and menu on one screen.",
+    "sounds": {
+      "title": "Alert sounds",
+      "open": "Sounds",
+      "new_kitchen": "New order in kitchen",
+      "new_bar": "New order at bar",
+      "new_other": "New order at other station",
+      "urgent": "Overdue order",
+      "ready": "Order ready",
+      "choose": "Sound for {alert}",
+      "preview": "Preview",
+      "previewLabel": "Preview {sound}",
+      "reset": "Reset",
+      "resetAll": "Reset all",
+      "duplicate": "Sounds the same as another alert",
+      "playError": "Could not play the sound",
+      "hint": "Saved on this device.",
+      "cocina": "Kitchen",
+      "barra": "Bar",
+      "otra": "Other station",
+      "urgente": "Urgent",
+      "listo": "Ready",
+      "clasico": "Classic",
+      "campana": "Bell",
+      "marimba": "Marimba",
+      "gota": "Drop",
+      "timbre": "Doorbell",
+      "pulso": "Pulse",
+      "arpegio": "Arpeggio"
+    }
   },
   "terminals": {
     "title": "Payment terminals",
