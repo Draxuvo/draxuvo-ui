@@ -1273,3 +1273,74 @@ export interface NotificationPreference {
   phone_present: boolean;
   whatsapp_available: boolean;
 }
+
+// Configurar WhatsApp (spec 047): claves exactas de specs/047-configurar-whatsapp/contracts/api.md.
+export type WhatsappKind = "verification_code" | "stock_alert" | "ticket";
+export type WhatsappSource = "panel" | "env" | "none";
+export type WhatsappConnectionStatus = "not_connected" | "connected" | "error";
+export type WhatsappTemplateStatus = "unknown" | "approved" | "pending" | "rejected" | "not_found" | "incompatible";
+export type WhatsappBlockedReason =
+  | "not_connected"
+  | "connection_error"
+  | "template_not_approved"
+  | "template_incompatible";
+
+export interface WhatsappConnection {
+  status: WhatsappConnectionStatus;
+  enabled: boolean;
+  managed: boolean;
+  phone_number_id: string | null;
+  waba_id: string | null;
+  display_phone_number: string | null;
+  verified_name: string | null;
+  token_present: boolean;
+  token_hint: string | null;
+  error: { code: string | null; message: string | null } | null;
+  last_verified_at: string | null;
+  lock_version: number;
+  stale?: boolean;
+}
+
+export interface WhatsappMessageType {
+  kind: WhatsappKind;
+  uses_template: boolean;
+  enabled: boolean;
+  template_name: string | null;
+  template_language: string | null;
+  template_status: WhatsappTemplateStatus | null;
+  template_detail: string | null;
+  template_checked_at: string | null;
+  expected_variables: number | null;
+  can_enable: boolean;
+  blocked_reason: WhatsappBlockedReason | null;
+  lock_version: number;
+  /** Meta no respondió al verificar: se muestra el último estado conocido. */
+  stale?: boolean;
+}
+
+export interface WhatsappState {
+  source: WhatsappSource;
+  connection: WhatsappConnection;
+  message_types: WhatsappMessageType[];
+  tests_remaining: number;
+}
+
+export interface WhatsappGuideItem {
+  kind: WhatsappKind;
+  name: string;
+  language: string;
+  category: string;
+  body: string;
+  variables: { position: number; meaning: string }[];
+}
+
+export interface WhatsappEvent {
+  id: number;
+  action: string;
+  target: "connection" | WhatsappKind;
+  result: "ok" | "failed";
+  user: { id: number; name: string } | null;
+  data: Record<string, unknown>;
+  meta_code: string | null;
+  created_at: string;
+}

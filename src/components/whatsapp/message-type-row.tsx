@@ -1,0 +1,190 @@
+// src/components/whatsapp/message-type-row.tsx
+// Un tipo de mensaje (código de verificación, stock bajo, ticket) con su plantilla y su estado en Meta (spec 047).
+"use client";
+import { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { format } from "date-fns";
+import { enUS, es } from "date-fns/locale";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { useUpdateMessageType, useVerifyMessageType } from "@/hooks/use-whatsapp";
+import type { WhatsappMessageType, WhatsappTemplateStatus } from "@/types";
+import { useErrorText } from "./connection-dialogs";
+import { TemplateGuideDialog } from "./template-guide-dialog";
+import { TestDialog } from "./test-dialog";
+
+const STATUS_VARIANT: Record<WhatsappTemplateStatus, "secondary" | "default" | "destructive" | "outline"> = {
+  unknown: "secondary",
+  approved: "default",
+  pending: "outline",
+  rejected: "destructive",
+  not_found: "destructive",
+  incompatible: "destructive",
+};
+
+const PROBLEM_STATUSES: WhatsappTemplateStatus[] = ["rejected", "not_found", "incompatible"];
+
+interface MessageTypeRowProps {
+  type: WhatsappMessageType;
+  connected: boolean;
+  /** Con solo variables de entorno no hay interruptores: el panel aún no manda. */
+  controllable?: boolean;
+  /** Mensajes de prueba que le quedan a quien administra en esta hora. */
+  testsRemaining?: number;
+}
+
+export function MessageTypeRow({ type, connected, controllable = true, testsRemaining = 5 }: MessageTypeRowProps) {
+  const t = useTranslations("whatsapp");
+  const locale = useLocale();
+  const errorText = useErrorText();
+  const update = useUpdateMessageType(type.kind);
+  const verify = useVerifyMessageType(type.kind);
+
+  const [name, setName] = useState(type.template_name ?? "");
+  const [language, setLanguage] = useState(type.template_language ?? "");
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [testOpen, setTestOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const dateLocale = locale === "es" ? es : enUS;
+  const changed = name.trim() !== (type.template_name ?? "") || language.trim() !== (type.template_language ?? "");
+  const checkedAt = type.template_checked_at ? format(new Date(type.template_checked_at), "PPp", { locale: dateLocale }) : null;
+  const status = type.template_status ?? "unknown";
+
+  function save(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim()) return setError(t("template.errorName"));
+    if (!/^[a-z]{2}(_[A-Z]{2})?$/.test(language.trim())) return setError(t("template.errorLanguage"));
+    setError(null);
+    update.mutate(
+      { template_name: name.trim(), template_language: language.trim(), lock_version: type.lock_version },
+      {
+        onSuccess: (next) => {
+          const saved = next.message_types.find((item) => item.kind === type.kind);
+          if (saved?.stale) toast.info(t("template.staleToast"));
+          else toast.success(t("template.saved"));
+        },
+        onError: (err) => setError(errorText(err)),
+      },
+    );
+  }
+
+  function toggle(next: boolean) {
+    setError(null);
+    update.mutate(
+      { enabled: next, lock_version: type.lock_version },
+      {
+        onSuccess: () => toast.success(next ? t("types.turnedOn") : t("types.turnedOff")),
+        onError: (err) => setError(errorText(err)),
+      },
+    );
+  }
+
+  function verifyNow() {
+    setError(null);
+    verify.mutate(undefined, {
+      onSuccess: (next) => {
+        const checked = next.message_types.find((item) => item.kind === type.kind);
+        if (checked?.stale) toast.info(t("template.staleToast"));
+        else toast.success(t(`template.verified.${checked?.template_status ?? "unknown"}`));
+      },
+      onError: (err) => setError(errorText(err)),
+    });
+  }
+
+  return (
+    <li className="space-y-3 rounded-etiqueta border border-border bg-card p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="font-display text-lg font-semibold">{t(`types.${type.kind}.label`)}</h3>
+          <p className="text-sm text-muted-foreground">{t(`types.${type.kind}.description`)}</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-3">
+          {type.uses_template && <Badge variant={STATUS_VARIANT[status]}>{t(`template.status.${status}`)}</Badge>}
+          {controllable && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-foreground" aria-hidden>
+                {type.enabled ? t("types.on") : t("types.off")}
+              </span>
+              <Switch
+                checked={type.enabled}
+                // Apagar nunca se bloquea; encender exige conexión y, con plantilla, que esté aprobada.
+                disabled={(!type.enabled && !type.can_enable) || update.isPending}
+                aria-label={t("types.switchLabel", { type: t(`types.${type.kind}.label`) })}
+                onCheckedChange={toggle}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {controllable && !type.enabled && type.blocked_reason && (
+        <p className="text-sm text-muted-foreground">{t(`types.blocked.${type.blocked_reason}`)}</p>
+      )}
+      {controllable && !type.enabled && type.template_status && PROBLEM_STATUSES.includes(type.template_status) && checkedAt && (
+        <p role="status" className="rounded-etiqueta border border-border bg-muted p-3 text-sm text-muted-foreground">
+          {t("types.autoOff", { date: checkedAt })}
+        </p>
+      )}
+
+      {type.uses_template ? (
+        <>
+          <form onSubmit={save} className="grid gap-3 sm:grid-cols-[1fr_9rem_auto] sm:items-end" noValidate>
+            <div className="space-y-1.5">
+              <Label htmlFor={`tpl-name-${type.kind}`}>{t("template.name")}</Label>
+              <Input id={`tpl-name-${type.kind}`} value={name} spellCheck={false} onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor={`tpl-lang-${type.kind}`}>{t("template.language")}</Label>
+              <Input id={`tpl-lang-${type.kind}`} value={language} spellCheck={false} onChange={(e) => setLanguage(e.target.value)} />
+            </div>
+            <Button type="submit" className="min-h-11" disabled={!changed || update.isPending}>
+              {update.isPending ? t("template.saving") : t("template.save")}
+            </Button>
+          </form>
+
+          {type.template_detail && <p className="text-sm text-muted-foreground">{type.template_detail}</p>}
+          {type.stale && <p className="text-sm text-muted-foreground">{t("template.stale")}</p>}
+          {error && (
+            <p role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
+          )}
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Button type="button" variant="outline" className="min-h-11" disabled={!connected || verify.isPending} onClick={verifyNow}>
+              {verify.isPending ? t("template.verifying") : t("template.verify")}
+            </Button>
+            <Button type="button" variant="outline" className="min-h-11" disabled={!connected} onClick={() => setTestOpen(true)}>
+              {t("test.open")}
+            </Button>
+            <Button type="button" variant="outline" className="min-h-11" onClick={() => setGuideOpen(true)}>
+              {t("template.guide")}
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              {checkedAt ? t("template.checkedAt", { date: checkedAt }) : t("template.neverChecked")}
+            </span>
+          </div>
+          {!connected && <p className="text-xs text-muted-foreground">{t("template.needsConnection")}</p>}
+
+          {guideOpen && <TemplateGuideDialog open kind={type.kind} onOpenChange={(open) => !open && setGuideOpen(false)} />}
+        </>
+      ) : (
+        <>
+          <p className="text-sm text-muted-foreground">{t("template.none")}</p>
+          <div>
+            <Button type="button" variant="outline" className="min-h-11" disabled={!connected} onClick={() => setTestOpen(true)}>
+              {t("test.open")}
+            </Button>
+          </div>
+        </>
+      )}
+
+      {testOpen && <TestDialog open kind={type.kind} testsRemaining={testsRemaining} onOpenChange={(open) => !open && setTestOpen(false)} />}
+    </li>
+  );
+}
