@@ -24,6 +24,8 @@ export interface SourceTile {
   total: number | null;
   owner: string | null;
   mine: boolean;
+  /** Artículos listos sin entregar de la cuenta (spec 043, FR-012). */
+  ready?: number;
   selection: Selection;
   /** Mesa libre: al tocarla se abre su cuenta. */
   tableId?: number;
@@ -115,6 +117,7 @@ export function useOrderSource(mode: "restaurant" | "orders", selection: Selecti
         total: numOrNull(t.check?.total),
         owner: t.check?.waiter?.name ?? null,
         mine: !!t.check?.mine,
+        ready: t.check?.counts?.ready ?? 0,
         selection: t.check ? { kind: "check", id: t.check.id } : null,
         tableId: t.id,
       })),
@@ -126,6 +129,7 @@ export function useOrderSource(mode: "restaurant" | "orders", selection: Selecti
         total: numOrNull(c.total),
         owner: c.waiter?.name ?? null,
         mine: c.mine,
+        ready: c.counts?.ready ?? 0,
         selection: { kind: "check", id: c.id },
       })),
     ];

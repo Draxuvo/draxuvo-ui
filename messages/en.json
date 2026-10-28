@@ -1964,6 +1964,7 @@
       "soundOff": "Turn on sound",
       "waitingSound": "Tap to turn on the new order sound",
       "volume": "Volume",
+      "newCount": "{count, plural, one {# new} other {# new}}",
       "table": "Table {name}",
       "takeout": "Takeout: {name}",
       "waiter": "Waiter: {name}",
@@ -2005,7 +2006,8 @@
       "to_pay": "To pay",
       "mine": "Yours",
       "table": "Table {name}",
-      "openFor": "open for {time}"
+      "openFor": "open for {time}",
+      "readyBadge": "{count} ready"
     },
     "summary": {
       "title": "Service summary",
@@ -2174,7 +2176,14 @@
     "openChecksWaiter": "Served by {name}",
     "openChecksElapsed": "Open for {time}",
     "closedChecksOpen": "View paid check of {name}",
-    "closedChecksAt": "Paid at {time}"
+    "closedChecksAt": "Paid at {time}",
+    "openChecksReady": "{count} ready",
+    "openChecksToPay": "To pay",
+    "alertReady": "{source}: {name} ready",
+    "alertToPay": "{source} to charge",
+    "alertTableTaken": "{source}: someone else took it",
+    "alertOpen": "Open {text}",
+    "alertDismiss": "Dismiss alert"
   },
   "productIcons": {
     "title": "Icon",

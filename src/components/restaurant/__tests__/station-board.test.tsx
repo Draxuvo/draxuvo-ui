@@ -197,4 +197,38 @@ describe("pantalla de estación", () => {
     expect(screen.queryByText(/Toca para activar el sonido/)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Activar sonido/ })).toBeInTheDocument();
   });
+
+  it("resalta la comanda nueva y las cuenta en el encabezado, sin resaltar la carga inicial", async () => {
+    vi.mocked(restaurantService.board).mockResolvedValue(board([order(1, [taco])]));
+    const { queryClient } = renderWithProviders(<StationBoard stationId={1} />);
+    await screen.findByText("Mesa 4");
+    expect(screen.queryByText("1 nueva")).not.toBeInTheDocument();
+
+    vi.mocked(restaurantService.board).mockResolvedValue(board([order(1, [taco]), order(2, [taco], { table: "5" })]));
+    await act(async () => {
+      await queryClient.invalidateQueries({ queryKey: ["restaurant", "board", 1] });
+    });
+
+    expect(await screen.findByRole("article", { name: /Mesa 5/ })).toHaveClass("ring-2");
+    expect(await screen.findByText("1 nueva")).toBeInTheDocument();
+  });
+
+  it("el resalte se va cuando la comanda nueva empieza a prepararse", async () => {
+    vi.mocked(restaurantService.board).mockResolvedValue(board([order(1, [taco])]));
+    const { queryClient } = renderWithProviders(<StationBoard stationId={1} />);
+    await screen.findByText("Mesa 4");
+
+    vi.mocked(restaurantService.board).mockResolvedValue(board([order(1, [taco]), order(2, [taco], { table: "5" })]));
+    await act(async () => {
+      await queryClient.invalidateQueries({ queryKey: ["restaurant", "board", 1] });
+    });
+    await screen.findByText("1 nueva");
+
+    vi.mocked(restaurantService.board).mockResolvedValue(board([order(1, [taco]), order(2, [{ ...taco, status: "preparing" }], { table: "5" })]));
+    await act(async () => {
+      await queryClient.invalidateQueries({ queryKey: ["restaurant", "board", 1] });
+    });
+
+    await waitFor(() => expect(screen.queryByText("1 nueva")).not.toBeInTheDocument());
+  });
 });

@@ -35,6 +35,8 @@ export interface TableTileProps {
   total?: number | null;
   owner?: string | null;
   mine?: boolean;
+  /** Artículos listos sin entregar de la cuenta (spec 043, FR-012). */
+  ready?: number;
   now: number;
   selected?: boolean;
   /** Etiqueta de apoyo, p. ej. "Para llevar". */
@@ -45,7 +47,7 @@ export interface TableTileProps {
 }
 
 export function TableTile({
-  name, state, openedAt, total, owner, mine, now, selected, caption, inactive, onClick, className,
+  name, state, openedAt, total, owner, mine, ready, now, selected, caption, inactive, onClick, className,
 }: TableTileProps) {
   const t = useTranslations("restaurant.tile");
   const locale = useLocale();
@@ -57,6 +59,7 @@ export function TableTile({
 
   // Si la mesa ya se llama "Mesa 1" no se repite la palabra.
   const parts = [caption ?? (/^(mesa|table)\b/i.test(name.trim()) ? name : t("table", { name })), stateText];
+  if (ready) parts.push(t("readyBadge", { count: ready }));
   if (open && minutes != null) parts.push(t("openFor", { time: formatMinutes(minutes) }));
   if (open && total != null) parts.push(money.format(total));
   if (open && owner) parts.push(mine ? t("mine") : owner);
@@ -66,9 +69,16 @@ export function TableTile({
     <>
       <span className="flex w-full items-start justify-between gap-2">
         <span className="min-w-0 truncate font-display text-xl font-extrabold leading-tight">{name}</span>
-        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-background/70 px-2 py-0.5 text-xs font-semibold text-foreground">
-          <Icon aria-hidden className="size-3" />
-          {stateText}
+        <span className="flex shrink-0 items-center gap-1">
+          {ready ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-estado-completada px-2 py-0.5 text-xs font-semibold text-estado-completada-foreground">
+              {t("readyBadge", { count: ready })}
+            </span>
+          ) : null}
+          <span className="inline-flex items-center gap-1 rounded-full bg-background/70 px-2 py-0.5 text-xs font-semibold text-foreground">
+            <Icon aria-hidden className="size-3" />
+            {stateText}
+          </span>
         </span>
       </span>
       {caption && <span className="text-xs font-medium opacity-80">{caption}</span>}

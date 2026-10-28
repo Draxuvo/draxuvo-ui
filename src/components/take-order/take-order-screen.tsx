@@ -24,6 +24,8 @@ import { useOrderSource, type Selection, type SourceTile } from "./use-order-sou
 import { useScreenMode } from "./use-screen-mode";
 import { SoundToggle } from "@/components/restaurant/sound-toggle";
 import { useReadySound } from "@/hooks/use-ready-sound";
+import { useRestaurantAlerts, type RestaurantAlert } from "@/hooks/use-restaurant-alerts";
+import { AlertBanner } from "./alert-banner";
 
 type Tab = "tables" | "order" | "menu";
 
@@ -71,6 +73,15 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
   const menuQuery = useSaleMenu();
   const finish = useFinishOrder(selection?.kind === "order" ? selection.id : 0);
   const readySound = useReadySound(mode === "restaurant");
+  const alerts = useRestaurantAlerts(mode === "restaurant");
+
+  // Tocar un aviso abre la cuenta de la que habla y lo descarta.
+  function openAlert(alert: RestaurantAlert) {
+    const checkId = alert.kind === "ready" ? alert.item.check_id : alert.checkId;
+    alerts.dismiss(alert.key);
+    setSelection({ kind: "check", id: checkId });
+    setTab("order");
+  }
 
   const menu: MenuSection[] = (menuQuery.data ?? []).map((section) => ({
     category: section.category,
@@ -168,6 +179,9 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
 
   return (
     <div className="flex h-dvh flex-col">
+      {mode === "restaurant" && (
+        <AlertBanner alerts={alerts.alerts} onOpen={openAlert} onDismiss={alerts.dismiss} />
+      )}
       <header className="flex items-center gap-2 border-b border-border px-3 py-2">
         <Button
           type="button" variant="ghost" size="icon" className="size-11"

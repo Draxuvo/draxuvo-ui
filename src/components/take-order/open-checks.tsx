@@ -57,6 +57,16 @@ export function OpenChecks({
                   </span>
                 </span>
                 <span className="flex shrink-0 items-center gap-2">
+                  {check.ready > 0 && (
+                    <span className="rounded-full bg-estado-completada px-2 py-0.5 text-xs font-semibold text-estado-completada-foreground">
+                      {t("openChecksReady", { count: check.ready })}
+                    </span>
+                  )}
+                  {check.state === "to_pay" && (
+                    <span className="rounded-full bg-estado-pendiente px-2 py-0.5 text-xs font-semibold text-estado-pendiente-foreground">
+                      {t("openChecksToPay")}
+                    </span>
+                  )}
                   {check.total != null && (
                     <span className="font-display text-xl font-extrabold tabular-nums">{money.format(check.total)}</span>
                   )}
