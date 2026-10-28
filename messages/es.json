@@ -1964,6 +1964,7 @@
       "soundOff": "Activar sonido",
       "waitingSound": "Toca para activar el sonido de nuevas comandas",
       "volume": "Volumen",
+      "newCount": "{count, plural, one {# nueva} other {# nuevas}}",
       "table": "Mesa {name}",
       "takeout": "Para llevar: {name}",
       "waiter": "Mesero: {name}",
@@ -2005,7 +2006,8 @@
       "to_pay": "Por cobrar",
       "mine": "Tuya",
       "table": "Mesa {name}",
-      "openFor": "{time} abierta"
+      "openFor": "{time} abierta",
+      "readyBadge": "{count} listos"
     },
     "summary": {
       "title": "Resumen del servicio",
@@ -2174,7 +2176,14 @@
     "openChecksWaiter": "Atiende {name}",
     "openChecksElapsed": "Abierta hace {time}",
     "closedChecksOpen": "Ver cuenta cobrada de {name}",
-    "closedChecksAt": "Cobrada a las {time}"
+    "closedChecksAt": "Cobrada a las {time}",
+    "openChecksReady": "{count} listos",
+    "openChecksToPay": "Por cobrar",
+    "alertReady": "{source}: {name} listo",
+    "alertToPay": "{source} por cobrar",
+    "alertTableTaken": "{source}: la tomó otra persona",
+    "alertOpen": "Abrir {text}",
+    "alertDismiss": "Descartar aviso"
   },
   "productIcons": {
     "title": "Icono",

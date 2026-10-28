@@ -59,12 +59,15 @@ export function StationCard({
   order,
   now,
   pending,
+  highlight,
   onAdvanceItem,
   onAdvanceAll,
 }: {
   order: BoardOrder;
   now: number;
   pending: boolean;
+  /** Comanda nueva de esta sesión (spec 043, FR-018): se resalta hasta que se empieza a preparar. */
+  highlight?: boolean;
   onAdvanceItem: (itemId: number) => void;
   onAdvanceAll: (orderId: number) => void;
 }) {
@@ -80,6 +83,7 @@ export function StationCard({
       className={cn(
         "rounded-etiqueta border bg-card p-4 shadow-etiqueta",
         slow ? "border-estado-pendiente-border" : "border-border",
+        highlight && "ring-2 ring-primary ring-offset-2 ring-offset-background",
       )}
     >
       <header className="flex items-start justify-between gap-3">

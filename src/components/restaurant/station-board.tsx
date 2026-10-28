@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { WifiOff } from "lucide-react";
 import { useNow } from "@/hooks/use-now";
@@ -24,14 +24,26 @@ export function StationBoard({ stationId }: { stationId: number }) {
   const { playNew, playUrgent, enabled, volume, setVolume, toggle } = sound;
   const offset = board.data?.offset ?? 0;
 
-  // Una comanda que no se había visto hace sonar el aviso; la primera carga no suena.
+  // Una comanda que no se había visto hace sonar el aviso y se resalta; la primera carga no hace ninguna.
+  const [fresh, setFresh] = useState<Set<number>>(() => new Set());
   const orders = board.data?.orders;
   useEffect(() => {
     if (!orders) return;
     const ids = new Set(orders.map((order) => order.id));
-    if (seen.current && [...ids].some((id) => !seen.current!.has(id))) playNew();
+    if (seen.current) {
+      const added = [...ids].filter((id) => !seen.current!.has(id));
+      if (added.length) {
+        playNew();
+        setFresh((prev) => new Set([...prev, ...added]));
+      }
+    }
     seen.current = ids;
   }, [orders, playNew]);
+
+  // El resalte se va solo cuando la comanda ya no tiene nada por preparar.
+  const highlightIds = new Set(
+    (orders ?? []).filter((order) => fresh.has(order.id) && order.items.some((item) => item.status === "new")).map((order) => order.id),
+  );
 
   // Una comanda que se vuelve lenta suena una sola vez con el tono de urgencia.
   useEffect(() => {
@@ -64,6 +76,11 @@ export function StationBoard({ stationId }: { stationId: number }) {
             {t(`kind.${kind}`).toLowerCase() !== (board.data?.station.name ?? "").trim().toLowerCase() && (
               <p className="mt-1 text-sm font-semibold text-muted-foreground">{t(`kind.${kind}`)}</p>
             )}
+            {highlightIds.size > 0 && (
+              <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-estado-completada px-2.5 py-0.5 text-sm font-semibold text-estado-completada-foreground">
+                {t("newCount", { count: highlightIds.size })}
+              </p>
+            )}
           </div>
         </div>
         <StationSummary orders={list} now={now + offset} slowAfter={SLOW_AFTER_MINUTES} />
@@ -91,6 +108,7 @@ export function StationBoard({ stationId }: { stationId: number }) {
               order={order}
               now={now + offset}
               pending={pending}
+              highlight={highlightIds.has(order.id)}
               onAdvanceItem={(id) => advance.item.mutate(id)}
               onAdvanceAll={(id) => advance.order.mutate(id)}
             />

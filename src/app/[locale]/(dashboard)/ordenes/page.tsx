@@ -17,6 +17,7 @@ import { ProgressBar } from "@/components/work-orders/progress-bar";
 import { OrderForm } from "@/components/work-orders/order-form";
 import { useScreenMode } from "@/components/take-order/use-screen-mode";
 import { ClosedChecks, OpenChecks, useClosedChecks, useOpenChecks } from "@/components/take-order/open-checks";
+import { RestaurantAlerts } from "@/components/take-order/restaurant-alerts";
 import { matchesCheckFilter, type CheckFilter } from "@/components/take-order/lib";
 import { useAppRouter } from "@/hooks/use-router";
 import { OrderModeDialog } from "@/components/work-orders/order-mode-dialog";
@@ -215,6 +216,7 @@ function OrdenesContent() {
 
   return (
     <div className="space-y-4">
+      <RestaurantAlerts />
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl leading-tight font-semibold">{restaurant ? tq("title") : t("title")}</h1>

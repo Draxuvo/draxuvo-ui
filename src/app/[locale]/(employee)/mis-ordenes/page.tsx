@@ -19,6 +19,7 @@ import { StatusBadge } from "@/components/work-orders/status-badge";
 import { OrderForm } from "@/components/work-orders/order-form";
 import { useScreenMode } from "@/components/take-order/use-screen-mode";
 import { ClosedChecks, OpenChecks, useClosedChecks, useOpenChecks } from "@/components/take-order/open-checks";
+import { RestaurantAlerts } from "@/components/take-order/restaurant-alerts";
 import { useAppRouter } from "@/hooks/use-router";
 import type { WorkOrder } from "@/types";
 
@@ -121,6 +122,7 @@ export default function MisOrdenesPage() {
 
   return (
     <div className="mx-auto max-w-xl space-y-6 pb-8">
+      <RestaurantAlerts />
       <header className="flex items-start justify-between gap-3">
         <div>
           <h1 className="font-heading text-2xl font-semibold">{t("myOrders")}</h1>
