@@ -9,6 +9,7 @@ import {
   CreditCard,
   FileBarChart2,
   FlaskConical,
+  MessageCircle,
   Users,
   X,
 } from "lucide-react";
@@ -37,6 +38,7 @@ export function SuperAdminSidebar() {
     { href: `/${locale}/suscripciones`, label: t("subscriptions"), icon: CreditCard },
     { href: `/${locale}/reportes`, label: t("reports"), icon: FileBarChart2 },
     { href: `/${locale}/demos`, label: t("demos"), icon: FlaskConical },
+    { href: `/${locale}/whatsapp`, label: t("whatsapp"), icon: MessageCircle },
     ...(canEnterCompany
       ? [{ href: `/${locale}/inicio`, label: t("myCompany"), icon: Briefcase, onSelect: enterCompanyView }]
       : []),

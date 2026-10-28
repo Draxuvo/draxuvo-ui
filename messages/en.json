@@ -99,7 +99,162 @@
     "restaurant": "Restaurant",
     "terminals": "Terminals",
     "demos": "Demos",
-    "alerts": "Alerts"
+    "alerts": "Alerts",
+    "whatsapp": "WhatsApp"
+  },
+  "whatsapp": {
+    "title": "WhatsApp",
+    "subtitle": "Connect Draxuvo's WhatsApp Business account and choose which messages go out.",
+    "error": {
+      "title": "Couldn't load the WhatsApp settings",
+      "retry": "Try again"
+    },
+    "errors": {
+      "generic": "The action couldn't be completed. Please try again.",
+      "stale": "Someone changed this a moment ago. We now show the current value; review it and try again.",
+      "tokenRequired": "Enter the access key.",
+      "notConnected": "Connect the WhatsApp account first.",
+      "metaCode": "Meta code {code}"
+    },
+    "reasons": {
+      "invalid_token": "The key isn't valid.",
+      "token_expired": "The key expired; generate a new one in Meta.",
+      "missing_permission": "The key lacks the required permissions (whatsapp_business_management and whatsapp_business_messaging).",
+      "phone_not_in_account": "That number doesn't belong to the given WhatsApp Business account.",
+      "account_not_found": "The given WhatsApp Business account wasn't found.",
+      "invalid_number": "The number identifier isn't valid.",
+      "account_restricted": "Meta restricted or disabled the WhatsApp Business account.",
+      "meta_unreachable": "Meta couldn't be reached; try again in a moment.",
+      "rate_limited": "Meta limited requests for a moment; try again later.",
+      "unknown": "Meta rejected the request."
+    },
+    "types": {
+      "title": "Messages",
+      "subtitle": "Which messages Draxuvo sends over WhatsApp and which Meta template each one uses.",
+      "verification_code": {
+        "label": "Verification code",
+        "description": "The code sent to confirm a person's phone."
+      },
+      "stock_alert": {
+        "label": "Low-stock alert",
+        "description": "The alert to owners and admins when a product reaches its minimum."
+      },
+      "ticket": {
+        "label": "Ticket",
+        "description": "The ticket of an order or check that the business sends to its customer."
+      }
+    },
+    "template": {
+      "name": "Template name",
+      "language": "Language",
+      "save": "Save template",
+      "saving": "Saving…",
+      "saved": "Template saved and verified",
+      "verify": "Verify now",
+      "verifying": "Verifying…",
+      "guide": "How to create it in Meta",
+      "guideAll": "Guide to create the templates",
+      "checkedAt": "Last verified: {date}",
+      "neverChecked": "Not verified yet",
+      "needsConnection": "Connect the account to be able to verify the template.",
+      "none": "Tickets use no template: they go out as a document (or text) inside the 24-hour window.",
+      "stale": "Meta couldn't be reached: showing the last known state.",
+      "staleToast": "Meta couldn't be reached; the last known state is kept.",
+      "errorName": "Enter the template name.",
+      "errorLanguage": "The language uses Meta's format, for example es_MX.",
+      "status": {
+        "unknown": "Not verified",
+        "approved": "Approved",
+        "pending": "Pending",
+        "rejected": "Rejected",
+        "not_found": "Not found",
+        "incompatible": "Incompatible"
+      },
+      "verified": {
+        "unknown": "Template not verified",
+        "approved": "The template is approved",
+        "pending": "The template is still pending in Meta",
+        "rejected": "Meta rejected or paused the template",
+        "not_found": "The template wasn't found in Meta",
+        "incompatible": "The template has a different number of variables"
+      }
+    },
+    "guide": {
+      "title": "How to create the templates in Meta",
+      "description": "Create each template in Meta's WhatsApp Manager with these exact values. Draxuvo doesn't create them: it only reads their status.",
+      "name": "Name",
+      "language": "Language",
+      "category": "Category",
+      "body": "Body text",
+      "variables": "Variables",
+      "copy": "Copy {label}",
+      "copyShort": "Copy",
+      "copiedShort": "Copied",
+      "copied": "{label} copied",
+      "error": "The guide couldn't be loaded."
+    },
+    "connection": {
+      "title": "Connection",
+      "status": {
+        "not_connected": "Not connected",
+        "connected": "Connected",
+        "error": "Error"
+      },
+      "connect": "Connect",
+      "connectFromPanel": "Connect from the panel",
+      "verify": "Verify now",
+      "verifying": "Verifying…",
+      "replaceKey": "Replace key",
+      "disconnectAction": "Disconnect",
+      "emptyBody": "No account is connected yet. Connect Draxuvo's WhatsApp Business account to send messages.",
+      "envNotice": "Sending currently uses the server's environment variables. Once you connect from the panel, the panel takes over and the variables are no longer used.",
+      "errorNotice": "The connection has an error: {detail}",
+      "errorUnknown": "Meta rejected the connection.",
+      "verifyOk": "Connection verified",
+      "verifyFailed": "The connection has an error; check the reason.",
+      "verifyUnreachable": "Meta couldn't be reached; the previous state is kept.",
+      "fields": {
+        "verifiedName": "Verified name",
+        "displayPhone": "Number",
+        "phoneNumberId": "Number identifier",
+        "wabaId": "Account identifier",
+        "token": "Access key",
+        "tokenEnv": "Environment variable",
+        "lastVerified": "Last verified",
+        "never": "Never"
+      },
+      "dialog": {
+        "connectTitle": "Connect WhatsApp Business",
+        "connectBody": "Draxuvo verifies the key, number and account with Meta before saving them.",
+        "replaceTitle": "Replace the key",
+        "replaceBody": "The number, account and templates are kept; the new key is verified before it's saved.",
+        "token": "Access key",
+        "tokenKeep": "Leave empty to keep the saved key",
+        "tokenHelp": "It is never shown in full nor stored in plain text.",
+        "phoneNumberId": "Number identifier",
+        "phoneNumberIdHelp": "The number's \"Phone number ID\" in Meta (digits only).",
+        "wabaId": "Account identifier",
+        "wabaIdHelp": "The \"WhatsApp Business Account ID\" in Meta (digits only).",
+        "errorToken": "Enter the access key.",
+        "errorPhone": "The number identifier is digits only.",
+        "errorWaba": "The account identifier is digits only.",
+        "cancel": "Cancel",
+        "save": "Verify and save",
+        "verifying": "Verifying with Meta…",
+        "connected": "WhatsApp connected",
+        "replaced": "Key replaced"
+      },
+      "disconnect": {
+        "title": "Disconnect WhatsApp",
+        "bodyOff": "The saved key and connection data are deleted. The chosen templates are kept.",
+        "bodyOn": "The saved key and connection data are deleted, and every WhatsApp message is turned off. The chosen templates are kept.",
+        "warningOn": "The channel is on: tickets, verification codes and low-stock alerts will stop going out by WhatsApp.",
+        "cancel": "Cancel",
+        "confirm": "Disconnect",
+        "working": "Disconnecting…",
+        "done": "WhatsApp disconnected"
+      }
+    }
   },
   "home": {
     "welcome": "Welcome, {name}",
