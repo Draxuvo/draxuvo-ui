@@ -18,6 +18,7 @@ import { ticketsService } from "@/services/tickets";
 import { downloadTicketPDF } from "@/lib/ticket-pdf";
 import type { ChargePaymentInput, PaymentMethod, PaymentTerminal, WorkOrder } from "@/types";
 import { cn } from "@/lib/utils";
+import { Select } from "@/components/ui/select";
 
 const METHODS: { key: PaymentMethod; icon: typeof Banknote }[] = [
   { key: "cash", icon: Banknote },
@@ -339,11 +340,11 @@ function PaymentRow({
               <label className="text-sm font-medium" htmlFor={id("terminal")}>
                 {t("charge.terminal")}
               </label>
-              <select
+              <Select
                 id={id("terminal")}
                 value={row.terminalId || defaultTerminal}
                 onChange={(e) => onChange({ terminalId: e.target.value })}
-                className="h-11 w-full rounded-etiqueta border border-border bg-card px-3 text-sm foco-etiqueta"
+               
               >
                 <option value="">{t("charge.pickTerminal")}</option>
                 {terminals.map((terminal) => (
@@ -351,7 +352,7 @@ function PaymentRow({
                     {terminal.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
           )}
           <div className="grid grid-cols-2 gap-2">

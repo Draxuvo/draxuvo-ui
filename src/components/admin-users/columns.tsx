@@ -72,6 +72,7 @@ export function getAdminUserColumns(
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <Switch
+            aria-label={`${t("status")}: ${row.original.first_name} ${row.original.last_name}`}
             checked={row.original.active}
             onCheckedChange={() => actions.onToggleActive(row.original)}
           />
@@ -90,9 +91,10 @@ export function getAdminUserColumns(
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  size="sm"
+                  size="icon-sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                  className="text-muted-foreground hover:text-foreground"
+                  aria-label={`${tc("edit")}: ${row.original.first_name} ${row.original.last_name}`}
                   onClick={() => actions.onEdit(row.original)}
                 >
                   <Pencil size={14} />
@@ -104,9 +106,10 @@ export function getAdminUserColumns(
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  size="sm"
+                  size="icon-sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                  className="text-muted-foreground hover:text-destructive"
+                  aria-label={`${tc("delete")}: ${row.original.first_name} ${row.original.last_name}`}
                   onClick={() => actions.onDelete(row.original)}
                 >
                   <Trash2 size={14} />

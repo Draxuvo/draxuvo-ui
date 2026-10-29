@@ -97,7 +97,7 @@ export function TrialBanner() {
         </div>
         <Link
           href={`/${locale}/suscripcion`}
-          className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1 text-xs font-medium text-foreground transition-colors duration-[120ms] hover:border-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1 text-xs md:min-h-0 font-medium text-foreground transition-colors duration-[120ms] hover:border-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           {t("activeBannerAction")}
         </Link>

@@ -7,6 +7,7 @@ import { useAuthStore } from "@/store/auth";
 import { companiesService } from "@/services/companies";
 import { ReportContent } from "@/components/reports/report-content";
 import { ModuleLocked, useModuleLocked } from "@/components/subscription/module-locked";
+import { Select } from "@/components/ui/select";
 
 export default function ReportesPage() {
   const t = useTranslations("reports");
@@ -39,12 +40,12 @@ export default function ReportesPage() {
             {companiesQuery.isLoading ? (
               <div className="h-9 w-48 bg-muted rounded-lg animate-pulse" />
             ) : (
-              <select
+              <Select
                 value={companyId ?? ""}
                 onChange={(e) =>
                   setCompanyId(e.target.value ? Number(e.target.value) : null)
                 }
-                className="px-3 py-1.5 text-sm border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-ring min-w-48"
+                className="w-auto min-w-48"
               >
                 <option value="">{tc("selectCompany")}</option>
                 {companies.map((c) => (
@@ -52,7 +53,7 @@ export default function ReportesPage() {
                     {c.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
           </div>
         )}

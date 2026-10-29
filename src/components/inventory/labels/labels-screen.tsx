@@ -90,7 +90,7 @@ function LabelsBoard({ initial }: { initial: LabelLine[] }) {
 
   const header = (
     <header className="space-y-1">
-      <Link href={`/${locale}/inventario`} className="foco-etiqueta inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+      <Link href={`/${locale}/inventario`} className="foco-etiqueta inline-flex min-h-10 items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground md:min-h-0">
         <ArrowLeft size={14} aria-hidden />
         {t("back")}
       </Link>

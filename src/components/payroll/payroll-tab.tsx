@@ -18,15 +18,13 @@ import { payrollService } from "@/services/payroll";
 import { PAYROLL_RUN_STATUSES, type PayrollRunStatus } from "@/types";
 import { NewRunDialog } from "./new-run-dialog";
 import { RunDetail } from "./run-detail";
+import { Select } from "@/components/ui/select";
 
 const PAGE_SIZE = 10;
 const DEFAULTS = { status: "", year: "" };
 const ALLOWED = { status: PAYROLL_RUN_STATUSES };
 // "tab" y "run" son de la página Personal: limpiar los filtros no debe cambiar de pestaña.
 const PRESERVE = ["tab"] as const;
-const SELECT =
-  "h-8 rounded-etiqueta border border-input bg-card px-2 text-sm foco-etiqueta hover:border-foreground/40";
-
 export function PayrollTab() {
   return (
     <Suspense>
@@ -91,21 +89,21 @@ function PayrollContent() {
       <div className="flex flex-wrap gap-3">
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
           {t("filters.status")}
-          <select className={SELECT} value={filters.status} onChange={(e) => setFilter("status", e.target.value)}>
+          <Select className="w-auto" value={filters.status} onChange={(e) => setFilter("status", e.target.value)}>
             <option value="">{t("filters.all")}</option>
             {PAYROLL_RUN_STATUSES.map((s) => (
               <option key={s} value={s}>{t(`status.${s}`)}</option>
             ))}
-          </select>
+          </Select>
         </label>
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
           {t("filters.year")}
-          <select className={SELECT} value={filters.year} onChange={(e) => setFilter("year", e.target.value)}>
+          <Select className="w-auto" value={filters.year} onChange={(e) => setFilter("year", e.target.value)}>
             <option value="">{t("filters.all")}</option>
             {years.map((y) => (
               <option key={y} value={y}>{y}</option>
             ))}
-          </select>
+          </Select>
         </label>
       </div>
 

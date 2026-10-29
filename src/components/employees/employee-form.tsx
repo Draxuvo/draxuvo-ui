@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { employeesService } from "@/services/employees";
 import { CreateAccessFields, EditAccess, useAssignableRoles } from "@/components/people/access-section";
 import type { CompanyRole, Employee } from "@/types";
+import { Select } from "@/components/ui/select";
 
 interface EmployeeFormProps {
   open: boolean;
@@ -172,13 +173,13 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
               {isEdit && (
                 <div className="space-y-1.5">
                   <Label className="text-xs font-medium text-foreground">{t("status")}</Label>
-                  <select
+                  <Select
                     {...register("status")}
-                    className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                   
                   >
                     <option value="active">{t("active")}</option>
                     <option value="inactive">{t("inactive")}</option>
-                  </select>
+                  </Select>
                 </div>
               )}
             </div>

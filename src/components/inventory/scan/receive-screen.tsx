@@ -108,7 +108,7 @@ export function ReceiveScreen() {
           onClick={(event) => {
             if (lines.length && !window.confirm(tr("leaveBody"))) event.preventDefault();
           }}
-          className="foco-etiqueta inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+          className="foco-etiqueta inline-flex min-h-10 items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground md:min-h-0"
         >
           <ArrowLeft size={14} aria-hidden />
           {tr("back")}

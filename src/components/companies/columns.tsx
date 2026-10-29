@@ -150,7 +150,7 @@ export function getCompanyColumns(
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground gap-1"
+                className="px-2 text-xs text-muted-foreground hover:text-foreground gap-1 md:h-6"
                 onClick={actions.onViewSubscription}
               >
                 <ExternalLink size={11} />
@@ -195,9 +195,9 @@ export function getCompanyColumns(
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  size="sm"
+                  size="icon-sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                  className="text-muted-foreground hover:text-foreground"
                   aria-label={t("modules.open", { name: row.original.company.name })}
                   onClick={() => actions.onModules(row.original)}
                 >
@@ -210,9 +210,10 @@ export function getCompanyColumns(
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  size="sm"
+                  size="icon-sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                  className="text-muted-foreground hover:text-foreground"
+                  aria-label={`${tc("edit")}: ${row.original.company.name}`}
                   onClick={() => actions.onEdit(row.original.company)}
                 >
                   <Pencil size={14} />
@@ -224,9 +225,10 @@ export function getCompanyColumns(
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  size="sm"
+                  size="icon-sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                  className="text-muted-foreground hover:text-destructive"
+                  aria-label={`${tc("delete")}: ${row.original.company.name}`}
                   onClick={() => actions.onDelete(row.original.company)}
                 >
                   <Trash2 size={14} />

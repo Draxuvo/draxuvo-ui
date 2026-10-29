@@ -84,7 +84,7 @@ export function StatLinkCard({
                   href={s.href}
                   aria-label={s.ariaLabel}
                   className={cn(
-                    "inline-flex items-center rounded-full transition-colors duration-[120ms]",
+                    "inline-flex min-h-10 items-center rounded-full transition-colors duration-[120ms] md:min-h-0",
                     s.highlight
                       ? "bg-ceja px-2 py-0.5 font-medium text-foreground hover:bg-ceja/80"
                       : "text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground hover:decoration-foreground",

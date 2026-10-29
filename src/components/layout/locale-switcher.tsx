@@ -19,7 +19,7 @@ export function LocaleSwitcher() {
       <Button
         variant="ghost"
         size="sm"
-        className={`text-xs px-2 h-7 ${locale === "es" ? "font-semibold text-foreground" : "text-muted-foreground"}`}
+        className={`text-xs px-2 min-w-10 md:min-w-0 md:h-7 ${locale === "es" ? "font-semibold text-foreground" : "text-muted-foreground"}`}
         onClick={() => switchLocale("es")}
       >
         ES
@@ -28,7 +28,7 @@ export function LocaleSwitcher() {
       <Button
         variant="ghost"
         size="sm"
-        className={`text-xs px-2 h-7 ${locale === "en" ? "font-semibold text-foreground" : "text-muted-foreground"}`}
+        className={`text-xs px-2 min-w-10 md:min-w-0 md:h-7 ${locale === "en" ? "font-semibold text-foreground" : "text-muted-foreground"}`}
         onClick={() => switchLocale("en")}
       >
         EN

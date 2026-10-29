@@ -22,6 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useChartColors, type ChartColor } from "@/components/dashboard/chart-legend-links";
 import type { Company } from "@/types";
+import { Select } from "@/components/ui/select";
 
 const NIVO_THEME = {
   axis: {
@@ -143,6 +144,7 @@ export default function EstadisticasPage() {
   const companies = companiesData?.results ?? [];
 
   const tw = useTranslations("workOrders");
+  const tc = useTranslations("common");
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["dashboard-stats-sa", selectedCompany?.id],
     queryFn: () => getDashboardStatsByCompany(selectedCompany!.id),
@@ -195,14 +197,14 @@ export default function EstadisticasPage() {
               size={14}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
             />
-            <select
+            <Select
               value={selectedCompany?.id ?? ""}
               onChange={(e) => {
                 const id = Number(e.target.value);
                 const company = companies.find((c) => c.id === id) ?? null;
                 setSelectedCompany(company);
               }}
-              className="pl-8 pr-3 py-1.5 text-sm border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-auto" selectClassName="pl-9"
             >
               <option value="">{t("selectCompany")}</option>
               {companies.map((c) => (
@@ -210,13 +212,15 @@ export default function EstadisticasPage() {
                   {c.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
           {selectedCompany && (
             <button
+              type="button"
+              aria-label={tc("refresh")}
               onClick={() => refetch()}
               disabled={isFetching}
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:pointer-events-none"
+              className="grid size-10 place-items-center rounded-lg md:size-9 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:pointer-events-none"
             >
               <RefreshCw size={16} className={isFetching ? "animate-spin" : ""} />
             </button>

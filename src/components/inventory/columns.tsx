@@ -50,25 +50,29 @@ export function getProductColumns(
     !!selection && {
       id: "select",
       header: () => (
-        <input
-          type="checkbox"
-          aria-label={selection.labels.page}
-          checked={selection.pageAll}
-          ref={(el) => {
-            if (el) el.indeterminate = selection.pageSome && !selection.pageAll;
-          }}
-          onChange={selection.togglePage}
-          className="size-4 rounded border-border accent-primary"
-        />
+        <label className="grid size-10 cursor-pointer place-items-center md:size-6">
+          <input
+            type="checkbox"
+            aria-label={selection.labels.page}
+            checked={selection.pageAll}
+            ref={(el) => {
+              if (el) el.indeterminate = selection.pageSome && !selection.pageAll;
+            }}
+            onChange={selection.togglePage}
+            className="size-4 rounded border-border accent-primary"
+          />
+        </label>
       ),
       cell: ({ row }) => (
-        <input
-          type="checkbox"
-          aria-label={selection.labels.row(row.original.name)}
-          checked={selection.isSelected(row.original.id)}
-          onChange={() => selection.toggle(row.original)}
-          className="size-4 rounded border-border accent-primary"
-        />
+        <label className="grid size-10 cursor-pointer place-items-center md:size-6">
+          <input
+            type="checkbox"
+            aria-label={selection.labels.row(row.original.name)}
+            checked={selection.isSelected(row.original.id)}
+            onChange={() => selection.toggle(row.original)}
+            className="size-4 rounded border-border accent-primary"
+          />
+        </label>
       ),
     },
     {
@@ -148,9 +152,10 @@ export function getProductColumns(
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  size="sm"
+                  size="icon-sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0 text-muted-foreground hover:text-estado-completada-foreground"
+                  className="text-muted-foreground hover:text-estado-completada-foreground"
+                  aria-label={`${t("entry")}: ${row.original.name}`}
                   onClick={() => actions.onEntry(row.original)}
                 >
                   <ArrowDownToLine size={14} />
@@ -162,9 +167,10 @@ export function getProductColumns(
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  size="sm"
+                  size="icon-sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0 text-muted-foreground hover:text-estado-pendiente-foreground"
+                  className="text-muted-foreground hover:text-estado-pendiente-foreground"
+                  aria-label={`${t("exit")}: ${row.original.name}`}
                   onClick={() => actions.onExit(row.original)}
                 >
                   <ArrowUpFromLine size={14} />
@@ -177,9 +183,10 @@ export function getProductColumns(
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  size="sm"
+                  size="icon-sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                  className="text-muted-foreground hover:text-foreground"
+                  aria-label={`${tc("edit")}: ${row.original.name}`}
                   onClick={() => actions.onEdit(row.original)}
                 >
                   <Pencil size={14} />
@@ -191,9 +198,10 @@ export function getProductColumns(
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  size="sm"
+                  size="icon-sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                  className="text-muted-foreground hover:text-destructive"
+                  aria-label={`${tc("delete")}: ${row.original.name}`}
                   onClick={() => actions.onDelete(row.original)}
                 >
                   <Trash2 size={14} />

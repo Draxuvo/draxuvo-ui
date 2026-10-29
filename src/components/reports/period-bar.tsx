@@ -67,7 +67,7 @@ export function PeriodBar({ period, showCompare }: { period: ReportPeriod; showC
 
         {showCompare && (
           <label className="ml-auto flex items-center gap-2 text-sm text-foreground">
-            <Switch checked={compare} onCheckedChange={period.setCompare} />
+            <Switch checked={compare} onCheckedChange={period.setCompare} aria-label={t("compare")} />
             {t("compare")}
           </label>
         )}

@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAlertSettings, useUpdateAlertSettings } from "@/hooks/use-alerts";
 import type { AlertKind, AlertSettings, AlertSettingsPatch, StationKind } from "@/types";
+import { Select } from "@/components/ui/select";
 
 const STATIONS: StationKind[] = ["kitchen", "bar", "other"];
 const MIN = 1;
@@ -184,33 +185,33 @@ function SettingsEditor({ data }: { data: AlertSettings }) {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1">
               <Label htmlFor="summary-hour">{t("summaryHour")}</Label>
-              <select
+              <Select
                 id="summary-hour"
                 value={draft.summary_hour}
                 onChange={(event) => set("summary_hour", event.target.value)}
-                className="foco-etiqueta min-h-11 w-full rounded-etiqueta border border-border bg-background px-3 text-sm"
+               
               >
                 {Array.from({ length: 24 }, (_, hour) => (
                   <option key={hour} value={hour}>
                     {`${String(hour).padStart(2, "0")}:00`}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
             <div className="space-y-1">
               <Label htmlFor="time-zone">{t("timeZone")}</Label>
-              <select
+              <Select
                 id="time-zone"
                 value={draft.time_zone}
                 onChange={(event) => set("time_zone", event.target.value)}
-                className="foco-etiqueta min-h-11 w-full rounded-etiqueta border border-border bg-background px-3 text-sm"
+               
               >
                 {zones.map((zone) => (
                   <option key={zone} value={zone}>
                     {zone}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
           </div>
           <p className="text-xs text-muted-foreground">{t("summaryHint")}</p>

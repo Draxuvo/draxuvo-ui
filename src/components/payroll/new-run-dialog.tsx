@@ -12,9 +12,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { payrollService } from "@/services/payroll";
 import { PAYROLL_PERIOD_TYPES, type PayrollRun } from "@/types";
+import { Select } from "@/components/ui/select";
 
 const FIELD =
-  "h-9 w-full rounded-etiqueta border border-input bg-card px-2.5 text-sm text-foreground tabular-nums transition-colors duration-[120ms] hover:border-foreground/40 foco-etiqueta";
+  "h-10 md:h-9 w-full rounded-etiqueta border border-input bg-card px-2.5 text-sm text-foreground tabular-nums transition-colors duration-[120ms] hover:border-foreground/40 foco-etiqueta";
 
 export function NewRunDialog({ open, onOpenChange, onCreated }: { open: boolean; onOpenChange: (open: boolean) => void; onCreated: (run: PayrollRun) => void }) {
   const t = useTranslations("payroll");
@@ -59,11 +60,11 @@ export function NewRunDialog({ open, onOpenChange, onCreated }: { open: boolean;
           </DialogHeader>
           <div className="space-y-1.5">
             <Label htmlFor="payroll-type">{t("new.type")}</Label>
-            <select id="payroll-type" className={FIELD} {...register("period_type")}>
+            <Select id="payroll-type" {...register("period_type")}>
               {PAYROLL_PERIOD_TYPES.map((p) => (
                 <option key={p} value={p}>{t(`periodType.${p}`)}</option>
               ))}
-            </select>
+            </Select>
             <p className="text-xs text-muted-foreground">{hint}</p>
           </div>
           <div className="grid grid-cols-2 gap-3">

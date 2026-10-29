@@ -16,6 +16,7 @@ import { restaurantService, type CheckPaymentBody } from "@/services/restaurant"
 import { downloadTicketPDF } from "@/lib/ticket-pdf";
 import { cn } from "@/lib/utils";
 import type { Check, PaymentMethod, Ticket } from "@/types";
+import { Select } from "@/components/ui/select";
 
 const METHODS: { key: PaymentMethod; icon: typeof Banknote }[] = [
   { key: "cash", icon: Banknote },
@@ -190,14 +191,14 @@ export function CheckPaymentDialog({
                 {method === "card" && terminals.length > 0 && (
                   <label className="block space-y-1 text-sm font-medium">
                     {t("terminal")}
-                    <select
+                    <Select
                       value={terminal}
                       onChange={(e) => setTerminalId(e.target.value)}
-                      className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm"
+                     
                     >
                       <option value="">{t("noTerminal")}</option>
                       {terminals.map((term) => <option key={term.id} value={term.id}>{term.name}</option>)}
-                    </select>
+                    </Select>
                   </label>
                 )}
                 <label className="block space-y-1 text-sm font-medium">

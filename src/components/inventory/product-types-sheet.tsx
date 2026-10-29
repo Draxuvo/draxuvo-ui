@@ -28,8 +28,7 @@ import {
 import { useAuthStore } from "@/store/auth";
 import { cn } from "@/lib/utils";
 import type { ProductType } from "@/types";
-
-const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring";
+import { Select } from "@/components/ui/select";
 
 type Values = { name: string; sellable: boolean; in_menu: boolean; counted: boolean; fractional: boolean; default_unit_key: string; active: boolean; icon: string };
 
@@ -181,6 +180,7 @@ function TypeForm({ type, onDone }: { type: ProductType | null; onDone: () => vo
         render={({ field }) => (
           <Switch
             id={`type-${name}`}
+            aria-label={label}
             checked={field.value}
             disabled={disabled}
             onCheckedChange={(value) => {
@@ -207,11 +207,11 @@ function TypeForm({ type, onDone }: { type: ProductType | null; onDone: () => vo
       {errors.fractional && <p role="alert" className="text-xs text-destructive">{errors.fractional.message}</p>}
       <div className="space-y-1.5">
         <Label htmlFor="type-unit" className="text-xs font-medium text-foreground">{t("defaultUnit")}</Label>
-        <select id="type-unit" className={SELECT} {...register("default_unit_key")}>
+        <Select id="type-unit" {...register("default_unit_key")}>
           {(units.data ?? [{ key: "pza", name: "Pieza" }]).map((unit) => (
             <option key={unit.key} value={unit.key}>{unit.name}</option>
           ))}
-        </select>
+        </Select>
       </div>
       <div className="space-y-1.5">
         <Label className="text-xs font-medium text-foreground">{ti("title")}</Label>
@@ -257,9 +257,9 @@ function RemoveType({ type, others, onDone }: { type: ProductType; others: Produ
           {others.length > 0 && (
             <div className="space-y-1.5">
               <Label htmlFor="move-target" className="text-xs font-medium text-foreground">{t("moveTo")}</Label>
-              <select id="move-target" className={SELECT} value={target} onChange={(e) => setTarget(e.target.value)}>
+              <Select id="move-target" value={target} onChange={(e) => setTarget(e.target.value)}>
                 {others.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-              </select>
+              </Select>
               <Button className="min-h-11 w-full" disabled={!target || move.isPending}
                 onClick={() => run(() => move.mutateAsync({ id: type.id, toId: Number(target) }), t("moved"))}>
                 {t("move")}

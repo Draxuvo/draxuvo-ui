@@ -8,6 +8,7 @@ import { useSoundChoices } from "@/hooks/use-sound-choices";
 import { ALERT_KINDS, DEFAULTS, SOUND_IDS, type SoundId } from "@/lib/sounds/catalog";
 import { duplicates, resolve } from "@/lib/sounds/choices";
 import { ensureContext, play } from "@/lib/sounds/engine";
+import { Select } from "@/components/ui/select";
 
 /** Ajustes de sonido de este dispositivo: elegir, probar y restablecer el sonido de cada alerta (spec 046). */
 export function SoundSettings({ volume }: { volume: number }) {
@@ -46,18 +47,18 @@ export function SoundSettings({ volume }: { volume: number }) {
                   <label htmlFor={`sound-${alert}`} className="min-w-40 flex-1 text-sm font-semibold">
                     {t(alert)}
                   </label>
-                  <select
+                  <Select
                     id={`sound-${alert}`}
                     value={id}
                     onChange={(event) => choose(alert, event.target.value as SoundId)}
-                    className="h-9 rounded-md border border-border bg-card px-2 text-sm"
+                    className="w-auto"
                   >
                     {SOUND_IDS.map((option) => (
                       <option key={option} value={option}>
                         {t(option)}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                   <Button type="button" variant="secondary" size="sm" onClick={() => void preview(id)} aria-label={t("previewLabel", { sound: t(id) })}>
                     <Play aria-hidden className="size-4" />
                     {t("preview")}

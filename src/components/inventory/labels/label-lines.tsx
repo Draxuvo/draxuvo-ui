@@ -6,6 +6,7 @@ import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { LabelSelectionItem } from "@/hooks/use-label-selection";
+import { Select } from "@/components/ui/select";
 
 export const MAX_COPIES = 1000;
 
@@ -32,18 +33,18 @@ export function LabelLines({ lines, onCopies, onCode, onRemove }: LabelLinesProp
             ) : line.barcodes.length === 1 ? (
               <p className="font-mono text-xs text-muted-foreground">{line.barcodes[0]}</p>
             ) : (
-              <select
+              <Select
                 aria-label={t("codeOf", { name: line.name })}
                 value={line.code ?? line.barcodes[0]}
                 onChange={(event) => onCode(line.id, event.target.value)}
-                className="mt-0.5 h-8 max-w-full rounded-md border border-input bg-background px-2 font-mono text-xs"
+                className="mt-0.5 w-auto max-w-full" selectClassName="font-mono text-xs"
               >
                 {line.barcodes.map((code) => (
                   <option key={code} value={code}>
                     {code}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
           </div>
           <label className="flex items-center gap-2 text-xs text-muted-foreground">

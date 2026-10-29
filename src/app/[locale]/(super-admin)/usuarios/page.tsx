@@ -86,7 +86,7 @@ export default function UsuariosPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => refetch()} disabled={isFetching}>
+          <Button variant="outline" size="icon" aria-label={tc("refresh")} onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw size={15} className={isFetching ? "animate-spin" : ""} />
           </Button>
           <Button onClick={openCreate} className="gap-2">

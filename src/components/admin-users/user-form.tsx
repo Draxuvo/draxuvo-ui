@@ -21,6 +21,7 @@ import { adminUsersService } from "@/services/admin-users";
 import { companiesService } from "@/services/companies";
 import { cn } from "@/lib/utils";
 import type { AdminUser, CompanyRole } from "@/types";
+import { Select } from "@/components/ui/select";
 
 const COMPANY_ROLES = ["staff", "admin", "owner"] as const satisfies readonly CompanyRole[];
 
@@ -228,15 +229,15 @@ export function UserForm({ open, onOpenChange, user }: UserFormProps) {
                   <Label className="text-xs font-medium text-foreground">
                     {t("status")}
                   </Label>
-                  <select
+                  <Select
                     // setValueAs también recibe el booleano que llega por reset(); con solo
                     // `v === "true"` un usuario activo se guardaba como inactivo (spec 014).
                     {...register("active", { setValueAs: (v) => v === true || v === "true" })}
-                    className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                   
                   >
                     <option value="true">{t("active")}</option>
                     <option value="false">{t("inactive")}</option>
-                  </select>
+                  </Select>
                 </div>
               </div>
             )}
@@ -276,16 +277,16 @@ export function UserForm({ open, onOpenChange, user }: UserFormProps) {
                           <span className="text-sm text-foreground truncate">{c.name}</span>
                         </label>
                         {membership && (
-                          <select
+                          <Select
                             aria-label={t("companyRole", { company: c.name })}
                             value={membership.role}
                             onChange={(e) => setCompanyRole(c.id, e.target.value as CompanyRole)}
-                            className="h-8 shrink-0 rounded-md border border-input bg-background px-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            className="w-auto shrink-0"
                           >
                             {COMPANY_ROLES.map((role) => (
                               <option key={role} value={role}>{t(`roles.${role}`)}</option>
                             ))}
-                          </select>
+                          </Select>
                         )}
                       </div>
                     );
