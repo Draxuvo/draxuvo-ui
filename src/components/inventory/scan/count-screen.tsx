@@ -13,6 +13,7 @@ import { useStockCount, useStockCountActions, useStockCounts } from "@/hooks/use
 import type { StockCountItem } from "@/types";
 import { CountReview } from "./count-review";
 import { ScanField } from "./scan-field";
+import { Select } from "@/components/ui/select";
 
 export function CountScreen() {
   const t = useTranslations("inventory.count");
@@ -58,7 +59,7 @@ export function CountScreen() {
 
   const header = (
     <header className="space-y-1">
-      <Link href={`/${locale}/inventario`} className="foco-etiqueta inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+      <Link href={`/${locale}/inventario`} className="foco-etiqueta inline-flex min-h-10 items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground md:min-h-0">
         <ArrowLeft size={14} aria-hidden />
         {t("back")}
       </Link>
@@ -103,18 +104,18 @@ export function CountScreen() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {drafts.data && drafts.data.length > 1 ? (
-            <select
+            <Select
               aria-label={t("draftPicker")}
               value={id}
               onChange={(event) => setChosen(Number(event.target.value))}
-              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+              className="w-auto"
             >
               {drafts.data.map((draft) => (
                 <option key={draft.id} value={draft.id}>
                   {draft.name ?? t("draftName", { id: draft.id })}
                 </option>
               ))}
-            </select>
+            </Select>
           ) : (
             <p className="text-sm font-semibold text-foreground">{count.data?.name ?? t("draftName", { id })}</p>
           )}

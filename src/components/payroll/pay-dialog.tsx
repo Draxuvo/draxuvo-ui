@@ -11,9 +11,10 @@ import { Label } from "@/components/ui/label";
 import { money, todayIso } from "@/lib/payroll";
 import { payrollService } from "@/services/payroll";
 import { PAYROLL_METHODS, type PayrollMethod, type PayrollPayment, type PayrollRun } from "@/types";
+import { Select } from "@/components/ui/select";
 
 const FIELD =
-  "h-9 w-full rounded-etiqueta border border-input bg-card px-2.5 text-sm text-foreground tabular-nums transition-colors duration-[120ms] hover:border-foreground/40 foco-etiqueta";
+  "h-10 md:h-9 w-full rounded-etiqueta border border-input bg-card px-2.5 text-sm text-foreground tabular-nums transition-colors duration-[120ms] hover:border-foreground/40 foco-etiqueta";
 
 /** `payment` = una línea; sin ella, todas las pendientes de la corrida. */
 export type PayTarget = { run: PayrollRun; payment?: PayrollPayment } | null;
@@ -72,11 +73,11 @@ function PayForm({ target, onClose }: { target: NonNullable<PayTarget>; onClose:
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="pay-method">{t("method")}</Label>
-          <select id="pay-method" className={FIELD} value={method} onChange={(e) => setMethod(e.target.value as PayrollMethod)}>
+          <Select id="pay-method" value={method} onChange={(e) => setMethod(e.target.value as PayrollMethod)}>
             {PAYROLL_METHODS.map((m) => (
               <option key={m} value={m}>{tm(m)}</option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="pay-date">{t("date")}</Label>

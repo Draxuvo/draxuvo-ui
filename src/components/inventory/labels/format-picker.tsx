@@ -3,6 +3,7 @@
 "use client";
 import { useTranslations } from "next-intl";
 import type { LabelFormat } from "@/types";
+import { Select } from "@/components/ui/select";
 
 interface FormatPickerProps {
   formats: LabelFormat[];
@@ -15,14 +16,14 @@ export function FormatPicker({ formats, value, onChange }: FormatPickerProps) {
   const common = formats.filter((format) => !format.custom);
   const own = formats.filter((format) => format.custom);
   return (
-    <select
+    <Select
       aria-label={t("format")}
       value={String(value)}
       onChange={(event) => {
         const picked = formats.find((format) => String(format.id) === event.target.value);
         if (picked) onChange(picked);
       }}
-      className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+     
     >
       <optgroup label={t("formatCommon")}>
         {common.map((format) => (
@@ -40,6 +41,6 @@ export function FormatPicker({ formats, value, onChange }: FormatPickerProps) {
           ))}
         </optgroup>
       )}
-    </select>
+    </Select>
   );
 }

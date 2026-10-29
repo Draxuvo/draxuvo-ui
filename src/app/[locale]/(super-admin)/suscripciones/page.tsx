@@ -283,7 +283,7 @@ export default function SuscripcionesPage() {
               <Button
                 size="sm"
                 variant="outline"
-                className="gap-1.5 h-7 text-xs"
+                className="gap-1.5 text-xs md:h-7"
                 disabled={isLoadingSub}
                 onClick={() => setCheckoutCompany(company)}
               >
@@ -294,7 +294,7 @@ export default function SuscripcionesPage() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="gap-1.5 h-7 text-xs"
+                  className="gap-1.5 text-xs md:h-7"
                   disabled={isLoadingSub}
                   onClick={() => setTrialPlanRow(row.original)}
                 >
@@ -305,7 +305,7 @@ export default function SuscripcionesPage() {
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="gap-1.5 h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                  className="gap-1.5 text-xs md:h-7 text-destructive hover:text-destructive hover:bg-destructive/10"
                   disabled={isLoadingSub}
                   onClick={() => setCancelCompany(company)}
                 >
@@ -341,7 +341,7 @@ export default function SuscripcionesPage() {
             {t("pageSubtitle", { count: companiesData?.info?.total ?? 0 })}
           </p>
         </div>
-        <Button variant="outline" size="icon" onClick={() => refetch()} disabled={isFetching}>
+        <Button variant="outline" size="icon" aria-label={tc("refresh")} onClick={() => refetch()} disabled={isFetching}>
           <RefreshCw size={15} className={isFetching ? "animate-spin" : ""} />
         </Button>
       </div>
@@ -363,7 +363,7 @@ export default function SuscripcionesPage() {
               key={id}
               onClick={() => setFilter(id)}
               className={cn(
-                "px-3 py-1 text-sm rounded font-medium transition-colors",
+                "min-h-10 px-3 text-sm rounded font-medium transition-colors md:min-h-0 md:py-1",
                 filter === id
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground",

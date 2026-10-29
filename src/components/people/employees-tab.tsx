@@ -16,6 +16,7 @@ import { employeesService } from "@/services/employees";
 import { useAuthStore } from "@/store/auth";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { cn } from "@/lib/utils";
+import { CHIP, CHIP_ON, CHIP_OFF } from "@/components/filters/chip";
 import { EMPLOYEE_STATUSES, type Employee, type EmployeeStatus } from "@/types";
 import { ModuleLocked, useModuleGate } from "@/components/subscription/module-locked";
 import { FilterNotice } from "@/components/filters/filter-notice";
@@ -28,10 +29,6 @@ const ACCESS_ROLES = new Set(["admin", "owner"]);
 // "tab" es de la página Personal: limpiar los filtros no debe cambiar de pestaña.
 const PRESERVE = ["tab"] as const;
 
-const CHIP =
-  "inline-flex h-8 items-center rounded-full border px-3 text-sm transition-colors duration-[120ms] ease-etiqueta foco-etiqueta";
-const CHIP_ON = "border-foreground bg-foreground text-background";
-const CHIP_OFF = "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground";
 
 export function EmployeesTab() {
   return (
@@ -150,7 +147,8 @@ function EmpleadosContent() {
           onSearch={(value) => setFilter("search", value)}
           placeholder={t("searchPlaceholder")}
         />
-        <div role="group" aria-label={t("filters.status")} className="flex flex-wrap gap-2">
+        <div role="group" aria-label={t("filters.status")} className="flex flex-wrap items-center gap-2">
+          <span aria-hidden="true" className="text-xs font-medium text-muted-foreground">{t("filters.status")}</span>
           {statusOptions.map((o) => (
             <button
               key={o.value || "all"}
@@ -166,7 +164,8 @@ function EmpleadosContent() {
       </div>
 
       {showAccess && (
-        <div role="group" aria-label={t("access.column")} className="flex flex-wrap gap-2">
+        <div role="group" aria-label={t("access.column")} className="flex flex-wrap items-center gap-2">
+          <span aria-hidden="true" className="text-xs font-medium text-muted-foreground">{t("access.column")}</span>
           {[
             { value: "", label: t("access.filter.all") },
             { value: "with", label: t("access.filter.with") },

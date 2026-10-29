@@ -14,9 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useCreateTerminal, useUpdateTerminal } from "@/hooks/use-payment-terminals";
 import { TERMINAL_PROVIDERS, type PaymentTerminal, type TerminalProvider } from "@/types";
-
-const SELECT =
-  "h-11 w-full rounded-etiqueta border border-border bg-card px-3 text-sm text-foreground foco-etiqueta";
+import { Select } from "@/components/ui/select";
 
 interface TerminalFormProps {
   open: boolean;
@@ -100,13 +98,13 @@ function TerminalFields({ terminal, onDone }: { terminal?: PaymentTerminal | nul
             <Label htmlFor="terminal-provider" className="text-xs font-medium text-foreground">
               {t("provider")}
             </Label>
-            <select id="terminal-provider" className={SELECT} {...register("provider")}>
+            <Select id="terminal-provider" {...register("provider")}>
               {TERMINAL_PROVIDERS.map((provider) => (
                 <option key={provider} value={provider}>
                   {t(`providers.${provider}`)}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="flex items-center justify-between gap-4">
             <Label htmlFor="terminal-active" className="text-sm font-medium text-foreground">

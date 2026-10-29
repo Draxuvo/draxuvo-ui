@@ -29,6 +29,7 @@ import { useModuleGate } from "@/components/subscription/module-locked";
 import { useStations } from "@/hooks/use-restaurant";
 import { useProductTypes, useUnits } from "@/hooks/use-product-types";
 import type { Product } from "@/types";
+import { Select } from "@/components/ui/select";
 
 interface ProductFormProps {
   open: boolean;
@@ -43,8 +44,6 @@ interface ProductFormProps {
   /** Se llama con el producto guardado, además de cerrar la hoja. */
   onSaved?: (product: Product) => void;
 }
-
-const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring";
 
 type FormValues = {
   product_type_id: string;
@@ -208,12 +207,12 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId, canEdi
 
             <div className="space-y-1.5">
               <Label htmlFor="product_type_id" className="text-xs font-medium text-foreground">{t("type")}</Label>
-              <select id="product_type_id" {...register("product_type_id")} className={SELECT}>
+              <Select id="product_type_id" {...register("product_type_id")}>
                 <option value="">{t("typePick")}</option>
                 {(types.data ?? []).map((item) => (
                   <option key={item.id} value={item.id}>{item.name}</option>
                 ))}
-              </select>
+              </Select>
               {errors.product_type_id && <p className="text-xs text-destructive">{errors.product_type_id.message}</p>}
               {type && <p className="text-xs text-muted-foreground">{t(`typeHint.${type.sellable ? "sold" : "notSold"}${type.counted ? "Counted" : ""}`)}</p>}
             </div>
@@ -250,12 +249,12 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId, canEdi
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="unit_key" className="text-xs font-medium text-foreground">{t("unit")}</Label>
-                  <select id="unit_key" {...register("unit_key")} className={SELECT}>
+                  <Select id="unit_key" {...register("unit_key")}>
                     <option value="">{type.default_unit ? t("unitDefault", { unit: type.default_unit.name }) : "—"}</option>
                     {(units.data ?? []).map((unit) => (
                       <option key={unit.key} value={unit.key}>{unit.name}</option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
               </div>
             )}
@@ -330,12 +329,12 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId, canEdi
             {type?.sellable && restaurant && (
               <div className="space-y-1.5">
                 <Label htmlFor="station_id" className="text-xs font-medium text-foreground">{t("station")}</Label>
-                <select id="station_id" {...register("station_id")} className={SELECT}>
+                <Select id="station_id" {...register("station_id")}>
                   <option value="">{t("stationNone")}</option>
                   {stations.data!.filter((s) => s.active).map((s) => (
                     <option key={s.id} value={s.id}>{s.name}</option>
                   ))}
-                </select>
+                </Select>
               </div>
             )}
 

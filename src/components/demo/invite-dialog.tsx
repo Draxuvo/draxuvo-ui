@@ -13,9 +13,7 @@ import { Label } from "@/components/ui/label";
 import { DEMO_PLANS, DEMO_SCENARIOS } from "@/lib/demo";
 import { demoService } from "@/services/demo";
 import type { DemoInvite, DemoPlan, DemoScenario } from "@/types";
-
-const SELECT =
-  "h-10 w-full rounded-etiqueta border border-input bg-card px-2 text-sm foco-etiqueta hover:border-foreground/40";
+import { Select } from "@/components/ui/select";
 
 export function InviteDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const t = useTranslations("demo.admin.dialog");
@@ -113,19 +111,19 @@ export function InviteDialog({ open, onOpenChange }: { open: boolean; onOpenChan
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="invite-plan">{t("plan")}</Label>
-                <select id="invite-plan" className={SELECT} value={plan} onChange={(e) => pickPlan(e.target.value as DemoPlan)}>
+                <Select id="invite-plan" value={plan} onChange={(e) => pickPlan(e.target.value as DemoPlan)}>
                   {DEMO_PLANS.map((key) => (
                     <option key={key} value={key}>
                       {tp(key)}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="invite-scenario">{t("scenario")}</Label>
-                <select
+                <Select
                   id="invite-scenario"
-                  className={SELECT}
+                 
                   value={scenario}
                   onChange={(e) => setScenario(e.target.value as DemoScenario)}
                   disabled={DEMO_SCENARIOS[plan].length === 1}
@@ -135,7 +133,7 @@ export function InviteDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                       {ts(key)}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
             </div>
             <div className="space-y-1.5">

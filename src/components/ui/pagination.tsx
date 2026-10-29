@@ -69,7 +69,7 @@ function PageButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "min-w-7 h-7 px-1.5 rounded text-xs font-medium transition-colors",
+        "min-w-10 h-10 px-1.5 rounded text-xs md:min-w-7 md:h-7 font-medium transition-colors",
         active
           ? "bg-primary text-primary-foreground"
           : "text-muted-foreground hover:bg-muted hover:text-foreground",

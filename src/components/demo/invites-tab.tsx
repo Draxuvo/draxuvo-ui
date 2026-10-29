@@ -17,8 +17,8 @@ import { DEMO_PLANS } from "@/lib/demo";
 import { demoService } from "@/services/demo";
 import type { DemoInvite, DemoInviteStatus, DemoPlan } from "@/types";
 import { InviteDialog } from "./invite-dialog";
+import { Select } from "@/components/ui/select";
 
-const SELECT = "h-8 rounded-etiqueta border border-input bg-card px-2 text-sm foco-etiqueta hover:border-foreground/40";
 const STATUSES: DemoInviteStatus[] = ["active", "expired", "revoked"];
 const TONE: Record<DemoInviteStatus, "default" | "secondary" | "destructive"> = {
   active: "default",
@@ -76,25 +76,25 @@ export function InvitesTab() {
         <div className="flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
             {ti("filters.status")}
-            <select className={SELECT} value={status} onChange={(e) => reset(() => setStatus(e.target.value as DemoInviteStatus | ""))}>
+            <Select className="w-auto" value={status} onChange={(e) => reset(() => setStatus(e.target.value as DemoInviteStatus | ""))}>
               <option value="">{t("all")}</option>
               {STATUSES.map((key) => (
                 <option key={key} value={key}>
                   {ti(`status.${key}`)}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
             {ti("filters.plan")}
-            <select className={SELECT} value={plan} onChange={(e) => reset(() => setPlan(e.target.value as DemoPlan | ""))}>
+            <Select className="w-auto" value={plan} onChange={(e) => reset(() => setPlan(e.target.value as DemoPlan | ""))}>
               <option value="">{t("all")}</option>
               {DEMO_PLANS.map((key) => (
                 <option key={key} value={key}>
                   {tp(key)}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <Input
             aria-label={ti("filters.search")}

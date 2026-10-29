@@ -26,6 +26,7 @@ import { getDashboardStats } from "@/services/analytics";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { useAuthStore } from "@/store/auth";
 import { cn } from "@/lib/utils";
+import { CHIP, CHIP_ON, CHIP_OFF } from "@/components/filters/chip";
 import type { Product } from "@/types";
 import { ModuleLocked, useModuleGate } from "@/components/subscription/module-locked";
 import { FilterNotice } from "@/components/filters/filter-notice";
@@ -40,10 +41,6 @@ const ALLOWED = { low_stock: ONLY_TRUE, out_of_stock: ONLY_TRUE, available: ONLY
 
 type StockKey = "low_stock" | "out_of_stock" | "available";
 
-const CHIP =
-  "inline-flex h-8 items-center rounded-full border px-3 text-sm transition-colors duration-[120ms] ease-etiqueta foco-etiqueta";
-const CHIP_ON = "border-foreground bg-foreground text-background";
-const CHIP_OFF = "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground";
 
 export default function InventarioPage() {
   return (
@@ -217,7 +214,7 @@ function InventarioContent() {
               <button
                 type="button"
                 onClick={() => selectStock("low_stock")}
-                className="rounded-full bg-ceja px-2 py-0.5 font-medium text-foreground tabular-nums transition-colors duration-[120ms] hover:bg-ceja/80 foco-etiqueta"
+                className="inline-flex min-h-10 items-center rounded-full bg-ceja px-2 py-0.5 font-medium text-foreground tabular-nums md:min-h-0 transition-colors duration-[120ms] hover:bg-ceja/80 foco-etiqueta"
               >
                 {ta("subset.lowStock", { count: lowStockTotal })}
               </button>
@@ -293,7 +290,8 @@ function InventarioContent() {
           onSearch={(value) => setFilter("search", value)}
           placeholder={t("searchPlaceholder")}
         />
-        <div role="group" aria-label={t("filters.stock")} className="flex flex-wrap gap-2">
+        <div role="group" aria-label={t("filters.stock")} className="flex flex-wrap items-center gap-2">
+          <span aria-hidden="true" className="text-xs font-medium text-muted-foreground">{t("filters.stock")}</span>
           {stockOptions.map((o) => {
             const on = o.key ? filters[o.key] === "true" : noStockFilter;
             return (

@@ -34,19 +34,14 @@ import {
   type WorkOrder, type WorkOrderFilters, type WorkOrderPriority, type WorkOrderStatus,
 } from "@/types";
 import { cn } from "@/lib/utils";
+import { CHIP, CHIP_ON, CHIP_OFF } from "@/components/filters/chip";
+import { Select } from "@/components/ui/select";
 
 const PAGE_SIZE = 20;
 const GROUP_SIZE = 5;
 const DEFAULTS = { status: "", priority: "", employee_id: "", search: "" };
 const ALLOWED = { status: WORK_ORDER_STATUSES, priority: WORK_ORDER_PRIORITIES };
 const ID_PATTERN = /^\d+$/;
-
-const CHIP =
-  "inline-flex h-9 items-center rounded-full border px-3 text-sm transition-colors duration-[120ms] ease-etiqueta foco-etiqueta";
-const CHIP_ON = "border-foreground bg-foreground text-background";
-const CHIP_OFF = "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground";
-const SELECT =
-  "h-10 w-full rounded-etiqueta border border-input bg-card px-2.5 text-sm text-foreground transition-colors duration-[120ms] hover:border-foreground/40 foco-etiqueta sm:w-auto";
 
 export default function OrdenesPage() {
   return (
@@ -273,17 +268,17 @@ function OrdenesContent() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <SearchInput value={filters.search} onSearch={(value) => setFilter("search", value)} placeholder={t("searchPlaceholder")} />
         {showPriority && (
-          <select aria-label={t("filters.priority")} className={SELECT} value={filters.priority} onChange={(e) => setFilter("priority", e.target.value || null)}>
+          <Select aria-label={t("filters.priority")} className="w-auto" value={filters.priority} onChange={(e) => setFilter("priority", e.target.value || null)}>
             <option value="">{t("filters.allPriorities")}</option>
             {WORK_ORDER_PRIORITIES.map((p) => (
               <option key={p} value={p}>
                 {t(`priorities.${p}`)}
               </option>
             ))}
-          </select>
+          </Select>
         )}
         {(hasEmployees || employeeId) && (
-          <select aria-label={t("filters.employee")} className={SELECT} value={employeeId} onChange={(e) => setFilter("employee_id", e.target.value || null)}>
+          <Select aria-label={t("filters.employee")} className="w-auto" value={employeeId} onChange={(e) => setFilter("employee_id", e.target.value || null)}>
             <option value="">{t("filters.allEmployees")}</option>
             {employeeId && !employeeOptions?.results.some((e) => String(e.id) === employeeId) && <option value={employeeId}>{employeeName}</option>}
             {employeeOptions?.results.map((e) => (
@@ -291,7 +286,7 @@ function OrdenesContent() {
                 {e.name}
               </option>
             ))}
-          </select>
+          </Select>
         )}
       </div>
 

@@ -16,8 +16,8 @@ import { DEMO_PLANS } from "@/lib/demo";
 import { downloadCsv, toCsv } from "@/lib/reports/csv";
 import { demoService } from "@/services/demo";
 import type { DemoPlan, DemoSession } from "@/types";
+import { Select } from "@/components/ui/select";
 
-const SELECT = "h-8 rounded-etiqueta border border-input bg-card px-2 text-sm foco-etiqueta hover:border-foreground/40";
 const PAGE_SIZE = 20;
 /** Aperturas que se leen para calcular el porcentaje que pasó al registro. */
 const SAMPLE_SIZE = 100;
@@ -87,14 +87,14 @@ export function SessionsTab() {
         <div className="flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
             {ts("filters.plan")}
-            <select className={SELECT} value={plan} onChange={(e) => apply(() => setPlan(e.target.value as DemoPlan | ""))}>
+            <Select className="w-auto" value={plan} onChange={(e) => apply(() => setPlan(e.target.value as DemoPlan | ""))}>
               <option value="">{t("all")}</option>
               {DEMO_PLANS.map((key) => (
                 <option key={key} value={key}>
                   {tp(key)}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
             <input type="checkbox" checked={withContact} onChange={(e) => apply(() => setWithContact(e.target.checked))} />

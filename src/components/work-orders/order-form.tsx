@@ -23,10 +23,10 @@ import { useAppRouter } from "@/hooks/use-router";
 import { useAuthStore } from "@/store/auth";
 import { cn } from "@/lib/utils";
 import type { Employee, Product, WorkOrder, WorkOrderPriority } from "@/types";
+import { Select } from "@/components/ui/select";
 
 const PRIORITIES: WorkOrderPriority[] = ["low", "medium", "high", "urgent"];
 
-const FIELD = "h-11 w-full rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring";
 const AREA = "w-full rounded-lg border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-ring";
 
 type FormValues = {
@@ -301,14 +301,14 @@ export function OrderForm({
 
             {!staff && employeesData && (
               <Field label={tf("assignee")}>
-                <select {...register("employee_id")} className={FIELD}>
+                <Select {...register("employee_id")}>
                   <option value="">{tf("assigneeNone")}</option>
                   {employees.map((e) => (
                     <option key={e.id} value={e.id}>
                       {e.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </Field>
             )}
 
@@ -323,11 +323,11 @@ export function OrderForm({
               {items.map((row, idx) => (
                 <div key={row.id ?? idx} className="space-y-2 rounded-xl border border-border bg-muted/30 p-3">
                   <div className="flex items-center gap-2">
-                    <select
+                    <Select
                       aria-label={t("concepts.product")}
                       value={row.product_id ?? ""}
                       onChange={(e) => pickProduct(idx, e.target.value)}
-                      className={FIELD}
+                     
                     >
                       <option value="">{staff ? t("concepts.pickProduct") : t("concepts.addFree")}</option>
                       {Object.entries(byCategory).map(([cat, list]) => (
@@ -339,7 +339,7 @@ export function OrderForm({
                           ))}
                         </optgroup>
                       ))}
-                    </select>
+                    </Select>
                     <Button
                       type="button"
                       variant="ghost"
@@ -457,18 +457,18 @@ export function OrderForm({
                         <Input {...register("due_date")} type="date" className="h-11" />
                       </Field>
                       <Field label={tf("priority")}>
-                        <select {...register("priority")} className={FIELD}>
+                        <Select {...register("priority")}>
                           {PRIORITIES.map((p) => (
                             <option key={p} value={p}>
                               {t(`priorities.${p}`)}
                             </option>
                           ))}
-                        </select>
+                        </Select>
                       </Field>
                     </div>
 
                     <Field label={tf("notes")}>
-                      <textarea {...register("notes")} rows={3} className={AREA} placeholder={tf("notesPlaceholder")} />
+                      <textarea {...register("notes")} aria-label={tf("notes")} rows={3} className={AREA} placeholder={tf("notesPlaceholder")} />
                     </Field>
                   </div>
                 )}

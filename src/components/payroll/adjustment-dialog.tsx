@@ -15,9 +15,10 @@ import { money, pesosToCents } from "@/lib/payroll";
 import { formatDay } from "@/lib/reports/format";
 import { payrollService } from "@/services/payroll";
 import type { PayrollPayment, PayrollRun } from "@/types";
+import { Select } from "@/components/ui/select";
 
 const FIELD =
-  "h-9 w-full rounded-etiqueta border border-input bg-card px-2.5 text-sm text-foreground transition-colors duration-[120ms] hover:border-foreground/40 foco-etiqueta";
+  "h-10 md:h-9 w-full rounded-etiqueta border border-input bg-card px-2.5 text-sm text-foreground transition-colors duration-[120ms] hover:border-foreground/40 foco-etiqueta";
 
 /** Lee la línea de la corrida que se está viendo, así los ajustes nuevos aparecen al refrescar. */
 export function AdjustmentDialog({ run, paymentId, onClose }: { run: PayrollRun; paymentId: number | null; onClose: () => void }) {
@@ -119,10 +120,10 @@ function AdjustmentForm({ run, payment, onClose }: { run: PayrollRun; payment: P
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="adj-kind">{t("kind")}</Label>
-              <select id="adj-kind" className={FIELD} {...register("kind")}>
+              <Select id="adj-kind" {...register("kind")}>
                 <option value="bonus">{t("bonus")}</option>
                 <option value="deduction">{t("deduction")}</option>
-              </select>
+              </Select>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="adj-amount">{t("amount")}</Label>
@@ -142,14 +143,14 @@ function AdjustmentForm({ run, payment, onClose }: { run: PayrollRun; payment: P
           {corrects && (
             <div className="space-y-1.5">
               <Label htmlFor="adj-corrects">{t("correctsPick")}</Label>
-              <select id="adj-corrects" className={FIELD} {...register("corrects_payment_id")}>
+              <Select id="adj-corrects" {...register("corrects_payment_id")}>
                 <option value="">—</option>
                 {(history?.results ?? []).map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.run ? `${formatDay(p.run.starts_on, locale)} – ${formatDay(p.run.ends_on, locale)}` : p.id} · {money(p.net_cents, locale)}
                   </option>
                 ))}
-              </select>
+              </Select>
               {history && history.results.length === 0 && <p className="text-xs text-muted-foreground">{t("noPaid")}</p>}
             </div>
           )}

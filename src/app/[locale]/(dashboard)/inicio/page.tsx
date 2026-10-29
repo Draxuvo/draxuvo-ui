@@ -173,7 +173,7 @@ export default function InicioPage() {
       {role && ANALYTICS_ROLES.includes(role) && (
         <Link
           href={href("/dashboard")}
-          className="group inline-flex items-center gap-2 rounded-etiqueta px-1 text-sm font-medium text-foreground underline decoration-border underline-offset-4 transition-colors duration-[120ms] hover:decoration-foreground foco-etiqueta"
+          className="group inline-flex min-h-10 items-center gap-2 rounded-etiqueta px-1 text-sm md:min-h-0 font-medium text-foreground underline decoration-border underline-offset-4 transition-colors duration-[120ms] hover:decoration-foreground foco-etiqueta"
         >
           {t("viewDashboard")}
           <ArrowRight size={16} strokeWidth={1.75} aria-hidden />

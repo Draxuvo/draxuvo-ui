@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { companiesService } from "@/services/companies";
 import type { Company } from "@/types";
+import { Select } from "@/components/ui/select";
 
 interface CompanyFormProps {
   open: boolean;
@@ -106,13 +107,13 @@ export function CompanyForm({ open, onOpenChange, company }: CompanyFormProps) {
                 <Label className="text-xs font-medium text-foreground">
                   {t("status")}
                 </Label>
-                <select
+                <Select
                   {...register("active", { setValueAs: (v) => v === "true" })}
-                  className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                 
                 >
                   <option value="true">{t("active")}</option>
                   <option value="false">{t("inactive")}</option>
-                </select>
+                </Select>
               </div>
             </div>
           </div>

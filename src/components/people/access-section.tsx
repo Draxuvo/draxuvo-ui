@@ -16,16 +16,12 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuthStore } from "@/store/auth";
 import { employeesService } from "@/services/employees";
-import { cn } from "@/lib/utils";
 import type { CompanyRole, Employee } from "@/types";
+import { Select } from "@/components/ui/select";
 
 const ROLES: CompanyRole[] = ["staff", "admin", "owner"];
 const RANK: Record<CompanyRole, number> = { staff: 0, admin: 1, owner: 2 };
 const ERROR_CODES = ["role_not_allowed", "already_member", "last_owner", "email_required", "no_user"] as const;
-
-const SELECT = cn(
-  "h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm foco-etiqueta disabled:cursor-not-allowed disabled:opacity-60",
-);
 
 function errorCode(error: unknown): (typeof ERROR_CODES)[number] | "generic" {
   if (!isAxiosError(error)) return "generic";
@@ -76,13 +72,13 @@ export function CreateAccessFields({
       {enabled && (
         <div className="space-y-1.5">
           <Label className="text-xs font-medium text-foreground">{t("role")}</Label>
-          <select aria-label={t("role")} className={SELECT} value={role} onChange={(e) => onRoleChange(e.target.value as CompanyRole)}>
+          <Select aria-label={t("role")} value={role} onChange={(e) => onRoleChange(e.target.value as CompanyRole)}>
             {assignable.map((r) => (
               <option key={r} value={r}>
                 {tRoles(r)}
               </option>
             ))}
-          </select>
+          </Select>
           <p className="text-xs text-muted-foreground">{t("roleHint")}</p>
         </div>
       )}
@@ -151,9 +147,9 @@ export function EditAccess({ employee }: { employee: Employee }) {
           <p className="text-xs text-muted-foreground">{access.email}</p>
           <div className="space-y-1.5">
             <Label className="text-xs font-medium text-foreground">{t("role")}</Label>
-            <select
+            <Select
               aria-label={t("roleOf", { name: employee.name })}
-              className={SELECT}
+             
               value={access.role}
               disabled={change.isPending}
               onChange={(e) => change.mutate(e.target.value as CompanyRole)}
@@ -164,7 +160,7 @@ export function EditAccess({ employee }: { employee: Employee }) {
                   {tRoles(r)}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
           <Button type="button" variant="outline" size="sm" onClick={() => setConfirmRemove(true)}>
             {t("revoke")}
@@ -182,13 +178,13 @@ export function EditAccess({ employee }: { employee: Employee }) {
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs font-medium text-foreground">{t("role")}</Label>
-            <select aria-label={t("role")} className={SELECT} value={role} onChange={(e) => setRole(e.target.value as CompanyRole)}>
+            <Select aria-label={t("role")} value={role} onChange={(e) => setRole(e.target.value as CompanyRole)}>
               {assignable.map((r) => (
                 <option key={r} value={r}>
                   {tRoles(r)}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="flex gap-2">
             <Button type="button" variant="outline" size="sm" onClick={() => setGranting(false)}>

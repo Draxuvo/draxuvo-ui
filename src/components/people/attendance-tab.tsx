@@ -22,11 +22,13 @@ import { attendancesService } from "@/services/attendances";
 import { employeesService } from "@/services/employees";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { cn } from "@/lib/utils";
+import { CHIP, CHIP_ON, CHIP_OFF } from "@/components/filters/chip";
 import { ATTENDANCE_TYPES, type AttendanceType } from "@/types";
 import { ModuleLocked, useModuleGate } from "@/components/subscription/module-locked";
 import { FilterNotice } from "@/components/filters/filter-notice";
 import { useAuthStore } from "@/store/auth";
 import { AttendanceRoster } from "@/components/people/attendance-roster";
+import { Select } from "@/components/ui/select";
 
 const PAGE_SIZE = 20;
 const MARK_ROLES = new Set(["admin", "owner", "super_admin"]);
@@ -42,12 +44,8 @@ function todayInMexico() {
   return new Intl.DateTimeFormat("en-CA", { timeZone: TIME_ZONE }).format(new Date());
 }
 
-const CHIP =
-  "inline-flex h-8 items-center rounded-full border px-3 text-sm transition-colors duration-[120ms] ease-etiqueta foco-etiqueta";
-const CHIP_ON = "border-foreground bg-foreground text-background";
-const CHIP_OFF = "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground";
 const FIELD =
-  "h-9 rounded-etiqueta border border-input bg-card px-2.5 text-sm text-foreground tabular-nums transition-colors duration-[120ms] hover:border-foreground/40 foco-etiqueta";
+  "h-10 md:h-9 rounded-etiqueta border border-input bg-card px-2.5 text-sm text-foreground tabular-nums transition-colors duration-[120ms] hover:border-foreground/40 foco-etiqueta";
 
 const TYPE_BADGE: Record<AttendanceType, string> = {
   normal: "bg-sello text-etiqueta",
@@ -192,7 +190,7 @@ function AsistenciaContent() {
             type="button"
             aria-pressed={isToday}
             onClick={() => setFilters({ from: null, to: null })}
-            className={cn(CHIP, "h-9", isToday ? CHIP_ON : CHIP_OFF)}
+            className={cn(CHIP, isToday ? CHIP_ON : CHIP_OFF)}
           >
             {t("today")}
           </button>
@@ -200,9 +198,9 @@ function AsistenciaContent() {
 
         <label className="flex flex-col gap-1 text-xs font-medium text-muted-foreground">
           {t("employee")}
-          <select
+          <Select
             aria-label={t("filterEmployee")}
-            className={cn(FIELD, "min-w-48")}
+            className="w-auto min-w-48"
             value={employeeId}
             onChange={(e) => setFilter("employee_id", e.target.value || null)}
           >
@@ -215,7 +213,7 @@ function AsistenciaContent() {
                 {e.name}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
 
         <div role="group" aria-label={t("filterType")} className="flex flex-wrap gap-2">

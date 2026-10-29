@@ -5,16 +5,45 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
+  const scroller = React.useRef<HTMLDivElement>(null)
+  const [hasMore, setHasMore] = React.useState(false)
+
+  // Pista de desplazamiento (spec 049): degradado en el borde derecho mientras queden columnas fuera de vista.
+  React.useEffect(() => {
+    const el = scroller.current
+    if (!el) return
+    const update = () => setHasMore(el.scrollWidth - el.clientWidth - el.scrollLeft > 1)
+    update()
+    el.addEventListener("scroll", update, { passive: true })
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(update)
+    observer?.observe(el)
+    if (el.firstElementChild) observer?.observe(el.firstElementChild)
+    return () => {
+      el.removeEventListener("scroll", update)
+      observer?.disconnect()
+    }
+  }, [])
+
   return (
-    <div
-      data-slot="table-container"
-      className="relative w-full overflow-x-auto"
-    >
-      <table
-        data-slot="table"
-        className={cn("w-full caption-bottom text-sm", className)}
-        {...props}
-      />
+    <div className="relative w-full">
+      <div
+        ref={scroller}
+        data-slot="table-container"
+        className="relative w-full overflow-x-auto"
+      >
+        <table
+          data-slot="table"
+          className={cn("w-full caption-bottom text-sm", className)}
+          {...props}
+        />
+      </div>
+      {hasMore && (
+        <div
+          aria-hidden="true"
+          data-slot="table-scroll-hint"
+          className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-card to-transparent"
+        />
+      )}
     </div>
   )
 }
