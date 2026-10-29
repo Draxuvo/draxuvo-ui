@@ -23,7 +23,6 @@ export function FormatPicker({ formats, value, onChange }: FormatPickerProps) {
         const picked = formats.find((format) => String(format.id) === event.target.value);
         if (picked) onChange(picked);
       }}
-     
     >
       <optgroup label={t("formatCommon")}>
         {common.map((format) => (

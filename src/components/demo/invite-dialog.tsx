@@ -123,7 +123,6 @@ export function InviteDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                 <Label htmlFor="invite-scenario">{t("scenario")}</Label>
                 <Select
                   id="invite-scenario"
-                 
                   value={scenario}
                   onChange={(e) => setScenario(e.target.value as DemoScenario)}
                   disabled={DEMO_SCENARIOS[plan].length === 1}

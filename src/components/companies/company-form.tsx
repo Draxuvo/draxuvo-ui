@@ -109,7 +109,6 @@ export function CompanyForm({ open, onOpenChange, company }: CompanyFormProps) {
                 </Label>
                 <Select
                   {...register("active", { setValueAs: (v) => v === "true" })}
-                 
                 >
                   <option value="true">{t("active")}</option>
                   <option value="false">{t("inactive")}</option>

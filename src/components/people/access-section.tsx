@@ -149,7 +149,6 @@ export function EditAccess({ employee }: { employee: Employee }) {
             <Label className="text-xs font-medium text-foreground">{t("role")}</Label>
             <Select
               aria-label={t("roleOf", { name: employee.name })}
-             
               value={access.role}
               disabled={change.isPending}
               onChange={(e) => change.mutate(e.target.value as CompanyRole)}

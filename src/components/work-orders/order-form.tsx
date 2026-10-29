@@ -327,7 +327,6 @@ export function OrderForm({
                       aria-label={t("concepts.product")}
                       value={row.product_id ?? ""}
                       onChange={(e) => pickProduct(idx, e.target.value)}
-                     
                     >
                       <option value="">{staff ? t("concepts.pickProduct") : t("concepts.addFree")}</option>
                       {Object.entries(byCategory).map(([cat, list]) => (
