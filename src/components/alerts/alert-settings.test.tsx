@@ -41,14 +41,8 @@ function settings(over: Partial<AlertSettings> = {}): AlertSettings {
 beforeEach(() => {
   service.getSettings.mockReset().mockResolvedValue(settings());
   service.updateSettings.mockReset().mockImplementation(async (patch) => settings({ thresholds: { ...defaults, ...patch.thresholds }, summary_hour: patch.summary_hour ?? 8 }));
-  service.getPreference.mockReset().mockResolvedValue({ stock_email: true, stock_whatsapp: false, phone_present: true, whatsapp_available: true });
-  service.updatePreference.mockReset().mockImplementation(async (patch) => ({
-    stock_email: true,
-    stock_whatsapp: false,
-    phone_present: true,
-    whatsapp_available: true,
-    ...patch,
-  }));
+  service.getPreference.mockReset().mockResolvedValue({ stock_email: true } satisfies NotificationPreference);
+  service.updatePreference.mockReset().mockImplementation(async (patch) => ({ stock_email: true, ...patch }));
   useAuthStore.setState({ role: "owner", selectedCompanyId: 7 });
 });
 
@@ -124,28 +118,28 @@ describe("MyNotifications (spec 045, FR-017 y FR-018)", () => {
     await waitFor(() => expect(service.updatePreference).toHaveBeenCalledWith({ stock_email: false }));
   });
 
-  it("enciende el WhatsApp cuando hay teléfono", async () => {
+  it("solo ofrece el correo: no hay WhatsApp, ni aviso de teléfono, ni enlace a «Mi perfil» (spec 048)", async () => {
+    renderWithProviders(<MyNotifications />);
+
+    expect(await screen.findByRole("switch", { name: "Correo" })).toBeChecked();
+    expect(screen.getAllByRole("switch")).toHaveLength(1);
+    expect(screen.queryByText(/WhatsApp/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/teléfono/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Ir a mi perfil" })).not.toBeInTheDocument();
+  });
+
+  it("explica que, aun sin correo, el stock bajo se ve en el panel y en la app", async () => {
+    renderWithProviders(<MyNotifications />);
+
+    expect(await screen.findByText(/se sigue viendo en el panel y en la app/)).toBeInTheDocument();
+  });
+
+  it("solo manda stock_email al cambiar el canal", async () => {
     const user = userEvent.setup();
+    service.getPreference.mockResolvedValue({ stock_email: false } satisfies NotificationPreference);
     renderWithProviders(<MyNotifications />);
 
-    await user.click(await screen.findByRole("switch", { name: "WhatsApp" }));
-    await waitFor(() => expect(service.updatePreference).toHaveBeenCalledWith({ stock_whatsapp: true }));
-  });
-
-  it("sin teléfono no deja activar el WhatsApp y manda al perfil", async () => {
-    service.getPreference.mockResolvedValue({ stock_email: true, stock_whatsapp: false, phone_present: false, whatsapp_available: true } satisfies NotificationPreference);
-    renderWithProviders(<MyNotifications />);
-
-    expect(await screen.findByRole("switch", { name: "WhatsApp" })).toBeDisabled();
-    expect(screen.getByText(/Guarda tu teléfono/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Ir a mi perfil" })).toHaveAttribute("href", "/es/perfil");
-  });
-
-  it("avisa cuando el servidor aún no manda WhatsApp, sin bloquear el interruptor", async () => {
-    service.getPreference.mockResolvedValue({ stock_email: true, stock_whatsapp: false, phone_present: true, whatsapp_available: false });
-    renderWithProviders(<MyNotifications />);
-
-    expect(await screen.findByText(/aún no está disponible en el servidor/)).toBeInTheDocument();
-    expect(screen.getByRole("switch", { name: "WhatsApp" })).toBeEnabled();
+    await user.click(await screen.findByRole("switch", { name: "Correo" }));
+    await waitFor(() => expect(service.updatePreference).toHaveBeenCalledWith({ stock_email: true }));
   });
 });

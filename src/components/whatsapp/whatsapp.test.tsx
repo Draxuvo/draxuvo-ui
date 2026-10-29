@@ -93,22 +93,22 @@ describe("TestDialog (spec 047, US4)", () => {
   });
 
   const stockType = (): WhatsappMessageType => ({
-    kind: "stock_alert",
+    kind: "verification_code",
     uses_template: true,
     enabled: false,
-    template_name: "stock_bajo",
+    template_name: "verification_code",
     template_language: "es_MX",
     template_status: "approved",
     template_detail: null,
     template_checked_at: null,
-    expected_variables: 3,
+    expected_variables: 1,
     can_enable: true,
     blocked_reason: null,
     lock_version: 2,
   });
 
   function open(testsRemaining = 5) {
-    return renderWithProviders(<TestDialog open kind="stock_alert" testsRemaining={testsRemaining} onOpenChange={() => {}} />);
+    return renderWithProviders(<TestDialog open kind="verification_code" testsRemaining={testsRemaining} onOpenChange={() => {}} />);
   }
 
   it("prellena el teléfono del perfil y muestra las pruebas restantes", () => {
@@ -128,7 +128,7 @@ describe("TestDialog (spec 047, US4)", () => {
     await user.type(phone, "55 1234 5678");
     await user.click(screen.getByRole("button", { name: "Enviar prueba" }));
 
-    await waitFor(() => expect(service.testMessage).toHaveBeenCalledWith("stock_alert", "5512345678"));
+    await waitFor(() => expect(service.testMessage).toHaveBeenCalledWith("verification_code", "5512345678"));
     expect(await screen.findByRole("status")).toHaveTextContent(/Enviado a ••••5678 a las/);
   });
 
@@ -189,7 +189,7 @@ describe("TestDialog (spec 047, US4)", () => {
     const { unmount } = renderWithProviders(<MessageTypeRow type={stockType()} connected />);
 
     await user.click(screen.getByRole("button", { name: "Enviar prueba" }));
-    expect(screen.getByText("Prueba de Aviso de stock bajo")).toBeInTheDocument();
+    expect(screen.getByText("Prueba de Código de verificación")).toBeInTheDocument();
     unmount();
 
     renderWithProviders(<MessageTypeRow type={stockType()} connected={false} />);
@@ -380,15 +380,15 @@ describe("ConnectionCard (spec 047, US1)", () => {
 
 function messageType(over: Partial<WhatsappMessageType> = {}): WhatsappMessageType {
   return {
-    kind: "stock_alert",
+    kind: "verification_code",
     uses_template: true,
     enabled: false,
-    template_name: "stock_bajo",
+    template_name: "verification_code",
     template_language: "es_MX",
     template_status: "approved",
     template_detail: null,
     template_checked_at: "2026-10-28T17:31:00Z",
-    expected_variables: 3,
+    expected_variables: 1,
     can_enable: true,
     blocked_reason: null,
     lock_version: 2,
@@ -400,16 +400,12 @@ const stateWith = (type: WhatsappMessageType): WhatsappState => ({ ...connected(
 
 const guideItems: WhatsappGuideItem[] = [
   {
-    kind: "stock_alert",
-    name: "stock_bajo",
+    kind: "verification_code",
+    name: "verification_code",
     language: "es_MX",
     category: "UTILITY",
-    body: "Stock bajo en {{1}}: {{2}} producto(s) ({{3}}).",
-    variables: [
-      { position: 1, meaning: "Nombre de la empresa" },
-      { position: 2, meaning: "Cantidad de productos" },
-      { position: 3, meaning: "Nombres de los productos" },
-    ],
+    body: "Tu código de verificación de Draxuvo es {{1}}. No lo compartas con nadie.",
+    variables: [{ position: 1, meaning: "El código de 6 dígitos" }],
   },
 ];
 
@@ -456,7 +452,7 @@ describe("MessageTypeRow (spec 047, US2)", () => {
     await user.click(screen.getByRole("button", { name: "Guardar plantilla" }));
 
     await waitFor(() =>
-      expect(service.updateMessageType).toHaveBeenCalledWith("stock_alert", {
+      expect(service.updateMessageType).toHaveBeenCalledWith("verification_code", {
         template_name: "mi_aviso",
         template_language: "es_MX",
         lock_version: 2,
@@ -489,7 +485,7 @@ describe("MessageTypeRow (spec 047, US2)", () => {
     const { unmount } = renderWithProviders(<MessageTypeRow type={messageType()} connected />);
 
     await user.click(screen.getByRole("button", { name: "Verificar ahora" }));
-    await waitFor(() => expect(service.verifyMessageType).toHaveBeenCalledWith("stock_alert"));
+    await waitFor(() => expect(service.verifyMessageType).toHaveBeenCalledWith("verification_code"));
     unmount();
 
     renderWithProviders(<MessageTypeRow type={messageType()} connected={false} />);
@@ -502,15 +498,15 @@ describe("TemplateGuideDialog (spec 047, US2)", () => {
     const user = userEvent.setup();
     const writeText = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue();
     service.guide.mockResolvedValue(guideItems);
-    renderWithProviders(<TemplateGuideDialog open kind="stock_alert" onOpenChange={() => {}} />);
+    renderWithProviders(<TemplateGuideDialog open kind="verification_code" onOpenChange={() => {}} />);
 
     expect(await screen.findByText("UTILITY")).toBeInTheDocument();
-    expect(screen.getByText("Stock bajo en {{1}}: {{2}} producto(s) ({{3}}).")).toBeInTheDocument();
-    expect(screen.getByText(/Nombre de la empresa/)).toBeInTheDocument();
+    expect(screen.getByText("Tu código de verificación de Draxuvo es {{1}}. No lo compartas con nadie.")).toBeInTheDocument();
+    expect(screen.getByText(/El código de 6 dígitos/)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Copiar Texto del cuerpo" }));
 
-    await waitFor(() => expect(writeText).toHaveBeenCalledWith("Stock bajo en {{1}}: {{2}} producto(s) ({{3}})."));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith("Tu código de verificación de Draxuvo es {{1}}. No lo compartas con nadie."));
   });
 });
 
@@ -559,7 +555,7 @@ describe("ChannelSwitch (spec 047, US3)", () => {
 });
 
 describe("MessageTypeRow switches (spec 047, US3)", () => {
-  const switchName = "Enviar Aviso de stock bajo";
+  const switchName = "Enviar Código de verificación";
 
   it("un tipo sin plantilla aprobada no se puede encender y muestra el motivo", () => {
     renderWithProviders(
@@ -588,7 +584,7 @@ describe("MessageTypeRow switches (spec 047, US3)", () => {
 
     await user.click(screen.getByRole("switch", { name: switchName }));
 
-    await waitFor(() => expect(service.updateMessageType).toHaveBeenCalledWith("stock_alert", { enabled: false, lock_version: 2 }));
+    await waitFor(() => expect(service.updateMessageType).toHaveBeenCalledWith("verification_code", { enabled: false, lock_version: 2 }));
     expect(service.setChannel).not.toHaveBeenCalled();
   });
 
@@ -692,6 +688,42 @@ describe("HistoryTable (spec 047, US5)", () => {
     await user.click(screen.getByRole("button", { name: "Siguiente" }));
 
     await waitFor(() => expect(service.events).toHaveBeenCalledWith({ page: 2, page_size: 10 }));
+  });
+});
+
+describe("solo los tipos que quedan (spec 048)", () => {
+  const ticket = (): WhatsappMessageType =>
+    messageType({ kind: "ticket", uses_template: false, template_name: null, template_language: null, template_status: null, expected_variables: null });
+
+  it("la sección de mensajes muestra solo los tipos que manda la API: código de verificación y ticket", async () => {
+    useAuthStore.setState({ user: { role: "super_admin" } as unknown as User });
+    service.state.mockResolvedValue({ ...stateWith(messageType()), message_types: [messageType(), ticket()] });
+    service.events.mockResolvedValue(page([]));
+    renderWithProviders(<WhatsappPage />);
+
+    expect(await screen.findByRole("heading", { name: "Código de verificación" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Ticket" })).toBeInTheDocument();
+    expect(screen.queryByText("Aviso de stock bajo")).not.toBeInTheDocument();
+    // El interruptor general («Enviar mensajes por WhatsApp») más uno por tipo: dos tipos.
+    expect(screen.getAllByRole("switch")).toHaveLength(3);
+    expect(screen.getByRole("switch", { name: "Enviar Código de verificación" })).toBeInTheDocument();
+    expect(screen.getByRole("switch", { name: "Enviar Ticket" })).toBeInTheDocument();
+  });
+
+  it("la guía muestra una sola plantilla y no menciona el stock bajo", async () => {
+    service.guide.mockResolvedValue(guideItems);
+    renderWithProviders(<TemplateGuideDialog open onOpenChange={() => {}} />);
+
+    expect(await screen.findByText("UTILITY")).toBeInTheDocument();
+    expect(screen.getAllByRole("region")).toHaveLength(1);
+    expect(screen.queryByText(/stock/i)).not.toBeInTheDocument();
+  });
+
+  it("el historial nombra «Aviso de stock bajo» en un evento viejo, sin romperse", async () => {
+    service.events.mockResolvedValue(page([event({ action: "type_on", target: "stock_alert" })]));
+    renderWithProviders(<HistoryTable />);
+
+    expect(await screen.findByText("Encendió Aviso de stock bajo")).toBeInTheDocument();
   });
 });
 

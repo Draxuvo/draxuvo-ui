@@ -223,8 +223,7 @@
         "description": "The code sent to confirm a person's phone."
       },
       "stock_alert": {
-        "label": "Low-stock alert",
-        "description": "The alert to owners and admins when a product reaches its minimum."
+        "label": "Low-stock alert"
       },
       "ticket": {
         "label": "Ticket",
@@ -2978,12 +2977,9 @@
     },
     "mine": {
       "title": "My low stock notices",
-      "intro": "How you want to be told when a product reaches its minimum, besides seeing it in the panel.",
+      "intro": "We email you when a product reaches its minimum.",
       "email": "Email",
-      "whatsapp": "WhatsApp",
-      "phoneMissing": "Save your phone in your profile to turn on WhatsApp.",
-      "goProfile": "Go to my profile",
-      "notAvailable": "WhatsApp delivery is not available on the server yet. Meanwhile you get it by email and see it in the panel.",
+      "panelNote": "If you turn it off, low stock is still shown in the panel and in the app.",
       "saved": "Preference saved"
     }
   }

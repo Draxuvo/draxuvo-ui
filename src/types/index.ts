@@ -1267,15 +1267,15 @@ export type AlertSettingsPatch = {
   time_zone?: string;
 };
 
+/** Canal de correo del stock bajo (spec 045). Desde la spec 048 WhatsApp ya no es un canal de avisos. */
 export interface NotificationPreference {
   stock_email: boolean;
-  stock_whatsapp: boolean;
-  phone_present: boolean;
-  whatsapp_available: boolean;
 }
 
 // Configurar WhatsApp (spec 047): claves exactas de specs/047-configurar-whatsapp/contracts/api.md.
-export type WhatsappKind = "verification_code" | "stock_alert" | "ticket";
+export type WhatsappKind = "verification_code" | "ticket";
+/** Tipos que ya no existen (spec 048: el stock bajo sale por correo y por el panel y la app) pero siguen en el historial. */
+export type WhatsappLegacyKind = "stock_alert";
 export type WhatsappSource = "panel" | "env" | "none";
 export type WhatsappConnectionStatus = "not_connected" | "connected" | "error";
 export type WhatsappTemplateStatus = "unknown" | "approved" | "pending" | "rejected" | "not_found" | "incompatible";
@@ -1339,7 +1339,7 @@ export interface WhatsappGuideItem {
 export interface WhatsappEvent {
   id: number;
   action: string;
-  target: "connection" | WhatsappKind;
+  target: "connection" | WhatsappKind | WhatsappLegacyKind;
   result: "ok" | "failed";
   user: { id: number; name: string } | null;
   data: Record<string, unknown>;

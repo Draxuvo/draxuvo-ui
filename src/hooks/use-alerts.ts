@@ -74,7 +74,7 @@ export function useNotificationPreference({ enabled = true }: { enabled?: boolea
 export function useUpdateNotificationPreference() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: Partial<Pick<NotificationPreference, "stock_email" | "stock_whatsapp">>) => alertsService.updatePreference(data),
+    mutationFn: (data: Partial<NotificationPreference>) => alertsService.updatePreference(data),
     onSuccess: (preference) => {
       const companyId = useAuthStore.getState().selectedCompanyId;
       qc.setQueryData(["notification-preference", companyId], preference);

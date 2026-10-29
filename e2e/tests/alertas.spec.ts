@@ -41,7 +41,9 @@ test.describe("Sazón: dueño", () => {
     await expect(page.getByLabel("Mesa abierta")).toBeVisible();
     await expect(page.getByLabel(tr("settings.summaryHour"))).toBeVisible();
     await expect(page.getByRole("switch", { name: tr("mine.email") })).toBeChecked();
-    await expect(page.getByRole("switch", { name: tr("mine.whatsapp") })).toBeVisible();
+    // Spec 048: el correo es el único canal externo; el stock bajo se ve siempre en el panel y en la app.
+    await expect(page.getByText(tr("mine.panelNote"))).toBeVisible();
+    await expect(page.getByRole("switch", { name: "WhatsApp" })).toHaveCount(0);
   });
 
   test("[ALR-004] un límite inválido se rechaza y uno válido se guarda y se restaura @regresion", async ({ page }) => {

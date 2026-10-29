@@ -35,6 +35,6 @@ export const alertsService = {
 
   getPreference: (): Promise<NotificationPreference> => apiClient.get(`${base}/notification_preference`).then((r) => r.data),
 
-  updatePreference: (data: Partial<Pick<NotificationPreference, "stock_email" | "stock_whatsapp">>): Promise<NotificationPreference> =>
+  updatePreference: (data: Partial<NotificationPreference>): Promise<NotificationPreference> =>
     apiClient.patch(`${base}/notification_preference`, data).then((r) => r.data),
 };
