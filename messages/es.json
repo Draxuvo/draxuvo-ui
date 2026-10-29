@@ -125,8 +125,8 @@
       "token_expired": "La llave venció; genera una nueva en Meta.",
       "missing_permission": "La llave no tiene los permisos necesarios (whatsapp_business_management y whatsapp_business_messaging).",
       "phone_not_in_account": "Ese número no pertenece a la cuenta de WhatsApp Business indicada.",
-      "account_not_found": "No se encontró la cuenta de WhatsApp Business indicada.",
-      "invalid_number": "El identificador del número no es válido.",
+      "account_not_found": "No se encontró la cuenta de WhatsApp Business indicada o la llave no tiene acceso a ella; genera la llave eligiendo esa cuenta en Meta.",
+      "invalid_number": "El identificador del número no es válido o la llave no tiene acceso a ese número; genera la llave eligiendo la cuenta de ese número en Meta.",
       "account_restricted": "Meta restringió o deshabilitó la cuenta de WhatsApp Business.",
       "meta_unreachable": "No se pudo contactar a Meta; inténtalo de nuevo en un momento.",
       "rate_limited": "Meta limitó las peticiones por un momento; inténtalo más tarde.",
@@ -298,6 +298,7 @@
       "errorNotice": "La conexión tiene un error: {detail}",
       "errorUnknown": "Meta rechazó la conexión.",
       "verifyOk": "Conexión verificada",
+      "testAccountNotice": "Es una cuenta de prueba de Meta: no permite comprobar que el número pertenece a la cuenta ni consultar plantillas. Sirve para probar el ticket; para los demás mensajes usa una cuenta real.",
       "verifyFailed": "La conexión tiene un error; revisa el motivo.",
       "verifyUnreachable": "No se pudo contactar a Meta; se conserva el estado anterior.",
       "fields": {
@@ -329,6 +330,7 @@
         "save": "Verificar y guardar",
         "verifying": "Verificando con Meta…",
         "connected": "WhatsApp conectado",
+        "testAccount": "Es una cuenta de prueba de Meta: no permite comprobar que el número pertenece a la cuenta ni consultar plantillas. Sirve para probar el ticket; para los demás mensajes usa una cuenta real.",
         "replaced": "Llave reemplazada"
       },
       "disconnect": {

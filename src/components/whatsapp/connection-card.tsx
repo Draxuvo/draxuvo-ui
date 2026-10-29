@@ -44,7 +44,10 @@ export function ConnectionCard({ state }: { state: WhatsappState }) {
     verify.mutate(undefined, {
       onSuccess: (next) => {
         if (next.connection.stale) toast.info(t("verifyUnreachable"));
-        else if (next.connection.status === "connected") toast.success(t("verifyOk"));
+        else if (next.connection.status === "connected") {
+          toast.success(t("verifyOk"));
+          if (next.notice === "test_account") toast.info(t("testAccountNotice"));
+        }
         else toast.error(t("verifyFailed"));
       },
       onError: (e) => toast.error(errorText(e)),

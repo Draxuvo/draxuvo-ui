@@ -1,6 +1,7 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AxiosError, type AxiosResponse } from "axios";
+import { toast } from "sonner";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
 import { useAuthStore } from "@/store/auth";
@@ -274,6 +275,47 @@ describe("ConnectionCard (spec 047, US1)", () => {
     expect(await screen.findByText(/La llave venció; genera una nueva en Meta\./)).toBeInTheDocument();
     expect(screen.getByText(/código de Meta 190/)).toBeInTheDocument();
     expect(screen.getByLabelText("Llave de acceso")).toBeInTheDocument();
+  });
+
+  it("un 100 de Meta dice que la llave puede no tener acceso a ese número, no solo que el ID está mal", async () => {
+    const user = userEvent.setup();
+    service.saveConnection.mockRejectedValue(
+      apiError(422, { code: "whatsapp_rejected", reason: "invalid_number", meta_code: "100" }),
+    );
+    renderWithProviders(<ConnectionCard state={state()} />);
+
+    await user.click(screen.getByRole("button", { name: "Conectar" }));
+    await user.type(screen.getByLabelText("Llave de acceso"), TOKEN);
+    await user.type(screen.getByLabelText("Identificador del número"), "104512345678901");
+    await user.type(screen.getByLabelText("Identificador de la cuenta"), "109876543210987");
+    await user.click(screen.getByRole("button", { name: "Verificar y guardar" }));
+
+    expect(await screen.findByText(/la llave no tiene acceso a ese número/)).toBeInTheDocument();
+    expect(screen.getByText(/código de Meta 100/)).toBeInTheDocument();
+  });
+
+  it("al conectar una cuenta de prueba de Meta avisa que no se pueden comprobar las plantillas", async () => {
+    const user = userEvent.setup();
+    service.saveConnection.mockResolvedValue({ ...connected(), notice: "test_account" });
+    renderWithProviders(<ConnectionCard state={state()} />);
+
+    await user.click(screen.getByRole("button", { name: "Conectar" }));
+    await user.type(screen.getByLabelText("Llave de acceso"), TOKEN);
+    await user.type(screen.getByLabelText("Identificador del número"), "104512345678901");
+    await user.type(screen.getByLabelText("Identificador de la cuenta"), "109876543210987");
+    await user.click(screen.getByRole("button", { name: "Verificar y guardar" }));
+
+    await waitFor(() => expect(toast.info).toHaveBeenCalledWith(expect.stringContaining("cuenta de prueba de Meta")));
+  });
+
+  it("al verificar una cuenta de prueba de Meta también lo avisa", async () => {
+    const user = userEvent.setup();
+    service.verifyConnection.mockResolvedValue({ ...connected(), notice: "test_account" });
+    renderWithProviders(<ConnectionCard state={connected()} />);
+
+    await user.click(screen.getByRole("button", { name: "Verificar ahora" }));
+
+    await waitFor(() => expect(toast.info).toHaveBeenCalledWith(expect.stringContaining("cuenta de prueba de Meta")));
   });
 
   it("valida en el formulario antes de llamar a la API", async () => {

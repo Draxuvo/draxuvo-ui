@@ -125,8 +125,8 @@
       "token_expired": "The key expired; generate a new one in Meta.",
       "missing_permission": "The key lacks the required permissions (whatsapp_business_management and whatsapp_business_messaging).",
       "phone_not_in_account": "That number doesn't belong to the given WhatsApp Business account.",
-      "account_not_found": "The given WhatsApp Business account wasn't found.",
-      "invalid_number": "The number identifier isn't valid.",
+      "account_not_found": "The given WhatsApp Business account wasn't found or the key has no access to it; generate the key choosing that account in Meta.",
+      "invalid_number": "The number identifier isn't valid or the key has no access to that number; generate the key choosing that number's account in Meta.",
       "account_restricted": "Meta restricted or disabled the WhatsApp Business account.",
       "meta_unreachable": "Meta couldn't be reached; try again in a moment.",
       "rate_limited": "Meta limited requests for a moment; try again later.",
@@ -298,6 +298,7 @@
       "errorNotice": "The connection has an error: {detail}",
       "errorUnknown": "Meta rejected the connection.",
       "verifyOk": "Connection verified",
+      "testAccountNotice": "This is a Meta test account: it doesn't allow checking that the number belongs to the account or querying templates. It works to test the ticket; use a real account for the other messages.",
       "verifyFailed": "The connection has an error; check the reason.",
       "verifyUnreachable": "Meta couldn't be reached; the previous state is kept.",
       "fields": {
@@ -329,6 +330,7 @@
         "save": "Verify and save",
         "verifying": "Verifying with Meta…",
         "connected": "WhatsApp connected",
+        "testAccount": "This is a Meta test account: it doesn't allow checking that the number belongs to the account or querying templates. It works to test the ticket; use a real account for the other messages.",
         "replaced": "Key replaced"
       },
       "disconnect": {
