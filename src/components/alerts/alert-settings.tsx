@@ -35,6 +35,10 @@ const SECTIONS: { kind: Exclude<AlertKind, "low_stock">; perStation: boolean }[]
 
 type Draft = Record<string, string>;
 
+// Cada apartado es un fieldset; la leyenda se saca del borde (float) para que no corte la tarjeta y se lee como su título.
+const SECTION = "min-w-0 space-y-4 rounded-etiqueta border border-border bg-card p-4";
+const SECTION_TITLE = "float-left mb-3 w-full p-0 text-sm font-medium text-foreground [&+*]:clear-both";
+
 const fieldKey = (kind: string, station?: StationKind) => (station ? `${kind}.${station}` : kind);
 
 function toDraft(settings: AlertSettings): Draft {
@@ -108,12 +112,13 @@ function SettingsEditor({ data }: { data: AlertSettings }) {
     setDraft((current) => ({ ...current, [key]: value }));
   }
 
-  function field(kind: string, station: StationKind | undefined, id: string, label: string, defaultValue: number) {
+  /** `hideLabel`: la sección ya lleva su título a la vista; la etiqueta se queda solo para lectores de pantalla. */
+  function field(kind: string, station: StationKind | undefined, id: string, label: string, defaultValue: number, hideLabel = false) {
     const key = fieldKey(kind, station);
     const bad = !validMinutes(draft[key]);
     return (
-      <div key={key} className="space-y-1">
-        <Label htmlFor={id}>{label}</Label>
+      <div key={key} className="space-y-1.5">
+        <Label htmlFor={id} className={hideLabel ? "sr-only" : undefined}>{label}</Label>
         <div className="flex items-center gap-2">
           <Input
             id={id}
@@ -126,7 +131,7 @@ function SettingsEditor({ data }: { data: AlertSettings }) {
             onChange={(event) => set(key, event.target.value)}
             aria-invalid={bad}
             aria-describedby={`${id}-hint`}
-            className="min-h-11 w-28"
+            className="w-28"
           />
           <span className="text-sm text-muted-foreground">{t("minutes")}</span>
         </div>
@@ -161,9 +166,9 @@ function SettingsEditor({ data }: { data: AlertSettings }) {
       </div>
 
       {SECTIONS.filter(({ kind }) => applicable.has(kind)).map(({ kind, perStation }) => (
-        <fieldset key={kind} className="space-y-3 rounded-etiqueta border border-border bg-card p-4">
-          <legend className="px-1 text-sm font-medium text-foreground">{t(`sections.${kind}`)}</legend>
-          <div className="grid gap-4 sm:grid-cols-3">
+        <fieldset key={kind} className={SECTION}>
+          <legend className={SECTION_TITLE}>{t(`sections.${kind}`)}</legend>
+          <div className={perStation ? "grid gap-4 sm:grid-cols-3" : undefined}>
             {perStation
               ? STATIONS.map((station) =>
                   field(
@@ -174,22 +179,21 @@ function SettingsEditor({ data }: { data: AlertSettings }) {
                     data.defaults[kind as "kitchen_wait" | "kitchen_preparing"][station],
                   ),
                 )
-              : field(kind, undefined, kind, t(`sections.${kind}`), data.defaults[kind as "table_open" | "work_order_stalled"])}
+              : field(kind, undefined, kind, t(`sections.${kind}`), data.defaults[kind as "table_open" | "work_order_stalled"], true)}
           </div>
         </fieldset>
       ))}
 
       {applicable.has("low_stock") && (
-        <fieldset className="space-y-3 rounded-etiqueta border border-border bg-card p-4">
-          <legend className="px-1 text-sm font-medium text-foreground">{t("sections.summary")}</legend>
+        <fieldset className={SECTION}>
+          <legend className={SECTION_TITLE}>{t("sections.summary")}</legend>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label htmlFor="summary-hour">{t("summaryHour")}</Label>
               <Select
                 id="summary-hour"
                 value={draft.summary_hour}
                 onChange={(event) => set("summary_hour", event.target.value)}
-               
               >
                 {Array.from({ length: 24 }, (_, hour) => (
                   <option key={hour} value={hour}>
@@ -198,13 +202,12 @@ function SettingsEditor({ data }: { data: AlertSettings }) {
                 ))}
               </Select>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label htmlFor="time-zone">{t("timeZone")}</Label>
               <Select
                 id="time-zone"
                 value={draft.time_zone}
                 onChange={(event) => set("time_zone", event.target.value)}
-               
               >
                 {zones.map((zone) => (
                   <option key={zone} value={zone}>
@@ -218,7 +221,7 @@ function SettingsEditor({ data }: { data: AlertSettings }) {
         </fieldset>
       )}
 
-      <Button type="submit" className="min-h-11" disabled={invalid || update.isPending || Object.keys(patch).length === 0}>
+      <Button type="submit" disabled={invalid || update.isPending || Object.keys(patch).length === 0}>
         {t("save")}
       </Button>
     </form>

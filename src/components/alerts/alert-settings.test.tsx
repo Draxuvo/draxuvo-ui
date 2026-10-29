@@ -57,6 +57,18 @@ describe("AlertSettingsForm (spec 045, FR-016)", () => {
     expect(screen.getAllByText("Por omisión: 10 min").length).toBeGreaterThan(0);
   });
 
+  it("no repite el título en las secciones de un solo campo y los campos miden como las listas", async () => {
+    renderWithProviders(<AlertSettingsForm />);
+
+    const field = await screen.findByLabelText("Mesa abierta");
+    // El título de la sección va a la vista; la etiqueta del campo queda solo para lectores de pantalla.
+    expect(screen.getAllByText("Mesa abierta")).toHaveLength(2);
+    expect(document.querySelector("label[for='table_open']")).toHaveClass("sr-only");
+    // Misma altura que Select y Button (spec 049): sin alturas propias.
+    expect(field.className).not.toMatch(/min-h-/);
+    expect(screen.getByRole("button", { name: "Guardar cambios" }).className).not.toMatch(/min-h-/);
+  });
+
   it("guarda solo lo que cambió, con la forma de la API", async () => {
     const user = userEvent.setup();
     renderWithProviders(<AlertSettingsForm />);
