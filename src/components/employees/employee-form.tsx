@@ -175,7 +175,6 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
                   <Label className="text-xs font-medium text-foreground">{t("status")}</Label>
                   <Select
                     {...register("status")}
-                   
                   >
                     <option value="active">{t("active")}</option>
                     <option value="inactive">{t("inactive")}</option>

@@ -194,7 +194,6 @@ export function CheckPaymentDialog({
                     <Select
                       value={terminal}
                       onChange={(e) => setTerminalId(e.target.value)}
-                     
                     >
                       <option value="">{t("noTerminal")}</option>
                       {terminals.map((term) => <option key={term.id} value={term.id}>{term.name}</option>)}

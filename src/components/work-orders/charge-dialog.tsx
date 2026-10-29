@@ -344,7 +344,6 @@ function PaymentRow({
                 id={id("terminal")}
                 value={row.terminalId || defaultTerminal}
                 onChange={(e) => onChange({ terminalId: e.target.value })}
-               
               >
                 <option value="">{t("charge.pickTerminal")}</option>
                 {terminals.map((terminal) => (

@@ -233,7 +233,6 @@ export function UserForm({ open, onOpenChange, user }: UserFormProps) {
                     // setValueAs también recibe el booleano que llega por reset(); con solo
                     // `v === "true"` un usuario activo se guardaba como inactivo (spec 014).
                     {...register("active", { setValueAs: (v) => v === true || v === "true" })}
-                   
                   >
                     <option value="true">{t("active")}</option>
                     <option value="false">{t("inactive")}</option>
