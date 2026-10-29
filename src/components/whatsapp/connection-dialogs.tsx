@@ -82,8 +82,9 @@ export function ConnectDialog({ open, onOpenChange, connection, mode }: ConnectD
         lock_version: connection.lock_version,
       },
       {
-        onSuccess: () => {
+        onSuccess: (next) => {
           toast.success(replacing ? t("replaced") : t("connected"));
+          if (next.notice === "test_account") toast.info(t("testAccount"));
           close(false);
         },
         onError: (e) => setError(errorText(e)),

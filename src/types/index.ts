@@ -1323,6 +1323,8 @@ export interface WhatsappState {
   connection: WhatsappConnection;
   message_types: WhatsappMessageType[];
   tests_remaining: number;
+  /** Aviso de una sola respuesta (no se guarda): `test_account` = cuenta de prueba de Meta, sin comprobación de plantillas. */
+  notice?: "test_account";
 }
 
 export interface WhatsappGuideItem {
