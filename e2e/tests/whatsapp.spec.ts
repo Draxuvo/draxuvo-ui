@@ -18,10 +18,12 @@ test.describe("super admin", () => {
 
     // Interruptor general y uno por tipo, todos bloqueados mientras no haya conexión.
     await expect(page.getByRole("switch", { name: tr("channel.title") })).toBeDisabled();
-    for (const kind of ["verification_code", "stock_alert", "ticket"]) {
+    // Spec 048: solo quedan dos tipos; el aviso de stock bajo sale por correo y por el panel y la app, no por WhatsApp.
+    for (const kind of ["verification_code", "ticket"]) {
       await expect(page.getByRole("switch", { name: tr("types.switchLabel", { type: tr(`types.${kind}.label`) }) })).toBeDisabled();
     }
-    await expect(page.getByText(tr("types.blocked.not_connected"))).toHaveCount(3);
+    await expect(page.getByRole("switch", { name: tr("types.switchLabel", { type: tr("types.stock_alert.label") }) })).toHaveCount(0);
+    await expect(page.getByText(tr("types.blocked.not_connected"))).toHaveCount(2);
 
     await expect(page.getByRole("heading", { name: tr("history.title") })).toBeVisible();
   });
@@ -34,13 +36,14 @@ test.describe("super admin", () => {
     const dialog = page.getByRole("dialog");
     await expect(dialog.getByText(tr("guide.title"))).toBeVisible();
     await expect(dialog.getByText("UTILITY").first()).toBeVisible();
-    await expect(dialog.getByText("stock_bajo", { exact: true })).toBeVisible();
+    // Spec 048: una sola plantilla, la del código de verificación; ya no hay la de stock bajo.
+    await expect(dialog.getByRole("region")).toHaveCount(1);
+    await expect(dialog.getByText("stock_bajo")).toHaveCount(0);
 
-    // Copiar el nombre de la plantilla de stock bajo (el segundo bloque de la guía).
-    const stock = dialog.getByRole("region", { name: tr("types.stock_alert.label") });
-    await stock.getByRole("button", { name: tr("guide.copy", { label: tr("guide.name") }) }).click();
+    const code = dialog.getByRole("region", { name: tr("types.verification_code.label") });
+    await code.getByRole("button", { name: tr("guide.copy", { label: tr("guide.name") }) }).click();
     await expect(page.getByText(tr("guide.copied", { label: tr("guide.name") }))).toBeVisible();
-    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("stock_bajo");
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("verification_code");
   });
 
   test("[WAP-004] una llave inventada se rechaza con su motivo y no queda nada guardado @regresion", async ({ page }) => {

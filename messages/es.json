@@ -223,8 +223,7 @@
         "description": "El código que se manda para confirmar el teléfono de una persona."
       },
       "stock_alert": {
-        "label": "Aviso de stock bajo",
-        "description": "El aviso a dueños y administradores cuando un producto llega a su mínimo."
+        "label": "Aviso de stock bajo"
       },
       "ticket": {
         "label": "Ticket",
@@ -2978,12 +2977,9 @@
     },
     "mine": {
       "title": "Mis avisos de stock bajo",
-      "intro": "Por dónde quieres que te avisemos cuando un producto llegue a su mínimo, además de verlo en el panel.",
+      "intro": "Te avisamos por correo cuando un producto llegue a su mínimo.",
       "email": "Correo",
-      "whatsapp": "WhatsApp",
-      "phoneMissing": "Guarda tu teléfono en tu perfil para activar el WhatsApp.",
-      "goProfile": "Ir a mi perfil",
-      "notAvailable": "El envío por WhatsApp aún no está disponible en el servidor. Mientras tanto te llega por correo y lo ves en el panel.",
+      "panelNote": "Si lo apagas, el stock bajo se sigue viendo en el panel y en la app.",
       "saved": "Preferencia guardada"
     }
   }
