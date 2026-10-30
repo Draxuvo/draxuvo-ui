@@ -5,6 +5,7 @@ import { apiClient } from "@/lib/api";
 import { applyAppearance, fromPreferences } from "@/lib/appearance";
 import { clearDemoInfo } from "@/lib/demo";
 import { queryClient } from "@/lib/query";
+import { markSessionEnding } from "@/lib/session-end";
 import type { AuthResponse, Role, User } from "@/types";
 
 const COMPANY_KEY = "selected_company_id";
@@ -132,6 +133,8 @@ export const useAuthStore = create<AuthState>()(
       logout: () => get().endSession("/login"),
 
       endSession: (redirectTo) => {
+        // Primero la marca: las pantallas montadas piden datos otra vez al limpiar el caché y no deben llegar sin token.
+        markSessionEnding();
         localStorage.removeItem("auth_token");
         clearDemoInfo();
         localStorage.removeItem(COMPANY_KEY);

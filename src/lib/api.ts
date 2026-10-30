@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { getApiT, getLocale } from "@/lib/api-i18n";
 import { notifyDemoExpired, readDemoInfo } from "@/lib/demo";
+import { isSessionEnding } from "@/lib/session-end";
 import es from "../../messages/es.json";
 import en from "../../messages/en.json";
 
@@ -38,6 +39,8 @@ export const apiClient = axios.create({
 
 // Inyecta el token, el idioma y la empresa activa en cada request
 apiClient.interceptors.request.use((config) => {
+  // Cerrando sesión: no se envía nada (llegaría sin token y volvería como 401).
+  if (isSessionEnding()) throw new axios.CanceledError("session-ending", undefined, config);
   const token = localStorage.getItem("auth_token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   config.headers["locale"] = getLocale();
@@ -51,7 +54,7 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (res) => res,
   (error) => {
-    if (error.config?.skipErrorToast) return Promise.reject(error);
+    if (axios.isCancel(error) || error.config?.skipErrorToast) return Promise.reject(error);
     const t = getApiT();
     const status: number | undefined = error.response?.status;
     const err = error.response?.data?.error;
