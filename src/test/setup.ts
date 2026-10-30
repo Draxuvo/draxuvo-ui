@@ -1,9 +1,12 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
+import { resetSessionEnding } from "@/lib/session-end";
 
 afterEach(() => {
   cleanup();
+  // En jsdom `window.location.href = …` no recarga la página: sin esto la marca de «cerrando sesión» pasaría a la prueba siguiente.
+  resetSessionEnding();
 });
 
 // matchMedia: no coincide con nada salvo que la prueba lo active con setMatchMedia.
