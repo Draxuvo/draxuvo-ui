@@ -50,7 +50,8 @@ test("[SAD-014] el super admin desactiva un módulo de una empresa y el dueño d
   await row(page, company.companyName).getByRole("button", { name: co("modules.open", { name: company.companyName }) }).click();
   const sheet = page.getByRole("dialog");
   await expect(sheet.getByText(co("modules.title", { name: company.companyName }))).toBeVisible();
-  await expect(sheet.getByRole("switch")).toHaveCount(8);
+  // 8 módulos del plan Pro más el interruptor del módulo extra (spec 053).
+  await expect(sheet.getByRole("switch")).toHaveCount(9);
 
   // 2. Desactiva Inventario: avisa, el resumen baja y queda registrado por la API.
   await sheet.getByRole("switch", { name: t("modules.inventory") }).click();
@@ -347,9 +348,16 @@ test("[FLU-10] el super admin crea una empresa, la consulta sin frenos y desacti
   await expect(loginPage).toHaveURL(/\/es\/login$/);
   await blocked.close();
 
-  // Caso negativo: un dueño recibe 403 en empresas y usuarios (SAD-001, SAD-002).
+  // Spec 052 (H-04): el dueño desactivado pierde el acceso aunque conserve su token (401, no 403).
   for (const path of ["companies", "users"]) {
     const denied = await request.get(`${API_URL}/api/v1/${path}`, { headers: { Authorization: `Bearer ${owner.token}`, "X-Company-Id": String(owner.id) } });
+    expect(denied.status(), path).toBe(401);
+  }
+
+  // Caso negativo: un dueño activo recibe 403 en empresas y usuarios (SAD-001, SAD-002).
+  const active = await newCompany(request, info.workerIndex);
+  for (const path of ["companies", "users"]) {
+    const denied = await request.get(`${API_URL}/api/v1/${path}`, { headers: { Authorization: `Bearer ${active.token}`, "X-Company-Id": String(active.id) } });
     expect(denied.status(), path).toBe(403);
   }
 });

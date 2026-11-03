@@ -1007,7 +1007,49 @@
       "on": "Activo",
       "off": "Desactivado",
       "saved": "Módulos actualizados",
-      "error": "No se pudieron actualizar los módulos"
+      "error": "No se pudieron actualizar los módulos",
+      "addon": {
+        "title": "Módulos extra",
+        "saved": "Cambio aplicado",
+        "on": "Activo",
+        "off": "Apagado",
+        "trial": "Activo en la prueba, sin cobro",
+        "endsOn": "Activo hasta el {date}",
+        "perMonth": "al mes",
+        "perYear": "al año",
+        "beforeTax": "sin IVA",
+        "noPrices": "Faltan sus precios en la cuenta de cobro: no se puede encender todavía.",
+        "reactivate": "Reactivar",
+        "history": "Últimos cambios",
+        "historyOn": "{name} encendido por {actor} el {date}",
+        "historyOff": "{name} apagado por {actor} el {date}",
+        "cancel": "Cancelar",
+        "confirmButton": "Confirmar",
+        "applying": "Aplicando…",
+        "confirm": {
+          "on": {
+            "title": "¿Encender {name}?",
+            "body": "El total de la suscripción sube {price} {cycle} más IVA. En una suscripción pagada se cobra ahora la parte proporcional del periodo en curso."
+          },
+          "off": {
+            "title": "¿Apagar {name}?",
+            "body": "La empresa lo conserva hasta el {date}, sin reembolso, y el total baja {price} {cycle} más IVA desde la siguiente renovación. Si está en prueba se quita ahora."
+          },
+          "again": {
+            "title": "¿Reactivar {name}?",
+            "body": "Se cancela la baja programada. No se cobra de nuevo."
+          }
+        },
+        "errors": {
+          "addon_payment_failed": "No se pudo cobrar. Revisa el método de pago de la empresa.",
+          "addon_requires_module": "La empresa necesita el módulo de Inventario.",
+          "addon_not_available": "Faltan los precios del módulo en la cuenta de cobro.",
+          "subscription_not_paid": "La suscripción no está activa ni en prueba.",
+          "subscription_suspended": "La suscripción está suspendida.",
+          "billing_managed_by_parent": "Es una sucursal: cámbialo en su empresa principal.",
+          "generic": "No se pudo aplicar el cambio."
+        }
+      }
     }
   },
   "forgotPassword": {
@@ -1269,37 +1311,9 @@
     "mainCompany": "la empresa principal",
     "modulesReadOnly": "Estos son los módulos de tu plan. Draxuvo los activa y desactiva; si necesitas un cambio, pídelo al soporte de Draxuvo.",
     "addons": {
-      "title": "Módulos extra",
-      "desc": "Se suman a tu plan y se cobran junto con tu suscripción.",
       "perMonth": "{price} al mes",
       "perYear": "{price} al año",
       "beforeTax": "sin IVA",
-      "requires": "Necesita {modules}",
-      "contract": "Contratar",
-      "contracting": "Contratando…",
-      "contracted": "Contratado",
-      "endsOn": "Termina el {date}",
-      "reactivate": "Reactivar",
-      "reactivating": "Reactivando…",
-      "remove": "Dar de baja",
-      "removing": "Dando de baja…",
-      "includeInCheckout": "Incluir {name} al pagar",
-      "selectedForCheckout": "Se cobrará junto con tu plan.",
-      "prorationNote": "Al contratarlo se cobra de inmediato la parte proporcional del periodo en curso, con IVA.",
-      "removeTitle": "¿Dar de baja {name}?",
-      "removeBody": "Seguirás usándolo hasta el {date}. No se hace reembolso y la próxima factura ya no lo incluye.",
-      "removeConfirm": "Dar de baja",
-      "keep": "Conservarlo",
-      "added": "{name} contratado",
-      "removed": "{name} se dará de baja el {date}",
-      "reactivated": "{name} reactivado",
-      "errors": {
-        "addon_payment_failed": "No se pudo cobrar. Revisa tu método de pago.",
-        "addon_requires_module": "Este módulo necesita {modules}.",
-        "subscription_not_paid": "Primero paga tu suscripción.",
-        "subscription_suspended": "Tu suscripción está suspendida.",
-        "generic": "No se pudo completar la acción."
-      },
       "breakdown": {
         "title": "Desglose del cobro",
         "plan": "Plan {plan}",
@@ -1308,7 +1322,10 @@
         "iva": "IVA",
         "total": "Total"
       },
-      "readOnly": "Solo el dueño y el administrador pueden contratar módulos."
+      "title": "Módulos adicionales",
+      "desc": "Los activa el equipo de Draxuvo y se cobran junto con tu suscripción.",
+      "active": "Activo",
+      "endsOn": "Activo hasta el {date}"
     }
   },
   "profile": {

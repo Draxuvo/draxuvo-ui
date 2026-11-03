@@ -22,7 +22,7 @@ export STRIPE_WEBHOOK_SECRET="${STRIPE_WEBHOOK_SECRET:-whsec_e2e_test}"
 export FRONTEND_URL="$UI_URL"
 export REGISTRATION_RATE_LIMIT="${REGISTRATION_RATE_LIMIT:-1000}"
 # Spec 052: el inicio de sesión se frena por cuenta e IP; los e2e entran muchas veces con las mismas cuentas de demo.
-export LOGIN_RATE_LIMIT="${LOGIN_RATE_LIMIT:-30}"
+export LOGIN_RATE_LIMIT="${LOGIN_RATE_LIMIT:-100}"
 # Spec 039: los e2e abren varias demos desde la misma IP y varias a la vez.
 export DEMO_RATE_LIMIT="${DEMO_RATE_LIMIT:-1000}"
 export DEMO_MAX_PROVISIONING="${DEMO_MAX_PROVISIONING:-10}"

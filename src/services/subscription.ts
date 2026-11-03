@@ -3,6 +3,7 @@ import type {
   AddonKey,
   BillingCycle,
   CheckoutResponse,
+  CompanyModulesDetail,
   ModuleKey,
   ModulesResponse,
   PlanKey,
@@ -28,7 +29,6 @@ export const createCheckout = (
   billingCycle: BillingCycle,
   successUrl: string,
   cancelUrl: string,
-  addons: AddonKey[] = [],
 ): Promise<CheckoutResponse> =>
   apiClient
     .post("/api/v1/subscription/checkout", {
@@ -36,19 +36,23 @@ export const createCheckout = (
       billing_cycle: billingCycle,
       success_url: successUrl,
       cancel_url: cancelUrl,
-      ...(addons.length ? { addons } : {}),
     })
     .then((r) => r.data);
 
-// Módulos extra (spec 050): contratar con cobro proporcional, dar de baja al fin del periodo y reactivar.
-export const addAddon = (module: AddonKey): Promise<Subscription> =>
-  apiClient.post("/api/v1/subscription/addons", { module }, { skipErrorToast: true }).then((r) => r.data);
+// Módulos extra (spec 053): solo el super admin los enciende y apaga, con `X-Company-Id` de la empresa que administra.
+const asCompany = (companyId: number) => ({ headers: { "X-Company-Id": String(companyId) }, skipErrorToast: true });
 
-export const removeAddon = (module: AddonKey): Promise<Subscription> =>
-  apiClient.delete(`/api/v1/subscription/addons/${module}`, { skipErrorToast: true }).then((r) => r.data);
+export const getCompanyModules = (companyId: number): Promise<CompanyModulesDetail> =>
+  apiClient.get("/api/v1/company/modules", { headers: { "X-Company-Id": String(companyId) } }).then((r) => r.data);
 
-export const reactivateAddon = (module: AddonKey): Promise<Subscription> =>
-  apiClient.post(`/api/v1/subscription/addons/${module}/reactivate`, {}, { skipErrorToast: true }).then((r) => r.data);
+export const addAddon = (module: AddonKey, companyId: number): Promise<Subscription> =>
+  apiClient.post("/api/v1/subscription/addons", { module }, asCompany(companyId)).then((r) => r.data);
+
+export const removeAddon = (module: AddonKey, companyId: number): Promise<Subscription> =>
+  apiClient.delete(`/api/v1/subscription/addons/${module}`, asCompany(companyId)).then((r) => r.data);
+
+export const reactivateAddon = (module: AddonKey, companyId: number): Promise<Subscription> =>
+  apiClient.post(`/api/v1/subscription/addons/${module}/reactivate`, {}, asCompany(companyId)).then((r) => r.data);
 
 export const createPortal = (returnUrl: string): Promise<PortalResponse> =>
   apiClient
