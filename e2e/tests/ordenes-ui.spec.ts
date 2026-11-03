@@ -33,9 +33,12 @@ test.describe("administrador de Volta", () => {
   test("[ORD-020] la pantalla de órdenes trae sus grupos y el botón de nuevo servicio @regresion", async ({ page }) => {
     await page.goto("/es/ordenes");
     await expect(page.getByRole("heading", { name: wo("title"), level: 1 })).toBeVisible();
-    for (const key of ["toCharge", "open", "inProgress", "unassigned", "paidToday"]) {
+    for (const key of ["toCharge", "open", "inProgress", "unassigned"]) {
       await expect(group(page, key), key).toBeVisible();
     }
+    // Lo cobrado hoy vive en la pestaña Cobradas (spec 051): Activas solo trae el pie que lleva a ella.
+    await expect(group(page, "paidToday")).toHaveCount(0);
+    await expect(page.getByRole("link", { name: /Ver cobradas/ })).toHaveAttribute("href", /vista=cobradas/);
     await expect(page.getByText(new RegExp(wo("groups.toChargeTotal", { amount: "\\$[\\d,.]+" }).replace(/[()]/g, "\\$&")))).toBeVisible();
     await expect(page.getByRole("button", { name: wo("labels.service.new") })).toBeVisible();
     // Solo el dueño cambia el modo de órdenes.
@@ -94,7 +97,9 @@ test.describe("quien cambia el modo de órdenes", () => {
 
     test("[ORD-020] en modo pedido el botón dice Nuevo pedido y no hay prioridad @regresion", async ({ page }) => {
       await page.goto("/es/ordenes");
-      await expect(page.getByRole("button", { name: wo("labels.order.new") })).toBeVisible();
+      // Sazón tiene mesas dadas de alta: el botón es «Nueva cuenta» (spec 032). Antes de saberlo, durante un instante,
+      // decía «Nuevo pedido»; con las pestañas de la spec 051 la pantalla espera a conocer los módulos y ese instante ya no se ve.
+      await expect(page.getByRole("button", { name: t("cuentas.new") })).toBeVisible();
       await expect(page.getByLabel(wo("filters.priority"))).toHaveCount(0);
     });
   });

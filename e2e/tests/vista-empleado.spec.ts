@@ -164,9 +164,11 @@ test.describe("staff de Volta", () => {
     await charge(page, "card");
     await page.getByRole("button", { name: wo("charge.done") }).click();
 
-    // De vuelta en la lista, la orden pasa a "Terminadas y cobradas hoy"; la de otra persona no se abre.
+    // De vuelta en la lista, la orden cobrada sale de Activas; la de otra persona no se abre.
     await page.goto("/es/mis-ordenes");
-    await expect(page.getByRole("region", { name: wo("staff.finished") }).getByRole("link", { name: `${wo("staff.open")}: ${title}` })).toBeVisible();
+    // Ya cobrada, la orden sale de Activas y vive en la pestaña de cobradas (spec 051); la de otra persona no se abre.
+    await expect(page.getByRole("link", { name: `${wo("staff.open")}: ${title}` })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: /Ver cobradas/ })).toBeVisible();
     await page.goto(`/es/mis-ordenes/${luisId}`);
     await expect(page.getByText(wo("notFoundTitle"))).toBeVisible();
     await expect(page.getByText(wo("notFoundDesc"))).toBeVisible();
@@ -189,18 +191,24 @@ test.describe("staff de Volta", () => {
     // El enlace viejo lleva a la pestaña de cobradas de Mis órdenes.
     await expect(page).toHaveURL(/\/es\/mis-ordenes\?vista=cobradas$/);
     await expect(page.getByRole("heading", { name: wo("myOrders"), level: 1 })).toBeVisible();
-    const row = (text: string | RegExp) => page.getByRole("button").filter({ hasText: text });
+    // Las filas son botones como las fichas de estado: se distinguen por traer un folio.
+    const row = (text: string | RegExp) => page.getByRole("button").filter({ hasText: /T-\d+/ }).filter({ hasText: text });
     const first = row(/T-\d+/).first();
     await expect(first).toBeVisible();
     const folio = (await first.textContent())?.match(/T-\d+/)?.[0] ?? "";
 
     const chip = (key: string) => page.getByRole("group", { name: t("tickets.filterStatus") }).getByRole("button", { name: new RegExp(`^${key === "all" ? t("tickets.all") : t(`tickets.statuses.${key}`)}`) });
+    // El estado vive en la URL: se espera a que cada cambio llegue antes del siguiente clic.
     await chip("paid").click();
+    await expect(page).toHaveURL(/status=paid/);
     await expect(chip("paid")).toHaveAttribute("aria-pressed", "true");
     await expect(row(t("tickets.statuses.voided"))).toHaveCount(0);
     await chip("voided").click();
+    await expect(page).toHaveURL(/status=voided/);
     await expect(row(t("tickets.statuses.paid"))).toHaveCount(0);
     await chip("all").click();
+    await expect(page).not.toHaveURL(/status=/);
+    await expect(chip("all")).toHaveAttribute("aria-pressed", "true");
 
     await page.getByPlaceholder(t("tickets.searchPlaceholder")).fill(folio);
     await expect(row(/T-\d+/)).toHaveCount(1);

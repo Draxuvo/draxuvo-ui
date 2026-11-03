@@ -58,9 +58,9 @@ export default function middleware(request: NextRequest) {
   if (token && role === "staff") {
     const isAdminRoute = ADMIN_ROUTES.some((r) => bare.startsWith(r));
     if (isAdminRoute) {
-      // /tickets sigue siendo ruta de panel (redirige a Cobradas, spec 051); el staff cae en su propia pestaña.
-      const dest = bare.startsWith("/tickets") ? `/${locale}/mis-ordenes?vista=cobradas` : `/${locale}/mis-ordenes`;
-      return NextResponse.redirect(new URL(dest, request.url));
+      return NextResponse.redirect(
+        new URL(`/${locale}/mis-ordenes`, request.url),
+      );
     }
   }
 
