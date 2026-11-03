@@ -19,6 +19,8 @@ const ADMIN_ROUTES = [
   "/mis-empresas",
   "/restaurante",
   "/terminales",
+  // Historial de ventas de mostrador (spec 050): el personal usa /mis-ventas.
+  "/ventas",
 ];
 
 export default function middleware(request: NextRequest) {

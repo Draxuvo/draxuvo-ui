@@ -4,9 +4,9 @@ import type { DemoPlan, DemoScenario } from "@/types";
 
 export const DEMO_PLANS: readonly DemoPlan[] = ["basic", "pro", "enterprise"];
 
-/** Giros de cada plan: Pro tiene dos (servicio técnico y restaurante); los demás, uno. */
+/** Giros de cada plan: Básico tiene dos (abarrotes y papelería con punto de venta, spec 050), Pro dos (servicio técnico y restaurante); Empresa, uno. */
 export const DEMO_SCENARIOS: Record<DemoPlan, readonly DemoScenario[]> = {
-  basic: ["basic_retail"],
+  basic: ["basic_retail", "basic_stationery"],
   pro: ["pro_service", "pro_restaurant"],
   enterprise: ["enterprise_restaurant"],
 };

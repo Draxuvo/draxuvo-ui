@@ -26,13 +26,13 @@ const METHODS: { key: PaymentMethod; icon: typeof Banknote }[] = [
   { key: "transfer", icon: Landmark },
 ];
 
-const MAX_PAYMENTS = 5;
+export const MAX_PAYMENTS = 5;
 const ERROR_CODES = [
   "missing", "exceeds_total", "multiple_cash", "reference_required", "invalid_terminal", "invalid_amount",
   "invalid_card_last4", "too_many_payments",
 ] as const;
 
-type Row = {
+export type PaymentRowState = {
   key: number;
   method: PaymentMethod;
   amount: string;
@@ -43,13 +43,13 @@ type Row = {
   reference: string;
 };
 
-const num = (value: string) => {
+export const num = (value: string) => {
   const parsed = Number(value);
   return value.trim() !== "" && Number.isFinite(parsed) ? parsed : 0;
 };
-const round = (value: number) => Math.round(value * 100) / 100;
+export const round = (value: number) => Math.round(value * 100) / 100;
 
-function newKey() {
+export function newKey() {
   return typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
 }
 
@@ -62,7 +62,7 @@ export function ChargeDialog({ order, open, onOpenChange }: { order: WorkOrder; 
   const total = Number(order.total ?? 0);
   const ticket = order.status === "paid" ? order.ticket : null;
   const { data: terminals = [] } = usePaymentTerminals({ enabled: open && !ticket });
-  const [rows, setRows] = useState<Row[]>([emptyRow(0, "cash")]);
+  const [rows, setRows] = useState<PaymentRowState[]>([emptyRow(0, "cash")]);
   const [idempotencyKey] = useState(newKey);
   const [phone, setPhone] = useState(order.customer_phone ?? "");
   const charge = useChargeOrder(order.id);
@@ -72,7 +72,7 @@ export function ChargeDialog({ order, open, onOpenChange }: { order: WorkOrder; 
 
   const single = rows.length === 1;
   // Con un solo pago de tarjeta o transferencia el monto es el total; con varios, cada uno trae el suyo.
-  const amountOf = (row: Row) => (single ? total : num(row.amount));
+  const amountOf = (row: PaymentRowState) => (single ? total : num(row.amount));
   const nonCash = round(rows.filter((r) => r.method !== "cash").reduce((sum, r) => sum + amountOf(r), 0));
   const cashRow = rows.find((r) => r.method === "cash");
   const cashDue = round(total - nonCash);
@@ -81,14 +81,14 @@ export function ChargeDialog({ order, open, onOpenChange }: { order: WorkOrder; 
   const change = cashRow && received > cashDue ? round(received - cashDue) : 0;
   const exceeds = nonCash > total;
   const defaultTerminal = terminals.length === 1 ? String(terminals[0].id) : "";
-  const rowValid = (row: Row) =>
+  const rowValid = (row: PaymentRowState) =>
     (row.method === "cash" ? row.received !== "" : single || num(row.amount) > 0) &&
     (row.method !== "card" || terminals.length === 0 || (row.terminalId || defaultTerminal) !== "") &&
     (row.method !== "card" || row.last4 === "" || /^\d{4}$/.test(row.last4)) &&
     (row.method !== "transfer" || row.reference.trim() !== "");
   const canConfirm = !exceeds && missing === 0 && (!cashRow || cashDue > 0) && rows.every(rowValid);
 
-  const patch = (key: number, changes: Partial<Row>) => setRows((prev) => prev.map((r) => (r.key === key ? { ...r, ...changes } : r)));
+  const patch = (key: number, changes: Partial<PaymentRowState>) => setRows((prev) => prev.map((r) => (r.key === key ? { ...r, ...changes } : r)));
 
   function addRow() {
     const method: PaymentMethod = cashRow ? "card" : "cash";
@@ -230,11 +230,11 @@ export function ChargeDialog({ order, open, onOpenChange }: { order: WorkOrder; 
   );
 }
 
-function emptyRow(key: number, method: PaymentMethod): Row {
+export function emptyRow(key: number, method: PaymentMethod): PaymentRowState {
   return { key, method, amount: "", received: "", terminalId: "", authorization: "", last4: "", reference: "" };
 }
 
-function PaymentRow({
+export function PaymentRow({
   row,
   index,
   single,
@@ -244,13 +244,13 @@ function PaymentRow({
   onChange,
   onRemove,
 }: {
-  row: Row;
+  row: PaymentRowState;
   index: number;
   single: boolean;
   cashTaken: boolean;
   terminals: PaymentTerminal[];
   defaultTerminal: string;
-  onChange: (changes: Partial<Row>) => void;
+  onChange: (changes: Partial<PaymentRowState>) => void;
   onRemove?: () => void;
 }) {
   const t = useTranslations("workOrders");

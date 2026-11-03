@@ -100,7 +100,10 @@
     "terminals": "Terminales",
     "demos": "Demos",
     "alerts": "Alertas",
-    "whatsapp": "WhatsApp"
+    "whatsapp": "WhatsApp",
+    "pos": "Venta",
+    "sales": "Ventas",
+    "mySales": "Mis ventas"
   },
   "whatsapp": {
     "title": "WhatsApp",
@@ -1160,7 +1163,9 @@
     "payments": "Pagos",
     "reference": "Referencia",
     "check": "Cuenta",
-    "authorization": "Autorización"
+    "authorization": "Autorización",
+    "sale": "Venta de mostrador",
+    "saleTitle": "Venta de mostrador #{id}"
   },
   "subscription": {
     "nav": "Suscripción",
@@ -1255,7 +1260,49 @@
     "managedByParentDesc": "Esta sucursal usa la suscripción de la empresa principal. Los pagos y el plan se cambian desde ahí.",
     "managedByParentAction": "Ir a {company}",
     "mainCompany": "la empresa principal",
-    "modulesReadOnly": "Estos son los módulos de tu plan. Draxuvo los activa y desactiva; si necesitas un cambio, pídelo al soporte de Draxuvo."
+    "modulesReadOnly": "Estos son los módulos de tu plan. Draxuvo los activa y desactiva; si necesitas un cambio, pídelo al soporte de Draxuvo.",
+    "addons": {
+      "title": "Módulos extra",
+      "desc": "Se suman a tu plan y se cobran junto con tu suscripción.",
+      "perMonth": "{price} al mes",
+      "perYear": "{price} al año",
+      "beforeTax": "sin IVA",
+      "requires": "Necesita {modules}",
+      "contract": "Contratar",
+      "contracting": "Contratando…",
+      "contracted": "Contratado",
+      "endsOn": "Termina el {date}",
+      "reactivate": "Reactivar",
+      "reactivating": "Reactivando…",
+      "remove": "Dar de baja",
+      "removing": "Dando de baja…",
+      "includeInCheckout": "Incluir {name} al pagar",
+      "selectedForCheckout": "Se cobrará junto con tu plan.",
+      "prorationNote": "Al contratarlo se cobra de inmediato la parte proporcional del periodo en curso, con IVA.",
+      "removeTitle": "¿Dar de baja {name}?",
+      "removeBody": "Seguirás usándolo hasta el {date}. No se hace reembolso y la próxima factura ya no lo incluye.",
+      "removeConfirm": "Dar de baja",
+      "keep": "Conservarlo",
+      "added": "{name} contratado",
+      "removed": "{name} se dará de baja el {date}",
+      "reactivated": "{name} reactivado",
+      "errors": {
+        "addon_payment_failed": "No se pudo cobrar. Revisa tu método de pago.",
+        "addon_requires_module": "Este módulo necesita {modules}.",
+        "subscription_not_paid": "Primero paga tu suscripción.",
+        "subscription_suspended": "Tu suscripción está suspendida.",
+        "generic": "No se pudo completar la acción."
+      },
+      "breakdown": {
+        "title": "Desglose del cobro",
+        "plan": "Plan {plan}",
+        "addon": "{name}",
+        "subtotal": "Subtotal",
+        "iva": "IVA",
+        "total": "Total"
+      },
+      "readOnly": "Solo el dueño y el administrador pueden contratar módulos."
+    }
   },
   "profile": {
     "pageTitle": "Mi perfil",
@@ -1415,7 +1462,9 @@
       "inventoryValue": "Valor del inventario",
       "inventoryHint": "{count, plural, one {# producto que se cuenta, a costo} other {# productos que se cuentan, a costo}}",
       "lowStock": "Bajo el mínimo",
-      "lowStockHint": "Productos en el mínimo o debajo"
+      "lowStockHint": "Productos en el mínimo o debajo",
+      "sales": "Ventas de mostrador",
+      "salesHint": "{count, plural, one {# venta · } other {# ventas · }}{units, plural, one {# unidad} other {# unidades}}"
     },
     "income": {
       "title": "Ingresos",
@@ -1427,7 +1476,9 @@
       "colEmployee": "Empleado",
       "colTotal": "Total",
       "colDate": "Fecha de pago",
-      "unassigned": "Sin asignar"
+      "unassigned": "Sin asignar",
+      "colSale": "Venta",
+      "colCashier": "Cajero"
     },
     "expenses": {
       "title": "Gastos",
@@ -1493,6 +1544,24 @@
       "colEntries": "Entradas",
       "colExits": "Salidas",
       "colAdjustments": "Ajustes"
+    },
+    "tabSales": "Ventas",
+    "sales": {
+      "revenue": "Vendido",
+      "count": "Ventas",
+      "units": "Unidades",
+      "byProduct": "Ventas por producto",
+      "byProductTable": "ventas-por-producto",
+      "byCashier": "Ventas por cajero",
+      "byCashierTable": "ventas-por-cajero",
+      "colProduct": "Producto",
+      "colSku": "Clave",
+      "colUnits": "Unidades",
+      "colRevenue": "Importe",
+      "colCashier": "Cajero",
+      "colSales": "Ventas",
+      "empty": "No hubo ventas cobradas en este periodo.",
+      "unknownCashier": "Sin cajero"
     }
   },
   "cuentas": {
@@ -1965,7 +2034,8 @@
     "whatsapp": "WhatsApp",
     "multi_company": "Varias empresas o sucursales",
     "restaurant": "Restaurante",
-    "terminals": "Terminales"
+    "terminals": "Terminales",
+    "pos": "Punto de venta"
   },
   "attendance": {
     "title": "Asistencia",
@@ -2732,6 +2802,8 @@
       "scenarios": {
         "basic_retail": "Abarrotes",
         "basic_retailDesc": "Inventario, personal, asistencia y reportes",
+        "basic_stationery": "Papelería con punto de venta",
+        "basic_stationeryDesc": "Inventario, personal, reportes y la caja para cobrar con ticket (módulo extra)",
         "pro_service": "Servicio técnico",
         "pro_serviceDesc": "Órdenes de trabajo, tickets y terminales de cobro",
         "pro_restaurant": "Restaurante",
@@ -2981,6 +3053,136 @@
       "email": "Correo",
       "panelNote": "Si lo apagas, el stock bajo se sigue viendo en el panel y en la app.",
       "saved": "Preferencia guardada"
+    }
+  },
+  "pos": {
+    "title": "Venta",
+    "subtitle": "Escanea o busca los artículos y cobra.",
+    "back": "Volver",
+    "newSale": "Nueva venta",
+    "openSales": "Ventas abiertas",
+    "saleN": "Venta {n}",
+    "sales": "Ventas",
+    "empty": {
+      "title": "Escanea un producto o búscalo",
+      "body": "La venta se abre sola con el primer artículo."
+    },
+    "search": {
+      "label": "Buscar producto",
+      "placeholder": "Buscar por nombre o clave",
+      "noResults": "Ningún producto coincide.",
+      "loading": "Buscando…",
+      "error": "No se pudo cargar el catálogo."
+    },
+    "stock": {
+      "left": "{count} en existencia",
+      "out": "Sin existencia"
+    },
+    "cart": {
+      "title": "Venta en curso",
+      "items": "{count, plural, one {# artículo} other {# artículos}}",
+      "empty": "Aún no hay artículos.",
+      "total": "Total",
+      "quantity": "Cantidad de {name}",
+      "increase": "Sumar uno a {name}",
+      "decrease": "Quitar uno a {name}",
+      "remove": "Quitar {name}",
+      "discard": "Descartar venta",
+      "discardTitle": "¿Descartar esta venta?",
+      "discardBody": "Se borra sin cobrar y no cambia las existencias.",
+      "discardConfirm": "Descartar",
+      "keep": "Seguir vendiendo"
+    },
+    "errors": {
+      "product_not_found": "No se encontró el producto.",
+      "product_not_sellable": "Este producto no se vende.",
+      "product_inactive": "Este producto está inactivo.",
+      "product_without_price": "Este producto no tiene precio.",
+      "invalid_quantity": "La cantidad no es válida.",
+      "not_open": "La venta ya no está abierta.",
+      "generic": "No se pudo completar la acción."
+    },
+    "charge": {
+      "button": "Cobrar {total}",
+      "title": "Cobrar venta",
+      "done": "Listo",
+      "newSale": "Nueva venta",
+      "success": "Venta cobrada",
+      "folio": "Folio {folio}",
+      "change": "Cambio",
+      "shortagesTitle": "Faltaron piezas en el inventario",
+      "shortageLine": "{name}: faltaron {missing}",
+      "errors": {
+        "empty": "Agrega al menos un artículo.",
+        "not_open": "La venta ya no está abierta.",
+        "stale_object": "La venta cambió. Revísala y vuelve a cobrar.",
+        "generic": "No se pudo cobrar la venta."
+      }
+    },
+    "ticket": {
+      "title": "Ticket",
+      "paper": "Tamaño del ticket",
+      "papers": {
+        "a4": "Carta",
+        "thermal58": "Térmico 58 mm",
+        "thermal80": "Térmico 80 mm"
+      },
+      "download": "Descargar PDF",
+      "print": "Imprimir",
+      "whatsapp": "WhatsApp",
+      "phone": "Teléfono del cliente",
+      "phonePlaceholder": "10 dígitos",
+      "send": "Enviar por WhatsApp",
+      "sent": "Ticket enviado por WhatsApp",
+      "error": "No se pudo mandar el ticket por WhatsApp",
+      "downloadError": "No se pudo generar el PDF del ticket",
+      "cancelled": "Venta cancelada",
+      "cancelReason": "Motivo: {reason}"
+    },
+    "history": {
+      "title": "Ventas",
+      "subtitle": "{count, plural, one {# venta} other {# ventas}}",
+      "mineTitle": "Mis ventas",
+      "filterStatus": "Filtrar por estado",
+      "all": "Todas",
+      "statuses": {
+        "open": "Abiertas",
+        "paid": "Cobradas",
+        "cancelled": "Canceladas"
+      },
+      "searchPlaceholder": "Buscar por folio o artículo",
+      "from": "Desde",
+      "to": "Hasta",
+      "status": "Estado",
+      "empty": "Todavía no hay ventas.",
+      "loadError": "No se pudieron cargar las ventas.",
+      "newSale": "Ir a la caja",
+      "cashier": "Cajero",
+      "items": "{count, plural, one {# artículo} other {# artículos}}",
+      "openDraft": "Sin cobrar",
+      "retake": "Retomar en la caja",
+      "detail": {
+        "title": "Venta {id}",
+        "items": "Artículos",
+        "payments": "Pagos",
+        "total": "Total",
+        "opened": "Abierta por {name}",
+        "charged": "Cobrada por {name}",
+        "cancelledBy": "Cancelada por {name}",
+        "loadError": "No se pudo cargar la venta.",
+        "close": "Cerrar"
+      },
+      "cancel": {
+        "button": "Cancelar venta",
+        "title": "Cancelar la venta {id}",
+        "body": "Las existencias vuelven al inventario y la venta deja de contar en los reportes. Esta acción no se puede deshacer.",
+        "reason": "Motivo de la cancelación",
+        "reasonRequired": "Escribe el motivo.",
+        "confirm": "Cancelar venta",
+        "keep": "Conservarla",
+        "done": "Venta cancelada",
+        "error": "No se pudo cancelar la venta."
+      }
     }
   }
 }

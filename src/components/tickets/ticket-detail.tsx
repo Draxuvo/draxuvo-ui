@@ -130,9 +130,9 @@ export function TicketDetail({
             {/* Metadata */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <p className="text-xs font-medium text-muted-foreground">{check ? t("check") : t("workOrder")}</p>
+                <p className="text-xs font-medium text-muted-foreground">{current.sale ? t("sale") : check ? t("check") : t("workOrder")}</p>
                 <p className="text-sm text-foreground">
-                  {checkTitle ?? current.work_order?.title ?? `#${current.work_order_id}`}
+                  {current.sale ? t("saleTitle", { id: current.sale.id }) : (checkTitle ?? current.work_order?.title ?? `#${current.work_order_id}`)}
                 </p>
               </div>
               {check?.waiter && (

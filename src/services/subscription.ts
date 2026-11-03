@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api";
 import type {
+  AddonKey,
   BillingCycle,
   CheckoutResponse,
   ModuleKey,
@@ -27,6 +28,7 @@ export const createCheckout = (
   billingCycle: BillingCycle,
   successUrl: string,
   cancelUrl: string,
+  addons: AddonKey[] = [],
 ): Promise<CheckoutResponse> =>
   apiClient
     .post("/api/v1/subscription/checkout", {
@@ -34,8 +36,19 @@ export const createCheckout = (
       billing_cycle: billingCycle,
       success_url: successUrl,
       cancel_url: cancelUrl,
+      ...(addons.length ? { addons } : {}),
     })
     .then((r) => r.data);
+
+// Módulos extra (spec 050): contratar con cobro proporcional, dar de baja al fin del periodo y reactivar.
+export const addAddon = (module: AddonKey): Promise<Subscription> =>
+  apiClient.post("/api/v1/subscription/addons", { module }, { skipErrorToast: true }).then((r) => r.data);
+
+export const removeAddon = (module: AddonKey): Promise<Subscription> =>
+  apiClient.delete(`/api/v1/subscription/addons/${module}`, { skipErrorToast: true }).then((r) => r.data);
+
+export const reactivateAddon = (module: AddonKey): Promise<Subscription> =>
+  apiClient.post(`/api/v1/subscription/addons/${module}/reactivate`, {}, { skipErrorToast: true }).then((r) => r.data);
 
 export const createPortal = (returnUrl: string): Promise<PortalResponse> =>
   apiClient

@@ -114,3 +114,21 @@ describe("menú lateral: lenguaje de restaurante (spec 032)", () => {
     expect(screen.queryByRole("link", { name: "Cuentas" })).not.toBeInTheDocument();
   });
 });
+
+describe("menú lateral: el punto de venta es un módulo extra (spec 050)", () => {
+  it.each(["owner", "admin"])("%s con el módulo contratado ve Venta y lleva a la caja", async (role) => {
+    plan.modules = ["employees", "inventory", "pos"];
+    mount(role);
+
+    const links = await screen.findAllByRole("link", { name: "Venta" });
+    expect(links[0]).toHaveAttribute("href", "/es/venta");
+  });
+
+  it("sin el módulo no aparece Venta", async () => {
+    plan.modules = ["employees", "inventory"];
+    mount("owner");
+
+    await screen.findAllByRole("link", { name: "Personal" });
+    await waitFor(() => expect(screen.queryByRole("link", { name: "Venta" })).not.toBeInTheDocument());
+  });
+});

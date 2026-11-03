@@ -2,10 +2,11 @@
 "use client";
 import { usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
-import { ClipboardList, Receipt, User, X } from "lucide-react";
+import { ClipboardList, Receipt, ReceiptText, ShoppingCart, User, X } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Logo } from "@/components/brand/logo";
 import { useAuthStore } from "@/store/auth";
+import { usePosAvailable } from "@/hooks/use-pos-available";
 import { NavList, type NavItem } from "./sidebar";
 import { SIDEBAR_DRAWER_ID, useSidebar } from "./sidebar-context";
 import { cn } from "@/lib/utils";
@@ -19,10 +20,17 @@ export function EmployeeSidebar() {
   const locale = useLocale();
   const { user, selectedCompanyId } = useAuthStore();
   const { open, mobileOpen, setMobileOpen } = useSidebar();
+  const posAvailable = usePosAvailable();
 
   const NAV: NavItem[] = [
     { href: `/${locale}/mis-ordenes`, label: tw("myOrders"), icon: ClipboardList },
     { href: `/${locale}/mis-tickets`, label: tt("myTickets"), icon: Receipt },
+    ...(posAvailable
+      ? [
+          { href: `/${locale}/venta`, label: t("pos"), icon: ShoppingCart },
+          { href: `/${locale}/mis-ventas`, label: t("mySales"), icon: ReceiptText },
+        ]
+      : []),
     { href: `/${locale}/mi-perfil`, label: t("profile"), icon: User },
   ];
 

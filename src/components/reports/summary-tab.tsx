@@ -46,6 +46,7 @@ export function SummaryTab({ period, companyId }: TabProps) {
     !!s &&
     (s.income?.total_revenue ?? 0) === 0 &&
     (s.income?.pending_revenue ?? 0) === 0 &&
+    (s.sales?.total_sales ?? 0) === 0 &&
     (s.work_orders?.total ?? 0) === 0 &&
     (s.expenses?.total ?? 0) === 0 &&
     (s.attendance?.total ?? 0) === 0 &&
@@ -77,9 +78,15 @@ export function SummaryTab({ period, companyId }: TabProps) {
             )
           )}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {s.income && (
+            {s.income?.pending_revenue !== undefined && (
               <StatTile label={t("summary.pending")} value={money(s.income.pending_revenue)}>
-                {t("summary.pendingHint", { count: s.income.tickets_pending })}
+                {t("summary.pendingHint", { count: s.income.tickets_pending ?? 0 })}
+              </StatTile>
+            )}
+            {s.sales && (
+              <StatTile label={t("summary.sales")} value={money(s.sales.total_revenue)}>
+                <p>{t("summary.salesHint", { count: s.sales.total_sales, units: s.sales.units })}</p>
+                {previous?.sales && <DeltaBadge value={variation(s.sales.total_revenue, previous.sales.total_revenue, "up")} className="mt-1" />}
               </StatTile>
             )}
             {s.income && s.expenses && (

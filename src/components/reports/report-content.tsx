@@ -13,13 +13,15 @@ import { IncomeTab } from "./income-tab";
 import { InventoryTab } from "./inventory-tab";
 import { PayrollTab } from "./payroll-tab";
 import { PeriodBar } from "./period-bar";
+import { SalesTab } from "./sales-tab";
 import { SummaryTab } from "./summary-tab";
 
-type Tab = "summary" | "inventory" | "income" | "expenses" | "payroll";
+type Tab = "summary" | "inventory" | "sales" | "income" | "expenses" | "payroll";
 
-const TABS: { key: Tab; label: "tabSummary" | "tabInventory" | "tabIncome" | "tabExpenses" | "tabPayroll" }[] = [
+const TABS: { key: Tab; label: "tabSummary" | "tabInventory" | "tabSales" | "tabIncome" | "tabExpenses" | "tabPayroll" }[] = [
   { key: "summary", label: "tabSummary" },
   { key: "inventory", label: "tabInventory" },
+  { key: "sales", label: "tabSales" },
   { key: "income", label: "tabIncome" },
   { key: "expenses", label: "tabExpenses" },
   { key: "payroll", label: "tabPayroll" },
@@ -36,6 +38,7 @@ export function ReportContent({ companyId }: { companyId?: number }) {
   const available: Record<Tab, boolean> = {
     summary: true,
     inventory: modules.inventory,
+    sales: modules.pos,
     income: modules.income,
     expenses: modules.expenses,
     payroll: modules.attendance,
@@ -76,6 +79,7 @@ export function ReportContent({ companyId }: { companyId?: number }) {
 
       {tab === "summary" && <SummaryTab period={period} companyId={companyId} />}
       {tab === "inventory" && <InventoryTab period={period} companyId={companyId} />}
+      {tab === "sales" && <SalesTab period={period} companyId={companyId} />}
       {tab === "income" && <IncomeTab period={period} companyId={companyId} />}
       {tab === "expenses" && <ExpensesTab period={period} companyId={companyId} />}
       {tab === "payroll" && <PayrollTab period={period} companyId={companyId} />}

@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PlanPicker, formatCents } from "@/components/subscription/plan-picker";
+import { AddonsSection, BillingBreakdown, type AddonsMode } from "@/components/subscription/addons-section";
 import { useAuthStore } from "@/store/auth";
 import {
   createCheckout,
@@ -25,7 +26,7 @@ import {
 } from "@/services/subscription";
 import { useSwitchCompany } from "@/components/layout/company-switcher";
 import { cn } from "@/lib/utils";
-import type { BillingCycle, PlanKey, Subscription } from "@/types";
+import type { AddonKey, BillingCycle, PlanKey, Subscription } from "@/types";
 
 const DATE_LOCALES = { es, en: enUS };
 
@@ -41,6 +42,7 @@ export function SubscriptionDetail() {
 
   const [pickedPlan, setPickedPlan] = useState<PlanKey | null>(null);
   const [pickedCycle, setPickedCycle] = useState<BillingCycle | null>(null);
+  const [pickedAddons, setPickedAddons] = useState<AddonKey[]>([]);
   const [redirecting, setRedirecting] = useState<"checkout" | "portal" | null>(null);
 
   const { data: subscription, isLoading } = useQuery({
@@ -62,6 +64,10 @@ export function SubscriptionDetail() {
     !managedByParent && !isDemo && (status === "trialing" || status === "expired" || status === "cancelled");
   const canManage = !managedByParent && !isDemo && (status === "active" || status === "past_due" || status === "suspended");
   const busy = redirecting !== null;
+  // Módulos extra (spec 050): con la suscripción pagada se contratan aquí; en prueba se suman al pago del plan.
+  const role = useAuthStore((st) => st.role);
+  const canBill = !!role && (role === "owner" || role === "admin" || role === "super_admin");
+  const addonsMode: AddonsMode = !canBill || managedByParent || isDemo ? "readonly" : canManage ? "manage" : canPay ? "pay" : "readonly";
   // Durante la prueba el plan solo lo cambia el super admin (spec 031): se puede pagar el plan asignado.
   const trialLockedPlan = status === "trialing" ? subscription?.plan ?? null : null;
 
@@ -81,6 +87,7 @@ export function SubscriptionDetail() {
         cycle,
         `${origin}/${locale}/suscripcion/exito`,
         `${origin}/${locale}/suscripcion/cancelado`,
+        pickedAddons,
       );
       window.location.href = checkout_url;
     } catch {
@@ -146,6 +153,8 @@ export function SubscriptionDetail() {
               </dl>
             )}
 
+            {status !== "trialing" && <BillingBreakdown subscription={subscription} planName={tp(subscription.plan)} />}
+
             <StatusPanel subscription={subscription} formatDate={formatDate} />
 
             {isDemo && (
@@ -194,6 +203,15 @@ export function SubscriptionDetail() {
           {trialLockedPlan && (
             <p className="text-sm text-muted-foreground">{t("trialPlanLocked")}</p>
           )}
+          {addonsMode === "pay" && (
+            <AddonsSection
+          subscription={subscription}
+          mode={addonsMode}
+          cycle={cycle}
+          selected={pickedAddons}
+          onToggle={(key) => setPickedAddons((current) => (current.includes(key) ? current.filter((k) => k !== key) : [...current, key]))}
+        />
+          )}
           <Button
             onClick={handleCheckout}
             disabled={busy}
@@ -203,6 +221,16 @@ export function SubscriptionDetail() {
             {redirecting === "checkout" ? t("activating") : tp("payPlan", { plan: tp(plan) })}
           </Button>
         </section>
+      )}
+
+      {subscription && addonsMode === "manage" && (
+        <AddonsSection
+          subscription={subscription}
+          mode={addonsMode}
+          cycle={subscription.billing_cycle ?? "monthly"}
+          selected={pickedAddons}
+          onToggle={(key) => setPickedAddons((current) => (current.includes(key) ? current.filter((k) => k !== key) : [...current, key]))}
+        />
       )}
 
       {subscription && canManage && (
