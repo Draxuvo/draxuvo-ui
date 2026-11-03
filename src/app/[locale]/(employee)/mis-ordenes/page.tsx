@@ -13,7 +13,8 @@ import { ClipboardList, MapPin, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useStartOrder, useWorkOrders } from "@/hooks/use-work-orders";
-import { ModuleLocked, useModuleGate } from "@/components/subscription/module-locked";
+import { StaffHome } from "@/components/attendance/staff-home";
+import { useModuleGate } from "@/components/subscription/module-locked";
 import { PriorityBadge } from "@/components/work-orders/priority-badge";
 import { ProgressBar } from "@/components/work-orders/progress-bar";
 import { StatusBadge } from "@/components/work-orders/status-badge";
@@ -159,7 +160,8 @@ function MisOrdenesContent({ tabs, paidAvailable }: { tabs: ReactNode; paidAvail
   const { data, isLoading, error } = useWorkOrders({ sort_by: "urgency" }, { page_size: 100 }, { enabled: gate.enabled });
   const { data: paid } = useWorkOrders({ status: "paid", paid_on: today }, { page_size: 100 }, { enabled: gate.enabled });
 
-  if (gate.isLocked(error)) return <ModuleLocked module="work_orders" />;
+  // Sin órdenes de trabajo en el plan (Básico) el inicio del personal es su asistencia (spec 052, H-40).
+  if (gate.isLocked(error)) return <StaffHome />;
 
   const all = data?.results ?? [];
   const todo = all.filter((o) => o.status === "open" || o.status === "in_progress");

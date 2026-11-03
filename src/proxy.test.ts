@@ -42,6 +42,12 @@ describe("proxy: ventas de mostrador (spec 050)", () => {
     expect(location(middleware(request("/es/ventas", staff)))).toContain("/es/mis-ordenes");
   });
 
+  it("el personal no abre Reportes, Suscripción ni Alertas por URL (spec 052, H-06)", () => {
+    for (const path of ["/es/reportes", "/es/suscripcion", "/es/alertas"]) {
+      expect(location(middleware(request(path, staff)))).toContain("/es/mis-ordenes");
+    }
+  });
+
   it("dueño y administrador entran al historial", () => {
     expect(middleware(request("/es/ventas", owner))).toBe(passthrough.sentinel);
   });
