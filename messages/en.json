@@ -77,7 +77,7 @@
     "inventory": "Inventory",
     "orders": "Orders",
     "accounts": "Checks",
-    "tickets": "Tickets",
+    "paid": "Paid",
     "profile": "My profile",
     "reports": "Reports",
     "logout": "Sign out",
@@ -1097,8 +1097,15 @@
       "owner": "Owner"
     }
   },
+  "ordersView": {
+    "label": "Orders view",
+    "active": "Active",
+    "paid": "Paid",
+    "paidTodayLink": "Paid today: {count} · See paid"
+  },
   "tickets": {
     "title": "Tickets",
+    "entryLabel": "Paid",
     "myTickets": "My tickets",
     "subtitle": "{count, plural, one {# ticket} other {# tickets}}",
     "pendingCount": "{count} pending",

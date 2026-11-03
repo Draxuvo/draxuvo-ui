@@ -87,9 +87,9 @@ test("[FLU-06] el trabajador asignado ve solo lo suyo, ejecuta, cobra y ve su ti
   await page.getByRole("button", { name: wo("charge.done") }).click();
   await expect(page.getByText(wo("statuses.paid")).first()).toBeVisible();
 
-  // 4. Su ticket aparece en /mis-tickets; las acciones de jefe siguen negadas (VEM-006).
-  await page.goto("/es/mis-tickets");
-  const ticket = page.getByRole("link").filter({ hasText: mine });
+  // 4. Su ticket aparece en la pestaña de cobradas de Mis órdenes (spec 051); las acciones de jefe siguen negadas (VEM-006).
+  await page.goto("/es/mis-ordenes?vista=cobradas");
+  const ticket = page.getByRole("button").filter({ hasText: mine });
   await expect(ticket).toContainText(/T-\d+/);
   await expect(ticket).toContainText(t("tickets.statuses.paid"));
   const denied = await page.request.post(`${API_URL}/api/v1/work_orders/${id}/cancel`, {
@@ -184,33 +184,35 @@ test.describe("staff de Volta", () => {
     await expect(page.getByText(wo("steps.doneBy", { name: "Ana López" }))).toBeVisible();
   });
 
-  test("[VEM-009] Mis tickets: lista, filtros por estado, búsqueda por folio y PDF @regresion", async ({ page }) => {
+  test("[VEM-009] Mis cobradas: lista, filtros por estado, búsqueda por folio y PDF @regresion", async ({ page }) => {
     await page.goto("/es/mis-tickets");
-    await expect(page.getByRole("heading", { name: t("tickets.myTickets"), level: 1 })).toBeVisible();
-    const first = page.getByRole("link").filter({ hasText: /T-\d+/ }).first();
+    // El enlace viejo lleva a la pestaña de cobradas de Mis órdenes.
+    await expect(page).toHaveURL(/\/es\/mis-ordenes\?vista=cobradas$/);
+    await expect(page.getByRole("heading", { name: wo("myOrders"), level: 1 })).toBeVisible();
+    const row = (text: string | RegExp) => page.getByRole("button").filter({ hasText: text });
+    const first = row(/T-\d+/).first();
     await expect(first).toBeVisible();
     const folio = (await first.textContent())?.match(/T-\d+/)?.[0] ?? "";
 
-    const chip = (key: string) => page.getByRole("group", { name: t("tickets.filterStatus") }).getByRole("button", { name: key === "all" ? t("tickets.all") : t(`tickets.statuses.${key}`), exact: true });
+    const chip = (key: string) => page.getByRole("group", { name: t("tickets.filterStatus") }).getByRole("button", { name: new RegExp(`^${key === "all" ? t("tickets.all") : t(`tickets.statuses.${key}`)}`) });
     await chip("paid").click();
     await expect(chip("paid")).toHaveAttribute("aria-pressed", "true");
-    await expect(page.getByRole("link").filter({ hasText: t("tickets.statuses.voided") })).toHaveCount(0);
+    await expect(row(t("tickets.statuses.voided"))).toHaveCount(0);
     await chip("voided").click();
-    await expect(page.getByRole("link").filter({ hasText: t("tickets.statuses.paid") })).toHaveCount(0);
+    await expect(row(t("tickets.statuses.paid"))).toHaveCount(0);
     await chip("all").click();
 
     await page.getByPlaceholder(t("tickets.searchPlaceholder")).fill(folio);
-    await expect(page.getByRole("link").filter({ hasText: /T-\d+/ })).toHaveCount(1);
+    await expect(row(/T-\d+/)).toHaveCount(1);
     await page.getByPlaceholder(t("tickets.searchPlaceholder")).fill("zzz-sin-coincidencia");
-    await expect(page.getByText(t("tickets.emptyFiltered"))).toBeVisible();
+    await expect(page.getByText(t("common.filters.noResults"))).toBeVisible();
 
-    // El ticket se abre desde su orden y el PDF baja con su folio.
+    // El ticket se abre en la misma pantalla y el PDF baja con su folio.
     await page.getByPlaceholder(t("tickets.searchPlaceholder")).fill(folio);
-    await page.getByRole("link").filter({ hasText: folio }).click();
-    await action(page, "viewTicket").click();
+    await row(folio).click();
     const [download] = await Promise.all([
       page.waitForEvent("download"),
-      page.getByRole("button", { name: wo("charge.downloadPdf") }).click(),
+      page.getByRole("dialog").getByRole("button", { name: t("tickets.download") }).click(),
     ]);
     expect(download.suggestedFilename()).toMatch(/^ticket-T-.*\.pdf$/);
   });
@@ -291,14 +293,14 @@ test.describe("quien es staff en una empresa y dueño en otra", () => {
     await page.getByRole("menuitemradio", { name: /Restaurante Sazón/ }).click();
     await expect(page).toHaveURL(/\/es\/mis-ordenes$/);
     expect((await context.cookies()).find((c) => c.name === "user_role")?.value).toBe("staff");
-    await expect(menu(page).getByRole("link")).toHaveText([wo("myOrders"), t("tickets.myTickets"), t("nav.profile")]);
+    await expect(menu(page).getByRole("link")).toHaveText([wo("myOrders"), t("nav.profile")]);
     for (const route of ["ordenes", "equipo", "inventario"]) {
       await page.goto(`/es/${route}`).catch(() => {});
       await expect(page, route).toHaveURL(/\/es\/mis-ordenes$/);
     }
     // Sin empleado ligado en Sazón no ve órdenes ni tickets.
     await expect(page.getByText(wo("staff.empty"))).toBeVisible();
-    await page.goto("/es/mis-tickets");
+    await page.goto("/es/mis-ordenes?vista=cobradas");
     await expect(page.getByText(t("tickets.empty"))).toBeVisible();
 
     await page.getByRole("button", { name: /Cambiar de empresa/ }).click();
@@ -326,8 +328,8 @@ test.describe("staff de una empresa sin el módulo", () => {
 test.describe("staff de una empresa sin el módulo de tickets", () => {
   test.use({ storageState: storageStatePath("staff", "donchuy.demo") });
 
-  test("[VEM-012] en Don Chuy Mis tickets dice que el módulo no está en el plan, sin ofrecer mejorarlo @regresion", async ({ page }) => {
-    knownFailure("H-30");
+  test("[VEM-012] en Don Chuy Mis cobradas dice que el módulo no está en el plan, sin ofrecer mejorarlo @regresion", async ({ page }) => {
+    // /mis-tickets redirige a Mis órdenes; sin ninguno de los dos módulos (plan Básico) lo que se ve es el bloqueo del módulo.
     await page.goto("/es/mis-tickets");
     await expect(page.getByText(t("subscription.moduleLocked"))).toBeVisible();
     await expect(page.getByText(t("tickets.loadError"))).toHaveCount(0);

@@ -182,13 +182,16 @@ test("[ORD-024] conceptos, pasos, notas, fotos e historia de una orden @regresio
 test.describe("dueño de Sazón", () => {
   test.use({ storageState: storageStatePath("owner", "sazon.demo") });
 
-  test("[ORD-025] la pantalla de tickets: filtros, búsqueda, detalle, PDF, orden y WhatsApp @regresion", async ({ page }) => {
+  test("[ORD-025] la pestaña Cobradas: filtros, búsqueda, detalle, PDF, orden y WhatsApp @regresion", async ({ page }) => {
     test.setTimeout(90_000);
     await page.route("**/api/v1/tickets/*/send_whatsapp", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ message: "ok" }) }),
     );
-    await page.goto("/es/tickets");
-    await expect(page.getByRole("heading", { name: tk("title"), level: 1 })).toBeVisible();
+    // /tickets ya no es una pantalla: redirige a la pestaña Cobradas de Cuentas y conserva los filtros (spec 051).
+    await page.goto("/es/ordenes?vista=cobradas&status=paid");
+    await expect(page).toHaveURL(/\/es\/ordenes\?vista=cobradas&status=paid$/);
+    await expect(page.getByRole("button", { name: t("ordersView.paid"), exact: true })).toHaveAttribute("aria-pressed", "true");
+    await page.goto("/es/ordenes?vista=cobradas");
     const chip = (key: string) => page.getByRole("group", { name: tk("filterStatus") }).getByRole("button", { name: new RegExp(`^${key === "all" ? tk("all") : tk(`statuses.${key}`)}`) });
     for (const key of ["all", "pending", "paid", "voided"]) await expect(chip(key)).toBeVisible();
 
@@ -224,7 +227,7 @@ test.describe("dueño de Sazón", () => {
     await expect(page.getByText(tk("whatsappSent"))).toBeVisible();
 
     // Un ticket anulado dice que lo fue, sin ofrecer reenviarlo.
-    await page.goto("/es/tickets?status=voided");
+    await page.goto("/es/ordenes?vista=cobradas&status=voided");
     await ticketRow(page, /T-\d+/).first().click();
     await expect(page.getByRole("dialog").getByText(tk("voidedNote"))).toBeVisible();
     await expect(page.getByRole("dialog").getByText(tk("voidReason"))).toBeVisible();

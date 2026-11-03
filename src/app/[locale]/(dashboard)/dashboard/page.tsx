@@ -280,18 +280,18 @@ export default function DashboardPage() {
         id: "tickets",
         label: t("totalTickets"),
         value: tickets.total,
-        href: href("/tickets"),
+        href: href("/ordenes?vista=cobradas"),
         ariaLabel: t("aria.tickets", { count: tickets.total }),
         icon: Receipt,
         subsets: [
           {
             label: t("subset.paid", { count: tickets.paid }),
-            href: href("/tickets?status=paid"),
+            href: href("/ordenes?vista=cobradas&status=paid"),
             ariaLabel: t("aria.ticketsPaid", { count: tickets.paid }),
           },
           {
             label: t("subset.voided", { count: tickets.voided ?? 0 }),
-            href: href("/tickets?status=voided"),
+            href: href("/ordenes?vista=cobradas&status=voided"),
             ariaLabel: t("aria.ticketsVoided", { count: tickets.voided ?? 0 }),
           },
         ],
@@ -301,7 +301,7 @@ export default function DashboardPage() {
         id: "revenue",
         label: t("collected"),
         value: formatCurrency(tickets.total_revenue),
-        href: href("/tickets?status=paid"),
+        href: href("/ordenes?vista=cobradas&status=paid"),
         ariaLabel: t("aria.revenue", { amount: formatCurrency(tickets.total_revenue) }),
         icon: Banknote,
       });
@@ -409,8 +409,8 @@ export default function DashboardPage() {
           label: t("ticketPaid"),
           count: data.tickets.paid,
           color: 3,
-          path: "/tickets?status=paid",
-          href: href("/tickets?status=paid"),
+          path: "/ordenes?vista=cobradas&status=paid",
+          href: href("/ordenes?vista=cobradas&status=paid"),
           ariaLabel: t("aria.ticketsPaid", { count: data.tickets.paid }),
         },
         {
@@ -418,8 +418,8 @@ export default function DashboardPage() {
           label: t("ticketVoided"),
           count: data.tickets.voided ?? 0,
           color: 1,
-          path: "/tickets?status=voided",
-          href: href("/tickets?status=voided"),
+          path: "/ordenes?vista=cobradas&status=voided",
+          href: href("/ordenes?vista=cobradas&status=voided"),
           ariaLabel: t("aria.ticketsVoided", { count: data.tickets.voided ?? 0 }),
         },
       ]
@@ -432,7 +432,7 @@ export default function DashboardPage() {
           count: data.tickets.total_revenue,
           display: formatCurrency(data.tickets.total_revenue),
           color: 3,
-          href: href("/tickets?status=paid"),
+          href: href("/ordenes?vista=cobradas&status=paid"),
           ariaLabel: t("aria.revenue", { amount: formatCurrency(data.tickets.total_revenue) }),
         },
         {

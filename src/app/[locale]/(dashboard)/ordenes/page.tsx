@@ -2,8 +2,9 @@
 // Lista del jefe: grupos por estado con su conteo (Abiertas, En curso, Por cobrar, Cobradas hoy, Sin
 // asignar). Al elegir un estado se ve la lista completa de ese estado, paginada.
 "use client";
-import { Suspense, useState } from "react";
+import { Suspense, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -16,7 +17,7 @@ import { StatusBadge } from "@/components/work-orders/status-badge";
 import { ProgressBar } from "@/components/work-orders/progress-bar";
 import { OrderForm } from "@/components/work-orders/order-form";
 import { useScreenMode } from "@/components/take-order/use-screen-mode";
-import { ClosedChecks, OpenChecks, useClosedChecks, useOpenChecks } from "@/components/take-order/open-checks";
+import { OpenChecks, useClosedChecks, useOpenChecks } from "@/components/take-order/open-checks";
 import { RestaurantAlerts } from "@/components/take-order/restaurant-alerts";
 import { matchesCheckFilter, type CheckFilter } from "@/components/take-order/lib";
 import { useAppRouter } from "@/hooks/use-router";
@@ -26,6 +27,11 @@ import { FilterNotice } from "@/components/filters/filter-notice";
 import { SearchInput } from "@/components/filters/search-input";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { useWorkOrders, useWorkOrderSummary } from "@/hooks/use-work-orders";
+import { usePaidTab } from "@/hooks/use-paid-tab";
+import { useWorkOrdersTab } from "@/hooks/use-work-orders-tab";
+import { PaidList } from "@/components/tickets/paid-list";
+import { ViewTabs, resolveView, type OrdersView } from "@/components/orders/view-tabs";
+import { PaidTodayLink } from "@/components/orders/paid-today-link";
 import { employeesService } from "@/services/employees";
 import { getDashboardStats } from "@/services/analytics";
 import { useAuthStore } from "@/store/auth";
@@ -46,8 +52,46 @@ const ID_PATTERN = /^\d+$/;
 export default function OrdenesPage() {
   return (
     <Suspense>
-      <OrdenesContent />
+      <OrdenesShell />
     </Suspense>
+  );
+}
+
+// Órdenes y Cobradas en una sola entrada (spec 051): la vista vive en `?vista=` y cada pestaña existe solo si
+// su módulo (`work_orders`, `tickets`) está en el plan. Al cambiar de vista se descartan los filtros de la otra.
+function OrdenesShell() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const workOrders = useWorkOrdersTab();
+  const paid = usePaidTab();
+  const view = resolveView(searchParams.get("vista"), workOrders.available, paid.available);
+
+  function changeView(next: OrdersView) {
+    router.replace(next === "cobradas" ? `${pathname}?vista=cobradas` : pathname, { scroll: false });
+  }
+
+  // Sin saber aún qué pestañas existen no se pinta nada: evita mostrar una que luego desaparece.
+  if (!workOrders.ready || !paid.ready) return null;
+  const tabs = <ViewTabs value={view} onChange={changeView} showActive={workOrders.available} showPaid={paid.available} />;
+
+  if (view === "cobradas") return <PaidView tabs={tabs} />;
+  return <OrdenesContent tabs={tabs} paidAvailable={paid.available} />;
+}
+
+function PaidView({ tabs }: { tabs: ReactNode }) {
+  const t = useTranslations("workOrders");
+  const tq = useTranslations("cuentas");
+  const tt = useTranslations("tickets");
+  const { mode: screen } = useScreenMode();
+  const workOrders = useWorkOrdersTab();
+  const title = !workOrders.available ? tt("entryLabel") : screen === "restaurant" ? tq("title") : t("title");
+  return (
+    <div className="space-y-4">
+      <h1 className="font-display text-3xl leading-tight font-semibold">{title}</h1>
+      {tabs}
+      <PaidList variant="boss" />
+    </div>
   );
 }
 
@@ -126,7 +170,7 @@ function Group({
   );
 }
 
-function OrdenesContent() {
+function OrdenesContent({ tabs, paidAvailable }: { tabs: ReactNode; paidAvailable: boolean }) {
   const t = useTranslations("workOrders");
   const tq = useTranslations("cuentas");
   const tc = useTranslations("common");
@@ -139,7 +183,7 @@ function OrdenesContent() {
   const isOwner = role === "owner" || role === "super_admin";
   const today = format(new Date(), "yyyy-MM-dd");
 
-  const { filters, page, setFilter, setPage, reset, isFiltered } = useUrlFilters(DEFAULTS, { allowed: ALLOWED });
+  const { filters, page, setFilter, setPage, reset, isFiltered } = useUrlFilters(DEFAULTS, { allowed: ALLOWED, preserve: ["vista"] });
   const employeeId = ID_PATTERN.test(filters.employee_id) ? filters.employee_id : "";
 
   const [formOpen, setFormOpen] = useState(false);
@@ -198,15 +242,14 @@ function OrdenesContent() {
   };
   const shownToPay = toPayChecks.filter((check) => matchesCheckFilter(check, "to_pay", checkFilter));
   const shownOpen = openOnlyChecks.filter((check) => matchesCheckFilter(check, "open", checkFilter));
-  const shownClosed = closedChecks.filter((check) => matchesCheckFilter(check, "paid", checkFilter));
-  const shownChecks = shownToPay.length + shownOpen.length + shownClosed.length;
+  const shownChecks = shownToPay.length + shownOpen.length;
   const applied = [
     filters.status && `${t("status")}: ${t(`statuses.${filters.status as WorkOrderStatus}`)}`,
     filters.priority && `${t("priority")}: ${t(`priorities.${filters.priority as WorkOrderPriority}`)}`,
     employeeId && `${t("employee")}: ${employeeName}`,
     filters.search && `"${filters.search}"`,
   ].filter(Boolean);
-  const statusChips = [{ value: "", label: t("all") }, ...WORK_ORDER_STATUSES.map((s) => ({ value: s, label: t(`statuses.${s}`) }))];
+  const statusChips = [{ value: "", label: t("all") }, ...WORK_ORDER_STATUSES.filter((s) => !(paidAvailable && s === "paid")).map((s) => ({ value: s, label: t(`statuses.${s}`) }))];
   const orders = data?.results ?? [];
 
   return (
@@ -240,12 +283,13 @@ function OrdenesContent() {
         </div>
       </div>
 
+      {tabs}
+
       {restaurant ? (
         <>
           <OpenChecks checks={shownToPay} from="ordenes" title={tq("toPay")} id="checks-to-pay-title" />
           <OpenChecks checks={shownOpen} from="ordenes" title={tq("open")} id="checks-open-title" />
-          <ClosedChecks checks={shownClosed} from="ordenes" title={tq("paidToday")} id="checks-paid-title" />
-          {openChecks.length === 0 && closedChecks.length === 0 && !flat && <p className="text-sm text-muted-foreground">{tq("empty")}</p>}
+          {openChecks.length === 0 && !flat && <p className="text-sm text-muted-foreground">{tq("empty")}</p>}
         </>
       ) : (
         <OpenChecks checks={openChecks} from="ordenes" />
@@ -323,7 +367,11 @@ function OrdenesContent() {
           {!restaurant && (
             <Group title={t("groups.unassigned")} count={counts?.unassigned} filters={{ unassigned: true }} showPriority={showPriority} enabled={gate.enabled} />
           )}
-          <Group title={restaurant ? tq("paidToday") : t("groups.paidToday")} count={counts?.paid_today} hideEmpty={restaurant} filters={{ status: "paid", paid_on: today }} showPriority={showPriority} enabled={gate.enabled} />
+          {paidAvailable ? (
+            <PaidTodayLink count={(counts?.paid_today ?? 0) + closedChecks.length} />
+          ) : (
+            <Group title={restaurant ? tq("paidToday") : t("groups.paidToday")} count={counts?.paid_today} hideEmpty={restaurant} filters={{ status: "paid", paid_on: today }} showPriority={showPriority} enabled={gate.enabled} />
+          )}
         </div>
       )}
 

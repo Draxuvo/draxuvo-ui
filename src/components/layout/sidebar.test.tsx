@@ -115,6 +115,56 @@ describe("menú lateral: lenguaje de restaurante (spec 032)", () => {
   });
 });
 
+describe("menú lateral: Órdenes y Cobradas son una sola entrada (spec 051)", () => {
+  it("con órdenes y tickets hay una entrada de órdenes y ninguna de Tickets", async () => {
+    mount("owner");
+
+    const links = await screen.findAllByRole("link", { name: "Órdenes de trabajo" });
+    expect(new Set(links.map((l) => l.getAttribute("href")))).toEqual(new Set(["/es/ordenes"]));
+    expect(screen.queryByRole("link", { name: "Tickets" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Cobradas" })).not.toBeInTheDocument();
+  });
+
+  it("con mesas la entrada es Cuentas y lleva a /ordenes", async () => {
+    vi.mocked(restaurantService.overview).mockResolvedValue({
+      results: [{ id: 1, name: "1", active: true, position: 1, check: null }],
+      takeouts: [],
+      ready_items: [],
+    } as TablesResponse);
+    mount("owner");
+
+    const links = await screen.findAllByRole("link", { name: "Cuentas" });
+    expect(links[0]).toHaveAttribute("href", "/es/ordenes");
+    expect(screen.queryByRole("link", { name: "Tickets" })).not.toBeInTheDocument();
+  });
+
+  it("sin el módulo de tickets queda solo la entrada de órdenes", async () => {
+    plan.modules = ["employees", "inventory", "work_orders"];
+    mount("owner");
+
+    await screen.findAllByRole("link", { name: "Órdenes de trabajo" });
+    await waitFor(() => expect(screen.queryByRole("link", { name: "Cobradas" })).not.toBeInTheDocument());
+  });
+
+  it("con tickets y sin órdenes la entrada se llama Cobradas y abre el historial", async () => {
+    plan.modules = ["employees", "inventory", "tickets"];
+    mount("owner");
+
+    const links = await screen.findAllByRole("link", { name: "Cobradas" });
+    expect(links[0]).toHaveAttribute("href", "/es/ordenes?vista=cobradas");
+    expect(screen.queryByRole("link", { name: "Órdenes de trabajo" })).not.toBeInTheDocument();
+  });
+
+  it("sin ninguno de los dos módulos no hay entrada", async () => {
+    plan.modules = ["employees", "inventory"];
+    mount("owner");
+
+    await screen.findAllByRole("link", { name: "Personal" });
+    await waitFor(() => expect(screen.queryByRole("link", { name: "Cobradas" })).not.toBeInTheDocument());
+    expect(screen.queryByRole("link", { name: "Órdenes de trabajo" })).not.toBeInTheDocument();
+  });
+});
+
 describe("menú lateral: el punto de venta es un módulo extra (spec 050)", () => {
   it.each(["owner", "admin"])("%s con el módulo contratado ve Venta y lleva a la caja", async (role) => {
     plan.modules = ["employees", "inventory", "pos"];
