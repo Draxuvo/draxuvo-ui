@@ -24,7 +24,6 @@ test.describe("staff", () => {
 
     await expect(menu(page).getByRole("link")).toHaveText([
       t("workOrders.myOrders"),
-      t("tickets.myTickets"),
       t("nav.profile"),
     ]);
 

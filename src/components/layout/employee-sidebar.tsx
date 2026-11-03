@@ -2,7 +2,7 @@
 "use client";
 import { usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
-import { ClipboardList, Receipt, ReceiptText, ShoppingCart, User, X } from "lucide-react";
+import { ClipboardList, ReceiptText, ShoppingCart, User, X } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Logo } from "@/components/brand/logo";
 import { useAuthStore } from "@/store/auth";
@@ -15,7 +15,6 @@ export function EmployeeSidebar() {
   const pathname = usePathname();
   const t = useTranslations("nav");
   const tw = useTranslations("workOrders");
-  const tt = useTranslations("tickets");
   const tc = useTranslations("common");
   const locale = useLocale();
   const { user, selectedCompanyId } = useAuthStore();
@@ -24,7 +23,6 @@ export function EmployeeSidebar() {
 
   const NAV: NavItem[] = [
     { href: `/${locale}/mis-ordenes`, label: tw("myOrders"), icon: ClipboardList },
-    { href: `/${locale}/mis-tickets`, label: tt("myTickets"), icon: Receipt },
     ...(posAvailable
       ? [
           { href: `/${locale}/venta`, label: t("pos"), icon: ShoppingCart },

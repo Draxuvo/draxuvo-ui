@@ -33,9 +33,12 @@ test.describe("administrador de Volta", () => {
   test("[ORD-020] la pantalla de órdenes trae sus grupos y el botón de nuevo servicio @regresion", async ({ page }) => {
     await page.goto("/es/ordenes");
     await expect(page.getByRole("heading", { name: wo("title"), level: 1 })).toBeVisible();
-    for (const key of ["toCharge", "open", "inProgress", "unassigned", "paidToday"]) {
+    for (const key of ["toCharge", "open", "inProgress", "unassigned"]) {
       await expect(group(page, key), key).toBeVisible();
     }
+    // Lo cobrado hoy vive en la pestaña Cobradas (spec 051): Activas solo trae el pie que lleva a ella.
+    await expect(group(page, "paidToday")).toHaveCount(0);
+    await expect(page.getByRole("link", { name: /Ver cobradas/ })).toHaveAttribute("href", /vista=cobradas/);
     await expect(page.getByText(new RegExp(wo("groups.toChargeTotal", { amount: "\\$[\\d,.]+" }).replace(/[()]/g, "\\$&")))).toBeVisible();
     await expect(page.getByRole("button", { name: wo("labels.service.new") })).toBeVisible();
     // Solo el dueño cambia el modo de órdenes.
@@ -94,7 +97,9 @@ test.describe("quien cambia el modo de órdenes", () => {
 
     test("[ORD-020] en modo pedido el botón dice Nuevo pedido y no hay prioridad @regresion", async ({ page }) => {
       await page.goto("/es/ordenes");
-      await expect(page.getByRole("button", { name: wo("labels.order.new") })).toBeVisible();
+      // Sazón tiene mesas dadas de alta: el botón es «Nueva cuenta» (spec 032). Antes de saberlo, durante un instante,
+      // decía «Nuevo pedido»; con las pestañas de la spec 051 la pantalla espera a conocer los módulos y ese instante ya no se ve.
+      await expect(page.getByRole("button", { name: t("cuentas.new") })).toBeVisible();
       await expect(page.getByLabel(wo("filters.priority"))).toHaveCount(0);
     });
   });
@@ -182,13 +187,16 @@ test("[ORD-024] conceptos, pasos, notas, fotos e historia de una orden @regresio
 test.describe("dueño de Sazón", () => {
   test.use({ storageState: storageStatePath("owner", "sazon.demo") });
 
-  test("[ORD-025] la pantalla de tickets: filtros, búsqueda, detalle, PDF, orden y WhatsApp @regresion", async ({ page }) => {
+  test("[ORD-025] la pestaña Cobradas: filtros, búsqueda, detalle, PDF, orden y WhatsApp @regresion", async ({ page }) => {
     test.setTimeout(90_000);
     await page.route("**/api/v1/tickets/*/send_whatsapp", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ message: "ok" }) }),
     );
-    await page.goto("/es/tickets");
-    await expect(page.getByRole("heading", { name: tk("title"), level: 1 })).toBeVisible();
+    // /tickets ya no es una pantalla: redirige a la pestaña Cobradas de Cuentas y conserva los filtros (spec 051).
+    await page.goto("/es/ordenes?vista=cobradas&status=paid");
+    await expect(page).toHaveURL(/\/es\/ordenes\?vista=cobradas&status=paid$/);
+    await expect(page.getByRole("button", { name: t("ordersView.paid"), exact: true })).toHaveAttribute("aria-pressed", "true");
+    await page.goto("/es/ordenes?vista=cobradas");
     const chip = (key: string) => page.getByRole("group", { name: tk("filterStatus") }).getByRole("button", { name: new RegExp(`^${key === "all" ? tk("all") : tk(`statuses.${key}`)}`) });
     for (const key of ["all", "pending", "paid", "voided"]) await expect(chip(key)).toBeVisible();
 
@@ -224,7 +232,7 @@ test.describe("dueño de Sazón", () => {
     await expect(page.getByText(tk("whatsappSent"))).toBeVisible();
 
     // Un ticket anulado dice que lo fue, sin ofrecer reenviarlo.
-    await page.goto("/es/tickets?status=voided");
+    await page.goto("/es/ordenes?vista=cobradas&status=voided");
     await ticketRow(page, /T-\d+/).first().click();
     await expect(page.getByRole("dialog").getByText(tk("voidedNote"))).toBeVisible();
     await expect(page.getByRole("dialog").getByText(tk("voidReason"))).toBeVisible();

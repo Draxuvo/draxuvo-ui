@@ -63,7 +63,8 @@ export function NavList({
   return (
     <ul className="flex flex-col gap-1">
       {items.map(({ href, label, icon: Icon, onSelect }) => {
-        const active = pathname === href || pathname.startsWith(`${href}/`);
+        const hrefPath = href.split("?")[0];
+        const active = pathname === hrefPath || pathname.startsWith(`${hrefPath}/`);
         return (
           <li key={href}>
             <Link
@@ -147,12 +148,12 @@ export function Sidebar() {
     ...(hasModule("inventory")
       ? [{ href: `/${locale}/inventario`, label: t("inventory"), icon: Package }]
       : []),
+    // Órdenes y Cobradas son una sola entrada (spec 051): con solo el módulo de tickets abre directo el historial.
     ...(hasModule("work_orders")
       ? [{ href: `/${locale}/ordenes`, label: screen === "restaurant" ? t("accounts") : t("orders"), icon: ClipboardList }]
-      : []),
-    ...(hasModule("tickets")
-      ? [{ href: `/${locale}/tickets`, label: t("tickets"), icon: Receipt }]
-      : []),
+      : hasModule("tickets")
+        ? [{ href: `/${locale}/ordenes?vista=cobradas`, label: t("paid"), icon: Receipt }]
+        : []),
     // Punto de venta (spec 050): módulo extra con su caja a pantalla completa; contratado, aparece para todos.
     ...(activeModules?.includes("pos")
       ? [

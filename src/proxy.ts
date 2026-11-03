@@ -12,6 +12,7 @@ const ADMIN_ROUTES = [
   "/empleados",
   "/inventario",
   "/ordenes",
+  // Se conserva para que /tickets pase por este filtro de rol antes de redirigir a Cobradas (spec 051).
   "/tickets",
   "/asistencia",
   "/equipo",

@@ -77,7 +77,7 @@
     "inventory": "Inventario",
     "orders": "Órdenes de trabajo",
     "accounts": "Cuentas",
-    "tickets": "Tickets",
+    "paid": "Cobradas",
     "reports": "Reportes",
     "profile": "Mi perfil",
     "logout": "Cerrar sesión",
@@ -1097,8 +1097,15 @@
       "owner": "Propietario"
     }
   },
+  "ordersView": {
+    "label": "Vista de órdenes",
+    "active": "Activas",
+    "paid": "Cobradas",
+    "paidTodayLink": "Cobradas hoy: {count} · Ver cobradas"
+  },
   "tickets": {
     "title": "Tickets",
+    "entryLabel": "Cobradas",
     "myTickets": "Mis tickets",
     "subtitle": "{count, plural, one {# ticket} other {# tickets}}",
     "pendingCount": "{count} pendientes",

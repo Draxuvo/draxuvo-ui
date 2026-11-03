@@ -3,8 +3,9 @@
 // botones de 44 px. La API ya limita la lista a sus órdenes (404 en las ajenas). "Nueva orden" abre el
 // formulario del operador (spec 015): la orden queda asignada a su empleado.
 "use client";
-import { useState } from "react";
+import { Suspense, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { format, isPast, isToday } from "date-fns";
 import { toast } from "sonner";
@@ -21,6 +22,10 @@ import { useScreenMode } from "@/components/take-order/use-screen-mode";
 import { ClosedChecks, OpenChecks, useClosedChecks, useOpenChecks } from "@/components/take-order/open-checks";
 import { RestaurantAlerts } from "@/components/take-order/restaurant-alerts";
 import { useAppRouter } from "@/hooks/use-router";
+import { usePaidTab } from "@/hooks/use-paid-tab";
+import { PaidList } from "@/components/tickets/paid-list";
+import { PaidTodayLink } from "@/components/orders/paid-today-link";
+import { ViewTabs, resolveView, type OrdersView } from "@/components/orders/view-tabs";
 import type { WorkOrder } from "@/types";
 
 function OrderCard({ order }: { order: WorkOrder }) {
@@ -97,6 +102,46 @@ function Group({ title, orders }: { title: string; orders: WorkOrder[] }) {
 }
 
 export default function MisOrdenesPage() {
+  return (
+    <Suspense>
+      <MisOrdenesShell />
+    </Suspense>
+  );
+}
+
+// Mis órdenes y Mis cobradas en una sola entrada (spec 051): la vista vive en `?vista=`. La pestaña de cobradas existe
+// solo si el plan incluye tickets; el staff lo averigua con una consulta mínima (usePaidTab).
+function MisOrdenesShell() {
+  const t = useTranslations("workOrders");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const paid = usePaidTab();
+  const view = resolveView(searchParams.get("vista"), true, paid.available);
+
+  // Hasta saber si hay pestaña de cobradas no se decide la vista (un enlace a cobradas no debe parpadear en Activas).
+  if (!paid.ready && searchParams.get("vista") === "cobradas") return null;
+  const tabs = (
+    <ViewTabs
+      value={view}
+      onChange={(next: OrdersView) => router.replace(next === "cobradas" ? `${pathname}?vista=cobradas` : pathname, { scroll: false })}
+      showActive
+      showPaid={paid.available}
+    />
+  );
+  if (view === "cobradas") {
+    return (
+      <div className="mx-auto max-w-xl space-y-4 pb-8">
+        <h1 className="font-heading text-2xl font-semibold">{t("myOrders")}</h1>
+        {tabs}
+        <PaidList variant="staff" />
+      </div>
+    );
+  }
+  return <MisOrdenesContent tabs={tabs} paidAvailable={paid.available} />;
+}
+
+function MisOrdenesContent({ tabs, paidAvailable }: { tabs: ReactNode; paidAvailable: boolean }) {
   const t = useTranslations("workOrders");
   const ts = useTranslations("workOrders.staff");
   const gate = useModuleGate("work_orders");
@@ -118,7 +163,8 @@ export default function MisOrdenesPage() {
 
   const all = data?.results ?? [];
   const todo = all.filter((o) => o.status === "open" || o.status === "in_progress");
-  const finished = [...all.filter((o) => o.status === "done"), ...(paid?.results ?? [])];
+  // Con la pestaña Cobradas, lo ya cobrado hoy no se repite aquí: un pie lleva a ella (spec 051).
+  const finished = [...all.filter((o) => o.status === "done"), ...(paidAvailable ? [] : (paid?.results ?? []))];
 
   return (
     <div className="mx-auto max-w-xl space-y-6 pb-8">
@@ -134,8 +180,9 @@ export default function MisOrdenesPage() {
         </Button>
       </header>
       <OrderForm open={formOpen} onOpenChange={setFormOpen} staff />
+      {tabs}
       <OpenChecks checks={openChecks} from="mis-ordenes" />
-      <ClosedChecks checks={closedChecks} from="mis-ordenes" title={ts("finished")} />
+      {!paidAvailable && <ClosedChecks checks={closedChecks} from="mis-ordenes" title={ts("finished")} />}
 
       {isLoading ? (
         <div className="space-y-3" aria-busy="true">
@@ -159,6 +206,7 @@ export default function MisOrdenesPage() {
           <Group title={ts("finished")} orders={finished} />
         </>
       )}
+      {paidAvailable && !isLoading && !error && <PaidTodayLink count={(paid?.results.length ?? 0) + closedChecks.length} />}
     </div>
   );
 }

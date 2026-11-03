@@ -60,7 +60,8 @@ test.describe("la demo de cada plan", () => {
     await page.goto("/es/ordenes");
     await expect(page.getByRole("heading", { name: new RegExp(`^${t("cuentas.toPay")}`) })).toBeVisible();
     await expect(page.getByRole("heading", { name: new RegExp(`^${t("cuentas.open")}`) })).toBeVisible();
-    await expect(page.getByRole("heading", { name: new RegExp(`^${t("cuentas.paidToday")}`) })).toBeVisible();
+    // Lo cobrado hoy vive en la pestaña Cobradas (spec 051): Activas deja un pie que lleva a ella.
+    await expect(page.getByRole("link", { name: /Ver cobradas|See paid/ })).toBeVisible();
 
     // Pantalla completa (Tomar pedido): sin barra lateral y aun así con el aviso.
     await page.goto("/es/pedido");
