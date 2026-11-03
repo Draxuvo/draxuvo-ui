@@ -1007,7 +1007,49 @@
       "on": "Active",
       "off": "Off",
       "saved": "Modules updated",
-      "error": "Could not update the modules"
+      "error": "Could not update the modules",
+      "addon": {
+        "title": "Extra modules",
+        "saved": "Change applied",
+        "on": "On",
+        "off": "Off",
+        "trial": "On during the trial, no charge",
+        "endsOn": "On until {date}",
+        "perMonth": "per month",
+        "perYear": "per year",
+        "beforeTax": "before tax",
+        "noPrices": "Its prices are missing from the billing account: it cannot be turned on yet.",
+        "reactivate": "Reactivate",
+        "history": "Latest changes",
+        "historyOn": "{name} turned on by {actor} on {date}",
+        "historyOff": "{name} turned off by {actor} on {date}",
+        "cancel": "Cancel",
+        "confirmButton": "Confirm",
+        "applying": "Applying…",
+        "confirm": {
+          "on": {
+            "title": "Turn on {name}?",
+            "body": "The subscription total goes up {price} {cycle} plus tax. On a paid subscription the prorated part of the current period is charged now."
+          },
+          "off": {
+            "title": "Turn off {name}?",
+            "body": "The company keeps it until {date}, with no refund, and the total goes down {price} {cycle} plus tax from the next renewal. In a trial it is removed now."
+          },
+          "again": {
+            "title": "Reactivate {name}?",
+            "body": "The scheduled end is cancelled. Nothing is charged again."
+          }
+        },
+        "errors": {
+          "addon_payment_failed": "The charge failed. Check the company's payment method.",
+          "addon_requires_module": "The company needs the Inventory module.",
+          "addon_not_available": "The module's prices are missing from the billing account.",
+          "subscription_not_paid": "The subscription is neither active nor in trial.",
+          "subscription_suspended": "The subscription is suspended.",
+          "billing_managed_by_parent": "This is a branch: change it in its parent company.",
+          "generic": "The change could not be applied."
+        }
+      }
     }
   },
   "forgotPassword": {
@@ -1269,37 +1311,9 @@
     "mainCompany": "the main company",
     "modulesReadOnly": "These are the modules of your plan. Draxuvo turns them on and off; if you need a change, ask Draxuvo support.",
     "addons": {
-      "title": "Add-on modules",
-      "desc": "They add to your plan and are billed with your subscription.",
       "perMonth": "{price} per month",
       "perYear": "{price} per year",
       "beforeTax": "before tax",
-      "requires": "Needs {modules}",
-      "contract": "Subscribe",
-      "contracting": "Subscribing…",
-      "contracted": "Subscribed",
-      "endsOn": "Ends on {date}",
-      "reactivate": "Reactivate",
-      "reactivating": "Reactivating…",
-      "remove": "Cancel module",
-      "removing": "Cancelling…",
-      "includeInCheckout": "Include {name} when paying",
-      "selectedForCheckout": "It will be billed with your plan.",
-      "prorationNote": "When you subscribe, the prorated part of the current period is charged right away, with tax.",
-      "removeTitle": "Cancel {name}?",
-      "removeBody": "You keep using it until {date}. There is no refund and the next invoice no longer includes it.",
-      "removeConfirm": "Cancel module",
-      "keep": "Keep it",
-      "added": "{name} subscribed",
-      "removed": "{name} will be cancelled on {date}",
-      "reactivated": "{name} reactivated",
-      "errors": {
-        "addon_payment_failed": "The charge failed. Check your payment method.",
-        "addon_requires_module": "This module needs {modules}.",
-        "subscription_not_paid": "Pay your subscription first.",
-        "subscription_suspended": "Your subscription is suspended.",
-        "generic": "The action could not be completed."
-      },
       "breakdown": {
         "title": "Billing breakdown",
         "plan": "{plan} plan",
@@ -1308,7 +1322,10 @@
         "iva": "Tax",
         "total": "Total"
       },
-      "readOnly": "Only the owner and administrators can subscribe to modules."
+      "title": "Additional modules",
+      "desc": "Turned on by the Draxuvo team and billed with your subscription.",
+      "active": "Active",
+      "endsOn": "Active until {date}"
     }
   },
   "profile": {

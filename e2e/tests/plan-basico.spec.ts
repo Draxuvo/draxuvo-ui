@@ -554,7 +554,7 @@ test.describe("reportes", () => {
 test.describe("suscripción", () => {
   test.use({ storageState: ANON });
 
-  test("[BAS-050] en prueba: Básico a $399 + IVA, el plan no se cambia y el módulo extra se ofrece para sumarlo al pago @regresion", async ({ browser, request }, info) => {
+  test("[BAS-050] en prueba: Básico a $399 + IVA, el plan no se cambia y el cliente no ve ni compra módulos extra (spec 053) @regresion", async ({ browser, request }, info) => {
     const { company, owner } = await newOwner(request, info.workerIndex);
     const sub = await (await request.get(`${API_URL}/api/v1/subscription`, { headers: owner.headers })).json();
     expect(sub.plan).toBe("basic");
@@ -563,8 +563,11 @@ test.describe("suscripción", () => {
 
     const { page, context } = await ownerPage(browser, company);
     await page.goto("/es/suscripcion");
-    await expect(page.getByText(t("subscription.addons.title"))).toBeVisible();
-    await expect(page.getByText(/\$199\.00 al mes/)).toBeVisible();
+    await expect(page.getByText(t("subscription.choosePlan"))).toBeVisible();
+    // Spec 053: el extra lo enciende el super admin; el cliente no ve «Módulos extra» ni su precio.
+    await expect(page.getByText(/Módulos extra/i)).toHaveCount(0);
+    await expect(page.getByText(/\$199\.00 al mes/)).toHaveCount(0);
+    await expect(page.getByText(t("modules.pos"))).toHaveCount(0);
     await context.close();
   });
 
@@ -579,11 +582,10 @@ test.describe("suscripción", () => {
     await context.close();
   });
 
-  test("[BAS-051] contratar el módulo extra durante la prueba se rechaza con un código claro (se paga con el plan), no con un error interno @regresion", async ({ request }, info) => {
+  test("[BAS-051] el dueño no puede contratar el módulo extra por la API: solo el super admin (spec 053) @regresion", async ({ request }, info) => {
     const { owner } = await newOwner(request, info.workerIndex);
     const res = await request.post(`${API_URL}/api/v1/subscription/addons`, { headers: owner.headers, data: { module: "pos" } });
-    expect(res.status()).toBe(422);
-    expect(await errorCode(res)).toBe("subscription_not_paid");
+    expect(res.status()).toBe(403);
   });
 });
 
@@ -678,7 +680,7 @@ test.describe("permisos y seguridad", () => {
   test("[BAS-067] el inicio de sesión se frena tras varios intentos fallidos @regresion", async ({ request }, info) => {
     const { company } = await newOwner(request, info.workerIndex);
     const codes: number[] = [];
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 120; i++) {
       const res = await request.post(`${API_URL}/api/v1/auth/login`, { data: { email: company.email, password: `mala-${i}` } });
       codes.push(res.status());
     }

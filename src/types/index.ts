@@ -395,21 +395,13 @@ export interface Plan {
   prices: Record<BillingCycle, PlanPrice>;
 }
 
-/** Módulo extra contratable aparte del plan (spec 050). */
+/** Módulo extra que solo el super admin enciende por empresa (spec 053). */
 export type AddonKey = "pos";
-
-export interface AddonCatalogItem {
-  key: AddonKey;
-  requires: ModuleKey[];
-  prices: Record<BillingCycle, PlanPrice>;
-}
 
 export interface PlansResponse {
   iva_rate: number;
   plans: Plan[];
   modules: ModuleKey[];
-  /** Módulos extra con su precio. */
-  addons?: AddonCatalogItem[];
 }
 
 /** Un módulo extra contratado; `ending` tiene la baja programada y sigue activo hasta `ends_at`. */
@@ -461,6 +453,34 @@ export interface CheckoutResponse {
 
 export interface PortalResponse {
   portal_url: string;
+}
+
+/** Estado de un módulo extra de la empresa para el super admin (GET /company/modules). `trial`: encendido sin cobro en la prueba. */
+export type AddonState = "off" | "trial" | "active" | "ending";
+
+export interface CompanyAddon {
+  key: AddonKey;
+  requires: ModuleKey[];
+  /** Sus precios existen en la cuenta de cobro: sin ellos no se puede encender. */
+  available: boolean;
+  price: Record<BillingCycle, number>;
+  cycle: BillingCycle;
+  state: AddonState;
+  ends_at: string | null;
+}
+
+export interface ModuleChange {
+  module: string;
+  enabled: boolean;
+  actor: string;
+  amount_before_cents: number | null;
+  amount_after_cents: number | null;
+  created_at: string;
+}
+
+export interface CompanyModulesDetail extends ModulesResponse {
+  addons: CompanyAddon[];
+  changes: ModuleChange[];
 }
 
 export interface ModulesResponse {
