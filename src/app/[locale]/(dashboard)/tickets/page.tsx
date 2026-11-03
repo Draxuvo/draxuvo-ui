@@ -186,7 +186,9 @@ function TicketsContent() {
                     <TicketStatusBadge status={ticket.status} />
                   </div>
                   <p className="truncate font-medium text-foreground">
-                    {ticket.check
+                    {ticket.sale
+                      ? t("saleTitle", { id: ticket.sale.id })
+                      : ticket.check
                       ? ticket.check.table
                         ? t("table", { name: ticket.check.table })
                         : t("takeout", { name: ticket.check.takeout_name ?? "" })

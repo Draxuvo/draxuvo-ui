@@ -100,7 +100,10 @@
     "terminals": "Terminals",
     "demos": "Demos",
     "alerts": "Alerts",
-    "whatsapp": "WhatsApp"
+    "whatsapp": "WhatsApp",
+    "pos": "Sale",
+    "sales": "Sales",
+    "mySales": "My sales"
   },
   "whatsapp": {
     "title": "WhatsApp",
@@ -1160,7 +1163,9 @@
     "payments": "Payments",
     "reference": "Reference",
     "check": "Check",
-    "authorization": "Authorization"
+    "authorization": "Authorization",
+    "sale": "Counter sale",
+    "saleTitle": "Counter sale #{id}"
   },
   "subscription": {
     "nav": "Subscription",
@@ -1255,7 +1260,49 @@
     "managedByParentDesc": "This branch uses the main company's subscription. Payments and plan changes happen there.",
     "managedByParentAction": "Go to {company}",
     "mainCompany": "the main company",
-    "modulesReadOnly": "These are the modules of your plan. Draxuvo turns them on and off; if you need a change, ask Draxuvo support."
+    "modulesReadOnly": "These are the modules of your plan. Draxuvo turns them on and off; if you need a change, ask Draxuvo support.",
+    "addons": {
+      "title": "Add-on modules",
+      "desc": "They add to your plan and are billed with your subscription.",
+      "perMonth": "{price} per month",
+      "perYear": "{price} per year",
+      "beforeTax": "before tax",
+      "requires": "Needs {modules}",
+      "contract": "Subscribe",
+      "contracting": "Subscribing…",
+      "contracted": "Subscribed",
+      "endsOn": "Ends on {date}",
+      "reactivate": "Reactivate",
+      "reactivating": "Reactivating…",
+      "remove": "Cancel module",
+      "removing": "Cancelling…",
+      "includeInCheckout": "Include {name} when paying",
+      "selectedForCheckout": "It will be billed with your plan.",
+      "prorationNote": "When you subscribe, the prorated part of the current period is charged right away, with tax.",
+      "removeTitle": "Cancel {name}?",
+      "removeBody": "You keep using it until {date}. There is no refund and the next invoice no longer includes it.",
+      "removeConfirm": "Cancel module",
+      "keep": "Keep it",
+      "added": "{name} subscribed",
+      "removed": "{name} will be cancelled on {date}",
+      "reactivated": "{name} reactivated",
+      "errors": {
+        "addon_payment_failed": "The charge failed. Check your payment method.",
+        "addon_requires_module": "This module needs {modules}.",
+        "subscription_not_paid": "Pay your subscription first.",
+        "subscription_suspended": "Your subscription is suspended.",
+        "generic": "The action could not be completed."
+      },
+      "breakdown": {
+        "title": "Billing breakdown",
+        "plan": "{plan} plan",
+        "addon": "{name}",
+        "subtotal": "Subtotal",
+        "iva": "Tax",
+        "total": "Total"
+      },
+      "readOnly": "Only the owner and administrators can subscribe to modules."
+    }
   },
   "profile": {
     "pageTitle": "My profile",
@@ -1415,7 +1462,9 @@
       "inventoryValue": "Inventory value",
       "inventoryHint": "{count, plural, one {# counted product, at cost} other {# counted products, at cost}}",
       "lowStock": "Below minimum",
-      "lowStockHint": "Products at or below their minimum"
+      "lowStockHint": "Products at or below their minimum",
+      "sales": "Counter sales",
+      "salesHint": "{count, plural, one {# sale · } other {# sales · }}{units, plural, one {# unit} other {# units}}"
     },
     "income": {
       "title": "Income",
@@ -1427,7 +1476,9 @@
       "colEmployee": "Employee",
       "colTotal": "Total",
       "colDate": "Payment date",
-      "unassigned": "Unassigned"
+      "unassigned": "Unassigned",
+      "colSale": "Sale",
+      "colCashier": "Cashier"
     },
     "expenses": {
       "title": "Expenses",
@@ -1493,6 +1544,24 @@
       "colEntries": "Entries",
       "colExits": "Exits",
       "colAdjustments": "Adjustments"
+    },
+    "tabSales": "Sales",
+    "sales": {
+      "revenue": "Sold",
+      "count": "Sales",
+      "units": "Units",
+      "byProduct": "Sales by product",
+      "byProductTable": "sales-by-product",
+      "byCashier": "Sales by cashier",
+      "byCashierTable": "sales-by-cashier",
+      "colProduct": "Product",
+      "colSku": "Code",
+      "colUnits": "Units",
+      "colRevenue": "Amount",
+      "colCashier": "Cashier",
+      "colSales": "Sales",
+      "empty": "No sales were charged in this period.",
+      "unknownCashier": "No cashier"
     }
   },
   "cuentas": {
@@ -1965,7 +2034,8 @@
     "whatsapp": "WhatsApp",
     "multi_company": "Multiple companies or branches",
     "restaurant": "Restaurant",
-    "terminals": "Terminals"
+    "terminals": "Terminals",
+    "pos": "Point of sale"
   },
   "attendance": {
     "title": "Attendance",
@@ -2732,6 +2802,8 @@
       "scenarios": {
         "basic_retail": "Corner store",
         "basic_retailDesc": "Inventory, staff, attendance and reports",
+        "basic_stationery": "Stationery with point of sale",
+        "basic_stationeryDesc": "Inventory, staff, reports and the till to charge with a receipt (add-on module)",
         "pro_service": "Technical service",
         "pro_serviceDesc": "Work orders, tickets and card terminals",
         "pro_restaurant": "Restaurant",
@@ -2981,6 +3053,136 @@
       "email": "Email",
       "panelNote": "If you turn it off, low stock is still shown in the panel and in the app.",
       "saved": "Preference saved"
+    }
+  },
+  "pos": {
+    "title": "Sale",
+    "subtitle": "Scan or search items and charge.",
+    "back": "Back",
+    "newSale": "New sale",
+    "openSales": "Open sales",
+    "saleN": "Sale {n}",
+    "sales": "Sales",
+    "empty": {
+      "title": "Scan a product or search for it",
+      "body": "The sale opens by itself with the first item."
+    },
+    "search": {
+      "label": "Search product",
+      "placeholder": "Search by name or code",
+      "noResults": "No product matches.",
+      "loading": "Searching…",
+      "error": "The catalog could not be loaded."
+    },
+    "stock": {
+      "left": "{count} in stock",
+      "out": "Out of stock"
+    },
+    "cart": {
+      "title": "Current sale",
+      "items": "{count, plural, one {# item} other {# items}}",
+      "empty": "No items yet.",
+      "total": "Total",
+      "quantity": "Quantity of {name}",
+      "increase": "Add one {name}",
+      "decrease": "Remove one {name}",
+      "remove": "Remove {name}",
+      "discard": "Discard sale",
+      "discardTitle": "Discard this sale?",
+      "discardBody": "It is deleted without charging and stock does not change.",
+      "discardConfirm": "Discard",
+      "keep": "Keep selling"
+    },
+    "errors": {
+      "product_not_found": "Product not found.",
+      "product_not_sellable": "This product is not sold.",
+      "product_inactive": "This product is inactive.",
+      "product_without_price": "This product has no price.",
+      "invalid_quantity": "The quantity is not valid.",
+      "not_open": "The sale is no longer open.",
+      "generic": "The action could not be completed."
+    },
+    "charge": {
+      "button": "Charge {total}",
+      "title": "Charge sale",
+      "done": "Done",
+      "newSale": "New sale",
+      "success": "Sale charged",
+      "folio": "Receipt {folio}",
+      "change": "Change",
+      "shortagesTitle": "Some pieces were missing from stock",
+      "shortageLine": "{name}: {missing} missing",
+      "errors": {
+        "empty": "Add at least one item.",
+        "not_open": "The sale is no longer open.",
+        "stale_object": "The sale changed. Review it and charge again.",
+        "generic": "The sale could not be charged."
+      }
+    },
+    "ticket": {
+      "title": "Receipt",
+      "paper": "Receipt size",
+      "papers": {
+        "a4": "Letter",
+        "thermal58": "Thermal 58 mm",
+        "thermal80": "Thermal 80 mm"
+      },
+      "download": "Download PDF",
+      "print": "Print",
+      "whatsapp": "WhatsApp",
+      "phone": "Customer phone",
+      "phonePlaceholder": "10 digits",
+      "send": "Send by WhatsApp",
+      "sent": "Receipt sent by WhatsApp",
+      "error": "The receipt could not be sent by WhatsApp",
+      "downloadError": "The receipt PDF could not be generated",
+      "cancelled": "Sale cancelled",
+      "cancelReason": "Reason: {reason}"
+    },
+    "history": {
+      "title": "Sales",
+      "subtitle": "{count, plural, one {# sale} other {# sales}}",
+      "mineTitle": "My sales",
+      "filterStatus": "Filter by status",
+      "all": "All",
+      "statuses": {
+        "open": "Open",
+        "paid": "Paid",
+        "cancelled": "Cancelled"
+      },
+      "searchPlaceholder": "Search by receipt or item",
+      "from": "From",
+      "to": "To",
+      "status": "Status",
+      "empty": "No sales yet.",
+      "loadError": "The sales could not be loaded.",
+      "newSale": "Go to the till",
+      "cashier": "Cashier",
+      "items": "{count, plural, one {# item} other {# items}}",
+      "openDraft": "Not charged",
+      "retake": "Resume at the till",
+      "detail": {
+        "title": "Sale {id}",
+        "items": "Items",
+        "payments": "Payments",
+        "total": "Total",
+        "opened": "Opened by {name}",
+        "charged": "Charged by {name}",
+        "cancelledBy": "Cancelled by {name}",
+        "loadError": "The sale could not be loaded.",
+        "close": "Close"
+      },
+      "cancel": {
+        "button": "Cancel sale",
+        "title": "Cancel sale {id}",
+        "body": "Stock goes back to inventory and the sale stops counting in reports. This cannot be undone.",
+        "reason": "Reason for the cancellation",
+        "reasonRequired": "Write the reason.",
+        "confirm": "Cancel sale",
+        "keep": "Keep it",
+        "done": "Sale cancelled",
+        "error": "The sale could not be cancelled."
+      }
     }
   }
 }

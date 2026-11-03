@@ -6,7 +6,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/auth";
 import { getSubscription } from "@/services/subscription";
 
-const INCOME = ["tickets", "restaurant", "work_orders"];
+// Cualquiera de estos crea tickets; el punto de venta (spec 050) también: Básico con `pos` ve Ingresos con sus ventas.
+const INCOME = ["tickets", "restaurant", "work_orders", "pos"];
 
 export function useReportModules() {
   const { selectedCompanyId, role } = useAuthStore();
@@ -22,6 +23,7 @@ export function useReportModules() {
   const inventory = has("inventory");
   return {
     workOrders: has("work_orders"),
+    pos: has("pos"),
     income: !active || INCOME.some(has),
     payroll,
     inventory,

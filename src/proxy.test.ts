@@ -28,3 +28,25 @@ describe("proxy: la demo (spec 039)", () => {
     expect(location(middleware(request("/es/inicio")))).toContain("/es/login");
   });
 });
+
+describe("proxy: ventas de mostrador (spec 050)", () => {
+  const staff = "auth_token=jwt; user_role=staff";
+  const owner = "auth_token=jwt; user_role=owner";
+
+  it("el personal puede entrar a la caja y a sus ventas", () => {
+    expect(middleware(request("/es/venta", staff))).toBe(passthrough.sentinel);
+    expect(middleware(request("/es/mis-ventas", staff))).toBe(passthrough.sentinel);
+  });
+
+  it("el historial completo es del panel: al personal lo manda a sus órdenes", () => {
+    expect(location(middleware(request("/es/ventas", staff)))).toContain("/es/mis-ordenes");
+  });
+
+  it("dueño y administrador entran al historial", () => {
+    expect(middleware(request("/es/ventas", owner))).toBe(passthrough.sentinel);
+  });
+
+  it("sin sesión pide iniciar sesión", () => {
+    expect(location(middleware(request("/es/venta")))).toContain("/es/login");
+  });
+});

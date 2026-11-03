@@ -25,7 +25,9 @@ const nav = (page: Page, name: string) => page.getByRole("navigation").getByRole
 
 /** Abre una demo por API y devuelve lo necesario para llamar a la API como su dueño. */
 async function openByApi(request: APIRequestContext, body: Record<string, unknown> = { plan: "basic" }) {
-  const res = await request.post(`${API_URL}/api/v1/demo_sessions`, { data: { locale: "es", ...body } });
+  // Básico tiene dos giros (abarrotes y papelería, spec 050): sin giro elegido, el de siempre.
+  const scenario = body.plan === "basic" && !("scenario" in body) ? { scenario: "basic_retail" } : {};
+  const res = await request.post(`${API_URL}/api/v1/demo_sessions`, { data: { locale: "es", ...scenario, ...body } });
   expect(res.status()).toBe(201);
   const json = await res.json();
   return { headers: { Authorization: `Bearer ${json.token}`, "X-Company-Id": String(json.company_id) }, json };

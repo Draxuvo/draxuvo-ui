@@ -42,10 +42,23 @@ describe("DemoEntry", () => {
     expect(screen.getByLabelText(/^Restaurante/)).toBeInTheDocument();
   });
 
-  it("Básico y Empresa tienen un solo giro y no lo preguntan", () => {
-    renderWithProviders(<DemoEntry initialPlan="basic" />);
+  it("Empresa tiene un solo giro y no lo pregunta", () => {
+    renderWithProviders(<DemoEntry initialPlan="enterprise" />);
 
     expect(screen.queryByText("¿Qué tipo de negocio?")).not.toBeInTheDocument();
+  });
+
+  it("Básico pregunta el giro: abarrotes o papelería con punto de venta (spec 050)", async () => {
+    vi.mocked(demoService.open).mockResolvedValue(session({ plan: "basic", scenario: "basic_stationery" }));
+    renderWithProviders(<DemoEntry initialPlan="basic" />);
+
+    expect(screen.getByText("¿Qué tipo de negocio?")).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Abarrotes/)).toBeChecked();
+    fireEvent.click(screen.getByLabelText(/^Papelería con punto de venta/));
+    fireEvent.click(screen.getByRole("button", { name: "Entrar a la demo" }));
+
+    await waitFor(() => expect(demoService.open).toHaveBeenCalledTimes(1));
+    expect(vi.mocked(demoService.open).mock.calls[0][0]).toMatchObject({ plan: "basic", scenario: "basic_stationery" });
   });
 
   it("abre la demo del plan y giro elegidos sin pedir contacto, guarda la sesión y entra al inicio", async () => {

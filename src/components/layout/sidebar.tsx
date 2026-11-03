@@ -17,6 +17,8 @@ import {
   UtensilsCrossed,
   Building2,
   Landmark,
+  ReceiptText,
+  ShoppingCart,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -150,6 +152,13 @@ export function Sidebar() {
       : []),
     ...(hasModule("tickets")
       ? [{ href: `/${locale}/tickets`, label: t("tickets"), icon: Receipt }]
+      : []),
+    // Punto de venta (spec 050): módulo extra con su caja a pantalla completa; contratado, aparece para todos.
+    ...(activeModules?.includes("pos")
+      ? [
+          { href: `/${locale}/venta`, label: t("pos"), icon: ShoppingCart },
+          { href: `/${locale}/ventas`, label: t("sales"), icon: ReceiptText },
+        ]
       : []),
     ...(showRestaurant && hasModule("restaurant")
       ? [{ href: `/${locale}/restaurante`, label: t("restaurant"), icon: UtensilsCrossed }]

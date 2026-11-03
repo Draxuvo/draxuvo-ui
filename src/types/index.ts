@@ -379,7 +379,8 @@ export type ModuleKey =
   | "restaurant"
   | "terminals"
   | "whatsapp"
-  | "multi_company";
+  | "multi_company"
+  | "pos";
 export type SubscriptionStatus = "trialing" | "active" | "past_due" | "cancelled" | "expired" | "suspended";
 
 export interface PlanPrice {
@@ -394,10 +395,30 @@ export interface Plan {
   prices: Record<BillingCycle, PlanPrice>;
 }
 
+/** Módulo extra contratable aparte del plan (spec 050). */
+export type AddonKey = "pos";
+
+export interface AddonCatalogItem {
+  key: AddonKey;
+  requires: ModuleKey[];
+  prices: Record<BillingCycle, PlanPrice>;
+}
+
 export interface PlansResponse {
   iva_rate: number;
   plans: Plan[];
   modules: ModuleKey[];
+  /** Módulos extra con su precio. */
+  addons?: AddonCatalogItem[];
+}
+
+/** Un módulo extra contratado; `ending` tiene la baja programada y sigue activo hasta `ends_at`. */
+export interface SubscriptionAddon {
+  module: AddonKey;
+  amount_cents: number;
+  started_at: string;
+  ends_at: string | null;
+  status: "active" | "ending";
 }
 
 export interface Subscription {
@@ -409,12 +430,17 @@ export interface Subscription {
   status: SubscriptionStatus;
   cancel_at_period_end: boolean;
   amount_cents: number;
+  /** Módulos extra vigentes y su suma sin IVA (spec 050); `amount_cents` es solo el plan. */
+  addons?: SubscriptionAddon[];
+  addons_cents?: number;
   iva_cents: number;
   total_cents: number;
   trial_ends_at?: string | null;
   current_period_end?: string | null;
   active_modules: ModuleKey[];
   available_modules: ModuleKey[];
+  /** De dónde viene cada módulo disponible: el plan o un módulo extra contratado. */
+  module_sources?: Partial<Record<ModuleKey, "plan" | "addon">>;
   active_access: boolean;
   trial_days_remaining?: number;
   /** Sucursal: la suscripción es la de la empresa principal y el cobro se administra allá. */
@@ -465,7 +491,7 @@ export interface AuthResponse {
 // ---------- Demo por plan (spec 039) ----------
 
 export type DemoPlan = "basic" | "pro" | "enterprise";
-export type DemoScenario = "basic_retail" | "pro_service" | "pro_restaurant" | "enterprise_restaurant";
+export type DemoScenario = "basic_retail" | "basic_stationery" | "pro_service" | "pro_restaurant" | "enterprise_restaurant";
 export type DemoLocale = "es" | "en";
 export type DemoEndedReason = "left" | "signup" | "expired";
 export type DemoInviteStatus = "active" | "expired" | "revoked";
@@ -684,18 +710,35 @@ export interface ReportRange {
 export interface ReportSummary {
   period: ReportRange & { type: string };
   /** Cada bloque viene solo si su módulo está activo en el plan de la empresa (spec 033). */
-  income?: { total_revenue: number; tickets_paid: number; pending_revenue: number; tickets_pending: number };
+  /** Por cobrar solo existe con órdenes de trabajo: una empresa Básico con punto de venta no lo recibe (spec 050). */
+  income?: { total_revenue: number; tickets_paid: number; pending_revenue?: number; tickets_pending?: number };
   work_orders?: { total: number; total_billed: number; by_status: Record<string, number> };
   expenses?: { payroll: number; inventory_cost: number; total: number };
   attendance?: { total: number; normal: number; late: number; absent: number };
   /** Foto de hoy del inventario (no depende del periodo). */
   inventory?: { value: number; counted_products: number; low_stock: number };
+  /** Ventas de mostrador cobradas del periodo; solo con el módulo `pos` (spec 050). */
+  sales?: SalesSummary;
   /** Solo con `compare=true`: ingresos y gastos del periodo anterior de igual duración (los que existan). */
   previous?: {
     period: ReportRange;
-    income?: { total_revenue: number; pending_revenue: number };
+    income?: { total_revenue: number; pending_revenue?: number };
     expenses?: { payroll: number; inventory_cost: number; total: number };
+    sales?: SalesSummary;
   };
+}
+
+export interface SalesSummary {
+  total_revenue: number;
+  total_sales: number;
+  units: number;
+}
+
+/** GET /reports/sales: ventas de mostrador por producto y por cajero (spec 050). */
+export interface SalesReport extends SalesSummary {
+  period: ReportRange;
+  by_product: Array<{ product_id: number | null; name: string; sku: string | null; units: number; revenue: number }>;
+  by_cashier: Array<{ user_id: number | null; name: string | null; sales: number; revenue: number }>;
 }
 
 export interface IncomeBreakdownRow {
@@ -809,6 +852,8 @@ export interface Ticket {
     status?: WorkOrderStatus;
     customer_phone?: string;
   } | null;
+  /** Ticket de una venta de mostrador (spec 050), sin orden de trabajo ni cuenta. */
+  sale?: { id: number; opened_by: PersonRef | null } | null;
   /** Ticket de una cuenta de restaurante (sin orden de trabajo). */
   check?: { id: number; table: string | null; takeout_name: string | null; waiter: PersonRef | null } | null;
   /** Pagos del cobro: de la cuenta o de la orden (spec 015). Los anulados traen `voided_at`. */
@@ -1346,3 +1391,95 @@ export interface WhatsappEvent {
   meta_code: string | null;
   created_at: string;
 }
+
+// --- Punto de venta de mostrador (spec 050) ---
+
+export type SaleStatus = "open" | "paid" | "cancelled";
+
+export interface SaleItem {
+  id: number;
+  product_id: number | null;
+  name: string;
+  sku: string | null;
+  unit_price: string;
+  quantity: number;
+  subtotal: string;
+  icon: string | null;
+  /** Existencia actual; nulo si el tipo no se cuenta. */
+  stock: number | null;
+  fractional: boolean;
+}
+
+/** El ticket de una venta cobrada, con sus pagos. */
+export interface SaleTicket {
+  id: number;
+  folio: string;
+  status: TicketStatus;
+  payment_method: PaymentMethod | "mixed" | null;
+  amount_received: string | number | null;
+  change_given: string | number | null;
+  total: string | number;
+  paid_at: string | null;
+  charged_by: PersonRef | null;
+  voided_at: string | null;
+  voided_by: PersonRef | null;
+  void_reason: string | null;
+  payments: TicketPayment[];
+}
+
+export interface Sale {
+  id: number;
+  status: SaleStatus;
+  status_label: string;
+  total: string;
+  items_count: number;
+  opened_by: PersonRef | null;
+  charged_by: PersonRef | null;
+  paid_at: string | null;
+  cancelled_at: string | null;
+  cancelled_by: PersonRef | null;
+  cancel_reason: string | null;
+  lock_version: number;
+  created_at: string;
+  folio: string | null;
+  /** Acciones permitidas al usuario: add_item, charge, discard, ticket, cancel. */
+  actions?: string[];
+  items?: SaleItem[];
+  ticket?: SaleTicket | null;
+  /** La empresa puede mandar el ticket por WhatsApp (módulo del plan). */
+  whatsapp_available?: boolean;
+}
+
+export interface SaleCatalogProduct {
+  id: number;
+  name: string;
+  sku: string;
+  price: string;
+  icon: string | null;
+  category: string | null;
+  stock: number | null;
+  fractional: boolean;
+  barcodes: string[];
+}
+
+export interface SaleShortage {
+  product_id: number;
+  name: string;
+  missing: number;
+}
+
+export interface SaleChargeResult {
+  sale: Sale;
+  shortages: SaleShortage[];
+}
+
+export interface SalesFilters {
+  status?: SaleStatus;
+  from?: string;
+  to?: string;
+  opened_by_id?: number;
+  search?: string;
+}
+
+/** Tamaños del ticket de una venta: carta o rollo térmico. */
+export type TicketPaper = "a4" | "thermal58" | "thermal80";

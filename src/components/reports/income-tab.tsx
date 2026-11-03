@@ -6,6 +6,7 @@ import { groupByFor } from "@/lib/reports/period";
 import { formatCurrency, formatDay, periodLabel } from "@/lib/reports/format";
 import { REPORT_COLORS } from "@/lib/reports/colors";
 import { useChartColors } from "@/components/dashboard/chart-legend-links";
+import { useReportModules } from "@/hooks/use-report-modules";
 import type { IncomeBreakdownRow } from "@/types";
 import type { CsvColumn } from "@/lib/reports/csv";
 import { BarsChart } from "./charts";
@@ -22,6 +23,9 @@ export function IncomeTab({ period, companyId }: TabProps) {
   const colors = useChartColors();
   const { range } = period;
   const groupBy = groupByFor(range);
+  // Una empresa con solo punto de venta (Básico) ve ventas y cajeros, no órdenes ni empleados (spec 050).
+  const modules = useReportModules();
+  const salesOnly = modules.pos && !modules.workOrders;
 
   const query = useQuery({
     queryKey: ["reports", "income", range.from, range.to, groupBy, companyId],
@@ -36,15 +40,15 @@ export function IncomeTab({ period, companyId }: TabProps) {
 
   const columns: Column<IncomeBreakdownRow>[] = [
     { key: "folio", header: t("income.colFolio"), render: (r) => <span className="font-mono text-xs text-muted-foreground">{r.folio}</span> },
-    { key: "order", header: t("income.colWorkOrder"), render: (r) => r.work_order.title },
-    { key: "employee", header: t("income.colEmployee"), render: (r) => <span className="text-muted-foreground">{r.work_order.employee ?? t("income.unassigned")}</span> },
+    { key: "order", header: salesOnly ? t("income.colSale") : t("income.colWorkOrder"), render: (r) => r.work_order.title },
+    { key: "employee", header: salesOnly ? t("income.colCashier") : t("income.colEmployee"), render: (r) => <span className="text-muted-foreground">{r.work_order.employee ?? t("income.unassigned")}</span> },
     { key: "total", header: t("income.colTotal"), align: "right", render: (r) => <span className="font-medium">{cents(r.total)}</span>, total: cents(report?.total_revenue ?? 0) },
     { key: "date", header: t("income.colDate"), align: "right", render: (r) => <span className="text-muted-foreground">{formatDay(r.paid_at, locale)}</span> },
   ];
   const csvColumns: CsvColumn<IncomeBreakdownRow>[] = [
     { header: t("income.colFolio"), value: (r) => r.folio },
-    { header: t("income.colWorkOrder"), value: (r) => r.work_order.title },
-    { header: t("income.colEmployee"), value: (r) => r.work_order.employee ?? "" },
+    { header: salesOnly ? t("income.colSale") : t("income.colWorkOrder"), value: (r) => r.work_order.title },
+    { header: salesOnly ? t("income.colCashier") : t("income.colEmployee"), value: (r) => r.work_order.employee ?? "" },
     { header: t("income.colTotal"), value: (r) => r.total },
     { header: t("income.colDate"), value: (r) => r.paid_at.slice(0, 10) },
   ];
