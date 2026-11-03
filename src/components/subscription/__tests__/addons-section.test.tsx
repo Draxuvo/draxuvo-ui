@@ -132,6 +132,14 @@ describe("módulos extra en Suscripción (spec 050)", () => {
     expect(screen.queryByRole("button", { name: "Contratar" })).not.toBeInTheDocument();
   });
 
+  it("en una demo la sección es informativa: muestra el módulo contratado sin acciones ni aviso de permisos", async () => {
+    renderWithProviders(<AddonsSection subscription={sub({ addons: [contracted()] as never })} mode="readonly" cycle="monthly" readOnlyNote={false} />);
+
+    expect(await screen.findByText("Contratado")).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Solo el dueño y el administrador/)).not.toBeInTheDocument();
+  });
+
   it("solo lectura no ofrece acciones", async () => {
     renderWithProviders(<AddonsSection subscription={sub()} mode="readonly" cycle="monthly" />);
     await screen.findByText("Punto de venta");

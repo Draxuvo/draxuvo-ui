@@ -30,13 +30,15 @@ interface AddonsSectionProps {
   cycle: BillingCycle;
   selected?: AddonKey[];
   onToggle?: (key: AddonKey) => void;
+  /** En solo lectura, avisa que solo dueño y administrador contratan (no tiene sentido en una demo). */
+  readOnlyNote?: boolean;
 }
 
 function errorCode(err: unknown): string | undefined {
   return (err as { response?: { data?: { error?: { details?: { code?: string; required?: string } } } } }).response?.data?.error?.details?.code;
 }
 
-export function AddonsSection({ subscription, mode, cycle, selected = [], onToggle }: AddonsSectionProps) {
+export function AddonsSection({ subscription, mode, cycle, selected = [], onToggle, readOnlyNote = true }: AddonsSectionProps) {
   const t = useTranslations("subscription.addons");
   const tm = useTranslations("modules");
   const locale = useLocale() as "es" | "en";
@@ -168,7 +170,7 @@ export function AddonsSection({ subscription, mode, cycle, selected = [], onTogg
         })}
       </ul>
 
-      {mode === "readonly" && <p className="text-sm text-muted-foreground">{t("readOnly")}</p>}
+      {mode === "readonly" && readOnlyNote && <p className="text-sm text-muted-foreground">{t("readOnly")}</p>}
 
       <Dialog open={removing !== null} onOpenChange={(open) => !open && setRemoving(null)}>
         <DialogContent className="max-w-sm">

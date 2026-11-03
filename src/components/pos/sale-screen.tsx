@@ -2,7 +2,7 @@
 // Caja de venta de mostrador (spec 050): búsqueda y escaneo a la izquierda, la venta en curso a la derecha. La venta
 // vive en el servidor como borrador, así que sobrevive a recargar y se retoma desde otro equipo. Un cajero puede
 // tener varias abiertas a la vez.
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -32,7 +32,15 @@ export function SaleScreen() {
   const router = useAppRouter();
   const role = useAuthStore((s) => s.role);
   const gate = useModuleGate("pos");
-  const [saleId, setSaleId] = useState<number | null>(null);
+  const [saleId, setSaleIdState] = useState<number | null>(null);
+  // La venta actual también vive en una referencia: dos escaneos seguidos llegan antes de que React repinte, y con solo
+  // el estado el segundo vería "sin venta" y abriría otra. `opening` evita abrir dos a la vez.
+  const saleRef = useRef<number | null>(null);
+  const opening = useRef<Promise<number> | null>(null);
+  const setSaleId = useCallback((id: number | null) => {
+    saleRef.current = id;
+    setSaleIdState(id);
+  }, []);
   const [chargeOpen, setChargeOpen] = useState(false);
   const [discardOpen, setDiscardOpen] = useState(false);
   const [focusSignal, setFocusSignal] = useState(0);
@@ -50,9 +58,14 @@ export function SaleScreen() {
 
   // Al entrar retoma la venta abierta más reciente; si no hay, la venta se abre con el primer artículo.
   const firstOpen = openSales.data?.results[0]?.id ?? null;
+  // Solo la primera vez que llega la lista: después, "Nueva venta" o un cobro dejan la caja sin venta a propósito.
+  const restored = useRef(false);
+  const listLoaded = openSales.isSuccess;
   useEffect(() => {
-    if (saleId === null && firstOpen !== null) setSaleId(firstOpen);
-  }, [saleId, firstOpen]);
+    if (restored.current || !listLoaded) return;
+    restored.current = true;
+    if (saleRef.current === null && firstOpen !== null) setSaleId(firstOpen);
+  }, [listLoaded, firstOpen, setSaleId]);
 
   const refocus = useCallback(() => setFocusSignal((n) => n + 1), []);
 
@@ -65,11 +78,15 @@ export function SaleScreen() {
   );
 
   const ensureSale = useCallback(async () => {
-    if (saleId !== null) return saleId;
-    const created = await create.mutateAsync();
-    setSaleId(created.id);
-    return created.id;
-  }, [saleId, create]);
+    if (saleRef.current !== null) return saleRef.current;
+    opening.current ??= create.mutateAsync().then((created) => {
+      setSaleId(created.id);
+      return created.id;
+    }).finally(() => {
+      opening.current = null;
+    });
+    return opening.current;
+  }, [create, setSaleId]);
 
   const add = useCallback(
     async (input: AddItemInput) => {
@@ -158,7 +175,8 @@ export function SaleScreen() {
 
       {sale && (
         <PosChargeDialog
-          key={`${sale.id}-${sale.lock_version}`}
+          // Solo cambia con la venta: al cobrar, la venta trae otra versión y reiniciar aquí borraría el folio y el ticket.
+          key={sale.id}
           sale={sale}
           open={chargeOpen}
           onOpenChange={(open) => {

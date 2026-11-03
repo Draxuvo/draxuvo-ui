@@ -223,6 +223,10 @@ export function SubscriptionDetail() {
         </section>
       )}
 
+      {subscription && addonsMode === "readonly" && (subscription.addons?.length ?? 0) > 0 && (
+        <AddonsSection subscription={subscription} mode="readonly" cycle={subscription.billing_cycle ?? "monthly"} readOnlyNote={!isDemo} />
+      )}
+
       {subscription && addonsMode === "manage" && (
         <AddonsSection
           subscription={subscription}

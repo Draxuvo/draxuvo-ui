@@ -91,7 +91,8 @@ test.describe("el punto de venta de mostrador", () => {
     await expect(page.getByText(t("pos.history.cancel.reasonRequired"))).toBeVisible();
     await page.getByLabel(t("pos.history.cancel.reason")).fill("Cliente devolvió");
     await page.getByRole("button", { name: t("pos.history.cancel.confirm") }).click();
-    await expect(page.getByText(t("pos.history.cancel.done"))).toBeVisible();
+    // El aviso («Venta cancelada») y el ticket marcado («Venta cancelada · Motivo…») comparten texto: el aviso es el exacto.
+    await expect(page.getByText(t("pos.history.cancel.done"), { exact: true })).toBeVisible();
   });
 
   test("[VEN-005] sin el módulo (demo de abarrotes) la caja muestra el bloqueo del plan @pr", async ({ page }) => {

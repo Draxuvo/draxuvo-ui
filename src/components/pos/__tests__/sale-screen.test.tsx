@@ -77,6 +77,63 @@ describe("caja de venta (spec 050)", () => {
     expect(vi.mocked(salesService.addItem).mock.calls.map((c) => c[0])).toEqual([12, 12]);
   });
 
+  it("dos escaneos que llegan casi juntos usan una sola venta, no abren dos", async () => {
+    let release: (value: Sale) => void = () => undefined;
+    vi.mocked(salesService.create).mockReturnValue(new Promise<Sale>((resolve) => (release = resolve)));
+    vi.mocked(salesService.addItem).mockResolvedValue(sale({ id: 12, items: [item()], total: "42.50" }));
+    renderWithProviders(<SaleScreen />);
+
+    await userEvent.setup().type(screen.getByLabelText("Código de barras"), "111{Enter}222{Enter}");
+    release(sale({ id: 12 }));
+
+    await waitFor(() => expect(salesService.addItem).toHaveBeenCalledTimes(2));
+    expect(salesService.create).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(salesService.addItem).mock.calls.map((c) => c[0])).toEqual([12, 12]);
+  });
+
+  it("cobrar muestra el folio y el ticket aunque la venta cobrada llegue con otra versión", async () => {
+    vi.mocked(salesService.list).mockResolvedValue(page([sale({ id: 5 })]) as never);
+    let charged = false;
+    const open = sale({ id: 5, total: "42.50", lock_version: 3, items: [item()] });
+    const paid = sale({
+      id: 5, status: "paid", status_label: "Cobrada", total: "42.50", lock_version: 4, actions: ["ticket", "cancel"], items: [item()],
+      ticket: { id: 9, folio: "T-000009", change_given: "7.50", payments: [] } as never,
+    });
+    // Como la API real: antes del cobro la venta está abierta y después viene cobrada, con otra versión.
+    vi.mocked(salesService.get).mockImplementation(async () => (charged ? paid : open));
+    vi.mocked(salesService.charge).mockImplementation(async () => {
+      charged = true;
+      return { sale: paid, shortages: [] };
+    });
+    renderWithProviders(<SaleScreen />);
+    const user = userEvent.setup();
+
+    await screen.findByText("Cuaderno profesional");
+    await user.click(screen.getByRole("button", { name: /^Cobrar/ }));
+    await user.type(await screen.findByLabelText("Recibido"), "50");
+    await user.click(screen.getByRole("button", { name: "Confirmar cobro" }));
+
+    expect(await screen.findByText("Folio T-000009")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Descargar PDF" })).toBeInTheDocument();
+    // La venta cobrada ya está en caché con la versión nueva y el resultado sigue a la vista.
+    await waitFor(() => expect(salesService.charge).toHaveBeenCalledWith(5, { lock_version: 3, payments: [{ method: "cash", amount_received: 50 }] }, expect.any(String)));
+    expect(screen.getByText("Folio T-000009")).toBeInTheDocument();
+  });
+
+  it("«Nueva venta» deja la caja vacía y no vuelve a elegir una venta abierta", async () => {
+    vi.mocked(salesService.list).mockResolvedValue(page([sale({ id: 5 }), sale({ id: 6 })]) as never);
+    vi.mocked(salesService.get).mockImplementation(async (id) => sale({ id, total: "9.00", items: [item({ name: `Producto de venta ${id}` })] }));
+    renderWithProviders(<SaleScreen />);
+    const user = userEvent.setup();
+
+    expect(await screen.findByText("Producto de venta 5")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Nueva venta" }));
+
+    expect(await screen.findByText("Escanea un producto o búscalo")).toBeInTheDocument();
+    expect(screen.queryByText("Producto de venta 5")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Venta 5" })).toBeInTheDocument();
+  });
+
   it("retoma la venta abierta que ya tenía el cajero", async () => {
     vi.mocked(salesService.list).mockResolvedValue(page([sale({ id: 5 })]) as never);
     vi.mocked(salesService.get).mockResolvedValue(sale({ id: 5, total: "42.50", items: [item()] }));
