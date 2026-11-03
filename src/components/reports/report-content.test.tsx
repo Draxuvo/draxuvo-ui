@@ -195,7 +195,10 @@ describe("Plan Básico (spec 033)", () => {
 
   it("muestra Resumen, Inventario, Gastos y Nómina, sin Ingresos", async () => {
     renderWithProviders(<ReportContent />);
-    await waitFor(() => expect(screen.queryByRole("button", { name: "Ingresos" })).not.toBeInTheDocument());
+    // Spec 052 (H-43): mientras carga la suscripción no se pinta ninguna pestaña, ni siquiera las que luego se quitan.
+    expect(screen.queryByRole("button", { name: "Ingresos" })).not.toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Resumen" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Ingresos" })).not.toBeInTheDocument();
     for (const name of ["Resumen", "Inventario", "Gastos", "Nómina"]) expect(tab(name)).toBeInTheDocument();
   });
 

@@ -435,7 +435,7 @@
     "ticketsPendingLabel": "Tickets pendientes",
     "ticketsPaidLabel": "Tickets pagados",
     "reports": "Reportes",
-    "reportsSub": "Ingresos, gastos y nómina por periodo",
+    "reportsSub": "Resumen de tu negocio por periodo",
     "chartInventory": "Resumen de inventario",
     "legendHint": "Toca una barra o un concepto para abrir la lista filtrada.",
     "legendLabel": "Leyenda: {chart}",
@@ -2007,7 +2007,7 @@
     "basic": "Básico",
     "pro": "Pro",
     "enterprise": "Empresa",
-    "basicDesc": "Personal, asistencia e inventario",
+    "basicDesc": "Personal, asistencia, inventario y reportes",
     "proDesc": "Todo Básico más órdenes de trabajo, tickets, reportes y restaurante",
     "enterpriseDesc": "Todo Pro más WhatsApp y varias empresas o sucursales",
     "monthly": "Mensual",
@@ -2148,6 +2148,12 @@
         "employee_inactive": "El empleado está dado de baja.",
         "generic": "No se pudo registrar la marca. Inténtalo de nuevo."
       }
+    },
+    "home": {
+      "title": "Mi asistencia",
+      "subtitle": "Marca tu entrada y tu salida de hoy.",
+      "notYet": "Aún no marcas tu entrada hoy",
+      "notEligible": "Tu usuario no está ligado a un empleado de esta empresa. Pide al administrador que lo ligue."
     }
   },
   "companySwitcher": {
@@ -2970,7 +2976,7 @@
   },
   "alerts": {
     "title": "Alertas",
-    "subtitle": "Pedidos, mesas y stock que piden tu atención.",
+    "subtitle": "Lo que pide tu atención en tu negocio.",
     "tabs": {
       "active": "Activas",
       "settings": "Configuración"

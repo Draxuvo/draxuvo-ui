@@ -435,7 +435,7 @@
     "ticketsPendingLabel": "Pending tickets",
     "ticketsPaidLabel": "Paid tickets",
     "reports": "Reports",
-    "reportsSub": "Income, expenses and payroll by period",
+    "reportsSub": "Your business summary by period",
     "chartInventory": "Inventory summary",
     "legendHint": "Tap a bar or an item to open the filtered list.",
     "legendLabel": "Legend: {chart}",
@@ -2007,7 +2007,7 @@
     "basic": "Basic",
     "pro": "Pro",
     "enterprise": "Enterprise",
-    "basicDesc": "Staff, attendance and inventory",
+    "basicDesc": "Staff, attendance, inventory and reports",
     "proDesc": "Everything in Basic plus work orders, tickets, reports and restaurant",
     "enterpriseDesc": "Everything in Pro plus WhatsApp and multiple companies or branches",
     "monthly": "Monthly",
@@ -2148,6 +2148,12 @@
         "employee_inactive": "The employee has been deactivated.",
         "generic": "The entry could not be recorded. Try again."
       }
+    },
+    "home": {
+      "title": "My attendance",
+      "subtitle": "Clock in and out for today.",
+      "notYet": "You haven't clocked in today",
+      "notEligible": "Your user is not linked to an employee of this company. Ask the administrator to link it."
     }
   },
   "companySwitcher": {
@@ -2970,7 +2976,7 @@
   },
   "alerts": {
     "title": "Alerts",
-    "subtitle": "Orders, tables and stock that need your attention.",
+    "subtitle": "What needs your attention in your business.",
     "tabs": {
       "active": "Active",
       "settings": "Settings"

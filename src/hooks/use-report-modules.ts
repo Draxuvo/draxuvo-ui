@@ -1,7 +1,8 @@
 "use client";
 // Módulos del plan que cambian qué pestañas y bloques muestra Reportes (spec 033, misma regla que
 // `Reports::Modules` en la API). Mientras la suscripción carga, o si no se puede leer (super admin), se muestra
-// todo: la API decide con su 403.
+// todo: la API decide con su 403. Mientras la suscripción carga, `loading` es verdadero y las pantallas muestran un
+// estado neutro en vez de pintar módulos que quizá el plan no tiene (spec 052, H-43).
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/auth";
 import { getSubscription } from "@/services/subscription";
@@ -11,17 +12,19 @@ const INCOME = ["tickets", "restaurant", "work_orders", "pos"];
 
 export function useReportModules() {
   const { selectedCompanyId, role } = useAuthStore();
-  const { data } = useQuery({
+  const enabled = !!role && role !== "super_admin" && !!selectedCompanyId;
+  const { data, isError } = useQuery({
     queryKey: ["subscription", selectedCompanyId],
     queryFn: getSubscription,
     retry: false,
-    enabled: !!role && role !== "super_admin" && !!selectedCompanyId,
+    enabled,
   });
   const active = data?.active_modules;
   const has = (module: string) => !active || active.some((m) => m === module);
   const payroll = has("employees");
   const inventory = has("inventory");
   return {
+    loading: enabled && !data && !isError,
     workOrders: has("work_orders"),
     pos: has("pos"),
     income: !active || INCOME.some(has),

@@ -6,6 +6,7 @@ import { useIsFetching, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useReportModules } from "@/hooks/use-report-modules";
 import { useReportPeriod } from "@/hooks/use-report-period";
 import { ExpensesTab } from "./expenses-tab";
@@ -45,6 +46,9 @@ export function ReportContent({ companyId }: { companyId?: number }) {
   };
   // Una pestaña que deja de estar disponible (cambió el plan o los módulos) cae en Resumen.
   const tab = available[selected] ? selected : "summary";
+
+  // Hasta conocer los módulos del plan no se pintan pestañas que quizá no le tocan (spec 052, H-43).
+  if (modules.loading) return <Skeleton className="h-64 w-full rounded-etiqueta" aria-busy="true" />;
 
   return (
     <div className="space-y-6">

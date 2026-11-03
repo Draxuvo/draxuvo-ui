@@ -1,7 +1,6 @@
 import { expect, test, type Browser, type Locator, type Page } from "@playwright/test";
 import { createCompany, uniquePrefix, type NewCompany } from "../support/data";
 import { t } from "../support/i18n";
-import { knownFailure } from "../support/known-failure";
 import { API_URL, storageStatePath } from "../support/session";
 
 const ANON = { cookies: [], origins: [] };
@@ -47,8 +46,10 @@ async function apiHeaders(page: Page) {
 async function createProduct(page: Page, product: { sku: string; name: string; stock?: number; minStock?: number }) {
   await page.getByRole("button", { name: t("inventory.new") }).click();
   const sheet = page.getByRole("dialog");
-  // Spec 016: el tipo decide los campos. Las empresas nuevas son de servicio: "Refacción" se vende y se cuenta.
-  await sheet.getByLabel(t("inventory.type")).selectOption({ label: "Refacción" });
+  // Spec 016: el tipo decide los campos. Las empresas nuevas (plan Básico) son de mostrador: "Mercancía" se vende y se cuenta (spec 052).
+  const type = sheet.getByLabel(t("inventory.type"));
+  const typeLabel = (await type.locator("option").filter({ hasText: /Refacción|Mercancía/ }).first().textContent()) ?? "";
+  await type.selectOption({ label: typeLabel });
   await sheet.getByPlaceholder(t("inventory.skuPlaceholder")).fill(product.sku);
   await sheet.getByPlaceholder(t("inventory.namePlaceholder")).fill(product.name);
   await field(sheet, t("inventory.stock")).fill(String(product.stock ?? 0));
@@ -278,7 +279,6 @@ test("[INV-020] el dueño registra entradas y salidas desde la fila @pr", async 
 });
 
 test("[INV-020] una salida mayor al stock se rechaza y el stock queda igual @pr", async ({ browser, request }, info) => {
-  knownFailure("H-08");
   test.setTimeout(90_000);
   const company = await createCompany(request, { workerIndex: info.workerIndex });
   const sku = uniquePrefix(info.workerIndex);

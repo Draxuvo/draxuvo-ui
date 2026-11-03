@@ -121,17 +121,20 @@ export function Sidebar() {
   const showPeople = !!role && PEOPLE_ROLES.has(role);
   const showAlerts = !!role && ALERTS_ROLES.has(role);
 
-  const { data: subscription } = useQuery({
+  const subscriptionEnabled = !!user && role !== "super_admin" && !!selectedCompanyId;
+  const { data: subscription, isError: subscriptionFailed } = useQuery({
     queryKey: ["subscription", selectedCompanyId],
     queryFn: getSubscription,
     retry: false,
-    enabled: !!user && role !== "super_admin" && !!selectedCompanyId,
+    enabled: subscriptionEnabled,
   });
 
-  // Mientras carga (o si falla) se muestra el menú por rol, sin filtrar módulos.
+  // Si la suscripción falla (o no aplica) se muestra el menú por rol, sin filtrar módulos. Mientras carga, los
+  // módulos del plan no se pintan: evita el parpadeo de Órdenes o Restaurante en un plan que no los tiene (spec 052, H-43).
   const activeModules = subscription?.active_modules;
+  const loadingModules = subscriptionEnabled && !subscription && !subscriptionFailed;
   const hasModule = (module: ModuleKey) =>
-    !activeModules || activeModules.includes(module);
+    activeModules ? activeModules.includes(module) : !loadingModules;
   // "Mis empresas" solo cuando el plan confirma `multi_company` (no mientras carga).
   const showMyCompanies =
     role === "owner" && !!activeModules?.includes("multi_company");

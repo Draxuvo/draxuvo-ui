@@ -22,6 +22,10 @@ const ADMIN_ROUTES = [
   "/terminales",
   // Historial de ventas de mostrador (spec 050): el personal usa /mis-ventas.
   "/ventas",
+  // Spec 052 (H-06): el personal no abre Reportes ni Suscripción por URL.
+  "/reportes",
+  "/suscripcion",
+  "/alertas",
 ];
 
 export default function middleware(request: NextRequest) {
