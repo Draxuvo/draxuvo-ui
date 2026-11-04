@@ -84,7 +84,7 @@ test.describe("dueño", () => {
     await expect(page.getByRole("navigation").getByRole("link", { name: t("nav.whatsapp"), exact: true })).toHaveCount(0);
 
     await page.goto("/es/whatsapp");
-    await expect(page.getByRole("heading", { name: tr("forbidden.title") })).toBeVisible();
+    await expect(page).toHaveURL(/\/es\/inicio/);
     await expect(page.getByRole("button", { name: tr("connection.connect"), exact: true })).toHaveCount(0);
   });
 });
