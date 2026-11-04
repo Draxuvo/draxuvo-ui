@@ -32,6 +32,10 @@ test.describe("staff", () => {
     }
 
     await page.getByRole("button", { name: t("nav.logout") }).click();
+    // Otras pruebas en paralelo pueden dejar un turno abierto de este usuario de demo: entonces cerrar sesión pregunta si
+    // se marca la salida (spec 027) y aquí se cierra sin marcar. Con el turno cerrado, sale directo.
+    const withoutMarking = page.getByRole("button", { name: t("attendance.logout.withoutMarking") });
+    await withoutMarking.click({ timeout: 2_000 }).catch(() => {});
     await expect(page).toHaveURL(/\/es\/login$/);
   });
 });
