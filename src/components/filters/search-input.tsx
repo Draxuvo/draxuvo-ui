@@ -75,7 +75,7 @@ export function SearchInput({ value, onSearch, placeholder, className, scannable
         type="search"
         aria-label={tc("search")}
         placeholder={placeholder}
-        className={cn("pl-9", scannable && "pr-11")}
+        className={cn("pl-9", scannable && "pr-12")}
         value={draft}
         onChange={(e) => handleChange(e.target.value)}
       />
@@ -86,7 +86,7 @@ export function SearchInput({ value, onSearch, placeholder, className, scannable
             aria-label={ts("open")}
             title={ts("open")}
             onClick={() => setCameraOpen(true)}
-            className="absolute right-1 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="absolute right-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Camera size={18} aria-hidden />
           </button>
