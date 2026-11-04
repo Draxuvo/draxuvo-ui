@@ -86,6 +86,16 @@ describe("CameraDialog (spec 056)", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(/no tiene una cámara/);
   });
 
+  it("sin conexión segura explica que la cámara pide HTTPS", async () => {
+    Object.defineProperty(window, "isSecureContext", { configurable: true, value: false });
+    try {
+      renderWithProviders(<CameraDialog open onOpenChange={() => {}} onScan={vi.fn()} detector={detectorOf([[]])} />);
+      expect(await screen.findByRole("alert")).toHaveTextContent(/HTTPS/);
+    } finally {
+      Object.defineProperty(window, "isSecureContext", { configurable: true, value: true });
+    }
+  });
+
   it("solo el texto sale por onScan: nunca una imagen (FR-018)", async () => {
     const onScan = vi.fn();
     renderWithProviders(<CameraDialog open onOpenChange={() => {}} onScan={onScan} detector={detectorOf([[{ value: "123" }]])} />);
@@ -119,6 +129,20 @@ describe("ScanInput con cámara (spec 056)", () => {
 
     await user.click(screen.getByRole("button", { name: "Escanear con cámara" }));
     await waitFor(() => expect(onScan).toHaveBeenLastCalledWith("555"), { timeout: 2000 });
+  });
+
+  it("con el permiso negado el campo manual sigue entregando el código (FR-007)", async () => {
+    permission = "denied";
+    installCamera();
+    const onScan = vi.fn();
+    renderWithProviders(<ScanInput onScan={onScan} detector={detectorOf([[]])} />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Escanear con cámara" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(/permiso fue negado/);
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(screen.getByLabelText("Código de barras")).toHaveFocus());
+    await user.keyboard("42{Enter}");
+    expect(onScan).toHaveBeenCalledWith("42");
   });
 
   it("cierra con Esc y devuelve el foco al campo", async () => {

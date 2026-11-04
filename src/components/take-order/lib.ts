@@ -17,6 +17,9 @@ export function normalize(text: string): string {
 export interface MenuCard {
   id: number;
   name: string;
+  /** Clave y códigos de barras del producto (spec 056): permiten agregarlo leyendo su código. */
+  sku?: string;
+  barcodes?: string[];
   price: number;
   icon?: string | null;
   product_type?: { icon?: string | null } | null;

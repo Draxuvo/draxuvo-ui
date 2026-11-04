@@ -53,10 +53,12 @@ export function PaidList({ variant, header }: { variant: "boss" | "staff"; heade
   const linkedId = positiveInt(searchParams.get("ticket"));
   const { data: linked } = useTicket(linkedId ?? 0);
   const [selected, setSelected] = useState<Ticket | null>(null);
-  const shown = selected ?? (linkedId ? (linked ?? null) : null);
+  // Folio leído con la cámara (spec 056): si entre los resultados hay un ticket con ese folio exacto, se abre solo.
+  const [scannedFolio, setScannedFolio] = useState<string | null>(null);
 
   function closeDetail() {
     setSelected(null);
+    setScannedFolio(null);
     if (linkedId) {
       const params = new URLSearchParams(searchParams.toString());
       params.delete("ticket");
@@ -81,6 +83,8 @@ export function PaidList({ variant, header }: { variant: "boss" | "staff"; heade
     refetchOnWindowFocus: true,
   });
   const tickets = data?.results ?? [];
+  const scanned = scannedFolio ? tickets.find((ticket) => ticket.folio.toLowerCase() === scannedFolio.toLowerCase()) : undefined;
+  const shown = selected ?? scanned ?? (linkedId ? (linked ?? null) : null);
 
   // Conteos de las fichas sobre todos los tickets, no sobre la página cargada. El staff no tiene tablero.
   const { data: stats } = useQuery({
@@ -145,7 +149,13 @@ export function PaidList({ variant, header }: { variant: "boss" | "staff"; heade
         })}
       </div>
 
-      <SearchInput value={filters.search} onSearch={(value) => setFilter("search", value)} placeholder={t("searchPlaceholder")} />
+      <SearchInput
+        value={filters.search}
+        onSearch={(value) => setFilter("search", value)}
+        placeholder={t("searchPlaceholder")}
+        scannable
+        onScan={setScannedFolio}
+      />
 
       {isFiltered && <FilterNotice applied={applied} onClear={reset} />}
 

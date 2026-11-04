@@ -289,6 +289,7 @@ function InventarioContent() {
           value={filters.search}
           onSearch={(value) => setFilter("search", value)}
           placeholder={t("searchPlaceholder")}
+          scannable
         />
         <div role="group" aria-label={t("filters.stock")} className="flex flex-wrap items-center gap-2">
           <span aria-hidden="true" className="text-xs font-medium text-muted-foreground">{t("filters.stock")}</span>

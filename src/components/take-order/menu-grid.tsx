@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
+import { ScanInput } from "@/components/scan/scan-input";
 import { Input } from "@/components/ui/input";
 import { ProductIconBadge } from "@/components/product-icon";
 import { cn } from "@/lib/utils";
@@ -65,6 +66,7 @@ export function MenuGrid({
   disabled,
   countOf,
   onTap,
+  onScanCode,
 }: {
   menu: MenuSection[];
   loading: boolean;
@@ -73,6 +75,8 @@ export function MenuGrid({
   disabled: boolean;
   countOf: (card: MenuCard) => number;
   onTap: (card: MenuCard) => void;
+  /** Código leído con la cámara, la pistola o a mano (spec 056); sin él no hay campo de código. */
+  onScanCode?: (code: string) => Promise<void> | void;
 }) {
   const t = useTranslations("takeOrder");
   const locale = useLocale();
@@ -85,6 +89,7 @@ export function MenuGrid({
 
   return (
     <div className="flex min-h-0 flex-col gap-3">
+      {onScanCode && <ScanInput onScan={onScanCode} disabled={disabled} />}
       <div className="relative">
         <Search size={16} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <Input

@@ -9,13 +9,18 @@ import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ProductGlyph } from "@/components/product-icon";
+import { ScanInput } from "@/components/scan/scan-input";
 import { apiClient } from "@/lib/api";
+import { scanFailureText } from "@/lib/scan/messages";
+import { resolveProduct } from "@/lib/scan/resolve";
+import { inventoryService } from "@/services/inventory";
 import { ProductPicker } from "./product-picker";
 import { useAddItem, useDeleteItem, useUpdateItem } from "@/hooks/use-work-orders";
 import type { Product, WorkOrder, WorkOrderAction } from "@/types";
 
 export function OrderItems({ order }: { order: WorkOrder }) {
   const t = useTranslations("workOrders");
+  const ts = useTranslations("scan");
   const locale = useLocale();
   const can = (action: WorkOrderAction) => order.allowed_actions?.includes(action) ?? false;
   const boss = can("edit_items");
@@ -43,6 +48,18 @@ export function OrderItems({ order }: { order: WorkOrder }) {
       onSuccess: () => setProductId(""),
       onError: () => toast.error(t("errors.forbidden")),
     });
+  }
+
+  // Leer o escribir un código agrega el producto con cantidad 1, igual que elegirlo del catálogo (spec 056).
+  async function addByCode(code: string) {
+    const result = await resolveProduct(code, products, inventoryService.byCode, "catalog");
+    if (!result.ok) return void toast.error(scanFailureText((key, values) => ts(key, values), code, result));
+    try {
+      await add.mutateAsync({ product_id: result.product.id, quantity: 1 });
+      toast.success(ts("added", { name: result.product.name }));
+    } catch {
+      toast.error(t("errors.forbidden"));
+    }
   }
 
   function addFree(event: React.FormEvent) {
@@ -126,6 +143,7 @@ export function OrderItems({ order }: { order: WorkOrder }) {
 
       {can("add_item") && (
         <div className="space-y-3 rounded-etiqueta border border-dashed border-border p-3">
+          <ScanInput onScan={addByCode} disabled={add.isPending} />
           <div className="flex gap-2">
             <ProductPicker products={products} value={productId} onChange={setProductId} />
             <Button type="button" variant="outline" className="h-11 gap-1" onClick={addFromCatalog} disabled={!productId || add.isPending}>

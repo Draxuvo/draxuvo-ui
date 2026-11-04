@@ -3242,6 +3242,7 @@
     "notFound": "Code not found: {code}",
     "notSellable": "The product {name} is not for sale (code {code}).",
     "notOnMenu": "The product {name} is not on the menu (code {code}).",
-    "frame": "Scanning frame"
+    "frame": "Scanning frame",
+    "added": "Added: {name}"
   }
 }

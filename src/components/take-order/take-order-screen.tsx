@@ -14,6 +14,9 @@ import { useAppRouter } from "@/hooks/use-router";
 import { useSaleMenu } from "@/hooks/use-restaurant";
 import { useFinishOrder } from "@/hooks/use-work-orders";
 import { useAuthStore } from "@/store/auth";
+import { scanFailureText } from "@/lib/scan/messages";
+import { resolveProduct } from "@/lib/scan/resolve";
+import { inventoryService } from "@/services/inventory";
 import { cn } from "@/lib/utils";
 import { CheckPaymentDialog } from "./check-payment-dialog";
 import type { Line, MenuCard, MenuSection } from "./lib";
@@ -53,6 +56,7 @@ function errorCode(err: unknown): string | undefined {
 
 function Board({ mode }: { mode: "restaurant" | "orders" }) {
   const t = useTranslations("takeOrder");
+  const ts = useTranslations("scan");
   const router = useAppRouter();
   const params = useSearchParams();
   // Dónde vuelve "volver" según `from`; solo valores conocidos, cualquier otro se ignora.
@@ -88,6 +92,8 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
     items: section.items.map((p) => ({
       id: p.id,
       name: p.name,
+      sku: p.sku,
+      barcodes: p.barcodes,
       price: Number(p.price ?? 0),
       icon: p.icon,
       product_type: p.product_type,
@@ -109,6 +115,14 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
         toast.error(t("saveError"));
       }
     }
+  }
+
+  // Un código leído agrega el producto igual que tocar su tarjeta; si no se puede, dice el código y el motivo (spec 056).
+  async function addByCode(code: string) {
+    const cards = menu.flatMap((section) => section.items);
+    const result = await resolveProduct(code, cards, inventoryService.byCode, "menu");
+    if (!result.ok) return void toast.error(scanFailureText((key, values) => ts(key, values), code, result));
+    await run(() => source.tap(result.product));
   }
 
   async function pick(tile: SourceTile) {
@@ -264,6 +278,7 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
             disabled={!current?.canAdd}
             countOf={(card) => source.inOrder(card)}
             onTap={(card: MenuCard) => void run(() => source.tap(card))}
+            onScanCode={addByCode}
           />
         </section>
       </div>
