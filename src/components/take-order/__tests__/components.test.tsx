@@ -116,6 +116,29 @@ describe("MenuGrid", () => {
   });
 });
 
+describe("MenuGrid: código (spec 056)", () => {
+  const menu: MenuSection[] = [{ category: "Antojitos", items: [{ id: 1, name: "Tostada", price: 30 }] }];
+  const props = { menu, loading: false, error: false, disabled: false, countOf: () => 0, onTap: vi.fn() };
+
+  it("con onScanCode ofrece el campo y la cámara, y entrega el código limpio", async () => {
+    const onScanCode = vi.fn();
+    renderWithProviders(<MenuGrid {...props} onScanCode={onScanCode} />);
+    expect(screen.getByRole("button", { name: "Escanear con cámara" })).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText("Código de barras"), " 123 {Enter}");
+    expect(onScanCode).toHaveBeenCalledWith("123");
+  });
+
+  it("sin onScanCode no hay campo de código", () => {
+    renderWithProviders(<MenuGrid {...props} />);
+    expect(screen.queryByLabelText("Código de barras")).toBeNull();
+  });
+
+  it("sin orden elegida el campo de código está deshabilitado", () => {
+    renderWithProviders(<MenuGrid {...props} disabled onScanCode={vi.fn()} />);
+    expect(screen.getByLabelText("Código de barras")).toBeDisabled();
+  });
+});
+
 describe("MenuGrid: iconos (spec 026)", () => {
   const menu: MenuSection[] = [
     {

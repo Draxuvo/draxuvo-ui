@@ -17,7 +17,7 @@ vi.mock("@/services/restaurant", () => ({
     updateCheckItem: vi.fn(), cancelCheck: vi.fn(), removeCheckItem: vi.fn(), sendRound: vi.fn(), addPayment: vi.fn(),
   },
 }));
-vi.mock("@/services/inventory", () => ({ inventoryService: { menu: vi.fn() } }));
+vi.mock("@/services/inventory", () => ({ inventoryService: { menu: vi.fn(), byCode: vi.fn() } }));
 vi.mock("@/hooks/use-payment-terminals", () => ({ usePaymentTerminals: () => ({ data: [] }) }));
 vi.mock("@/hooks/use-work-orders", () => ({
   listWorkOrders: vi.fn().mockResolvedValue({ results: [] }),
@@ -30,6 +30,7 @@ vi.mock("@/hooks/use-work-orders", () => ({
   useChargeOrder: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 
+import { toast } from "sonner";
 import { restaurantService } from "@/services/restaurant";
 import { inventoryService } from "@/services/inventory";
 import { TakeOrderScreen } from "../take-order-screen";
@@ -80,6 +81,47 @@ describe("TakeOrderScreen (modo mesas)", () => {
 
     await userEvent.click(await screen.findByRole("button", { name: /Tostada/ }));
     await waitFor(() => expect(restaurantService.addCheckItem).toHaveBeenCalledWith(10, { product_id: 7, quantity: 1 }));
+  });
+
+  describe("agregar leyendo un código (spec 056)", () => {
+    beforeEach(() => {
+      vi.mocked(inventoryService.menu).mockResolvedValue({
+        menu: [{ category: "Antojitos", items: [{ id: 7, name: "Tostada", price: 30, sku: "TOS-1", barcodes: ["7501234567890"] } as never] }],
+      });
+      vi.mocked(inventoryService.byCode).mockResolvedValue(null);
+      vi.mocked(restaurantService.openCheck).mockResolvedValue(check());
+      vi.mocked(restaurantService.getCheck).mockResolvedValue(check());
+      vi.mocked(restaurantService.addCheckItem).mockResolvedValue(check());
+    });
+
+    it("el código de barras o la clave agregan el producto como tocar su tarjeta", async () => {
+      renderWithProviders(<TakeOrderScreen />);
+      await userEvent.click(await screen.findByRole("button", { name: /^Mesa 4, Libre/ }));
+      const field = await screen.findByLabelText("Código de barras");
+
+      await userEvent.type(field, "7501234567890{Enter}");
+      await waitFor(() => expect(restaurantService.addCheckItem).toHaveBeenCalledWith(10, { product_id: 7, quantity: 1 }));
+      await userEvent.type(field, "tos-1{Enter}");
+      await waitFor(() => expect(restaurantService.addCheckItem).toHaveBeenCalledTimes(2));
+      expect(inventoryService.byCode).not.toHaveBeenCalled();
+    });
+
+    it("un código desconocido avisa con el número y no agrega", async () => {
+      renderWithProviders(<TakeOrderScreen />);
+      await userEvent.click(await screen.findByRole("button", { name: /^Mesa 4, Libre/ }));
+      await userEvent.type(await screen.findByLabelText("Código de barras"), "999{Enter}");
+      await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Código no encontrado: 999"));
+      expect(restaurantService.addCheckItem).not.toHaveBeenCalled();
+    });
+
+    it("un producto que existe pero no está en el menú avisa el motivo", async () => {
+      vi.mocked(inventoryService.byCode).mockResolvedValue({ id: 50, name: "Harina", sku: "H-1", product_type: { sellable: true } } as never);
+      renderWithProviders(<TakeOrderScreen />);
+      await userEvent.click(await screen.findByRole("button", { name: /^Mesa 4, Libre/ }));
+      await userEvent.type(await screen.findByLabelText("Código de barras"), "H-1{Enter}");
+      await waitFor(() => expect(toast.error).toHaveBeenCalledWith("El producto Harina no está en el menú (código H-1)."));
+      expect(restaurantService.addCheckItem).not.toHaveBeenCalled();
+    });
   });
 
   it("muestra las mesas ocupadas con su total", async () => {

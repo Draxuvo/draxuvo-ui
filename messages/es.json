@@ -3224,5 +3224,25 @@
         "error": "No se pudo cancelar la venta."
       }
     }
+  },
+  "scan": {
+    "open": "Escanear con cámara",
+    "title": "Escanear código",
+    "description": "Apunta la cámara al código de barras. Puedes seguir escaneando; cierra cuando termines.",
+    "close": "Cerrar cámara",
+    "torchOn": "Encender luz",
+    "torchOff": "Apagar luz",
+    "starting": "Iniciando cámara…",
+    "denied": "No se pudo usar la cámara porque el permiso fue negado. Actívalo en la configuración del navegador o escribe el código a mano.",
+    "unavailable": "Este dispositivo no tiene una cámara disponible. Escribe el código a mano.",
+    "insecure": "La cámara solo funciona en una conexión segura (HTTPS). Escribe el código a mano.",
+    "failed": "No se pudo iniciar la cámara. Escribe el código a mano.",
+    "read": "Leído: {code}",
+    "invalid": "Código no válido, intenta de nuevo.",
+    "notFound": "Código no encontrado: {code}",
+    "notSellable": "El producto {name} no se vende (código {code}).",
+    "notOnMenu": "El producto {name} no está en el menú (código {code}).",
+    "frame": "Marco de lectura",
+    "added": "Agregado: {name}"
   }
 }

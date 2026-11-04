@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
@@ -8,15 +8,19 @@ import { OrderItems } from "./order-items";
 const addMutate = vi.hoisted(() => vi.fn());
 const updateMutate = vi.hoisted(() => vi.fn());
 const removeMutate = vi.hoisted(() => vi.fn());
+const addMutateAsync = vi.hoisted(() => vi.fn());
 const get = vi.hoisted(() => vi.fn());
+const byCode = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/api", () => ({ apiClient: { get } }));
 vi.mock("@/hooks/use-work-orders", () => ({
-  useAddItem: () => ({ mutate: addMutate, isPending: false }),
+  useAddItem: () => ({ mutate: addMutate, mutateAsync: addMutateAsync, isPending: false }),
   useUpdateItem: () => ({ mutate: updateMutate, isPending: false }),
   useDeleteItem: () => ({ mutate: removeMutate, isPending: false }),
 }));
-vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
+vi.mock("@/services/inventory", () => ({ inventoryService: { byCode } }));
+const toastError = vi.hoisted(() => vi.fn());
+vi.mock("sonner", () => ({ toast: { error: toastError, success: vi.fn() } }));
 
 function orden(actions: WorkOrderAction[]): WorkOrder {
   return {
@@ -35,7 +39,10 @@ beforeEach(() => {
   updateMutate.mockReset();
   removeMutate.mockReset();
   get.mockReset();
-  get.mockResolvedValue({ data: { results: [{ id: 9, name: "Aceite", sku: "AC-1", price: 120, icon: "bolt" }] } });
+  addMutateAsync.mockReset().mockResolvedValue({});
+  byCode.mockReset().mockResolvedValue(null);
+  toastError.mockReset();
+  get.mockResolvedValue({ data: { results: [{ id: 9, name: "Aceite", sku: "AC-1", barcodes: ["7501234567890"], price: 120, icon: "bolt" }] } });
 });
 
 describe("OrderItems", () => {
@@ -97,5 +104,33 @@ describe("OrderItems", () => {
 
     await userEvent.click(screen.getByRole("button", { name: /Refacción/ }));
     expect(removeMutate).toHaveBeenCalledWith(2);
+  });
+
+  it("leer o escribir un código agrega el producto con cantidad 1 (spec 056)", async () => {
+    renderWithProviders(<OrderItems order={orden(["add_item"])} />);
+    await screen.findByLabelText("Producto del catálogo");
+    await userEvent.type(screen.getByLabelText("Código de barras"), "7501234567890{Enter}");
+    await waitFor(() => expect(addMutateAsync).toHaveBeenCalledWith({ product_id: 9, quantity: 1 }));
+    expect(byCode).not.toHaveBeenCalled();
+  });
+
+  it("un código que no existe avisa con el número y no agrega nada", async () => {
+    renderWithProviders(<OrderItems order={orden(["add_item"])} />);
+    await userEvent.type(screen.getByLabelText("Código de barras"), "000111{Enter}");
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith("Código no encontrado: 000111"));
+    expect(addMutateAsync).not.toHaveBeenCalled();
+  });
+
+  it("un producto que no se vende avisa el motivo", async () => {
+    byCode.mockResolvedValue({ id: 5, name: "Tornillo", sku: "T-1", product_type: { sellable: false } });
+    renderWithProviders(<OrderItems order={orden(["add_item"])} />);
+    await userEvent.type(screen.getByLabelText("Código de barras"), "T-1{Enter}");
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith("El producto Tornillo no se vende (código T-1)."));
+    expect(addMutateAsync).not.toHaveBeenCalled();
+  });
+
+  it("sin la acción add_item no hay campo de código: leer no da más permisos (FR-016)", () => {
+    renderWithProviders(<OrderItems order={orden([])} />);
+    expect(screen.queryByLabelText("Código de barras")).toBeNull();
   });
 });

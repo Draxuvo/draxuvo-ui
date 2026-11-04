@@ -26,6 +26,11 @@ vi.mock("@/components/tickets/ticket-detail", () => ({
   ),
 }));
 
+// La cámara se simula: el detector ve siempre el código del folio impreso (spec 056).
+vi.mock("@/lib/scan/detector", () => ({
+  createDetector: vi.fn(async () => ({ detect: vi.fn(async () => [{ value: "T-000002" }]) })),
+}));
+
 import { ticketsService } from "@/services/tickets";
 import { getDashboardStats } from "@/services/analytics";
 import { PaidList } from "./paid-list";
@@ -153,5 +158,31 @@ describe("PaidList", () => {
 
     expect(screen.getByText("Módulo bloqueado")).toBeInTheDocument();
     expect(ticketsService.list).not.toHaveBeenCalled();
+  });
+
+  it("leer el folio con la cámara lo busca al instante y abre ese ticket (spec 056)", async () => {
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia: vi.fn(async () => ({ getTracks: () => [{ stop: vi.fn() }], getVideoTracks: () => [{ getCapabilities: () => ({}) }] })) },
+    });
+    Object.defineProperty(HTMLMediaElement.prototype, "play", { configurable: true, value: vi.fn(async () => {}) });
+    Object.defineProperty(HTMLVideoElement.prototype, "videoWidth", { configurable: true, get: () => 640 });
+    Object.defineProperty(HTMLVideoElement.prototype, "videoHeight", { configurable: true, get: () => 480 });
+    renderWithProviders(<PaidList variant="boss" />);
+    await screen.findByText("T-000001");
+
+    await userEvent.click(screen.getByRole("button", { name: "Escanear con cámara" }));
+    await waitFor(() => expect(nav.replace).toHaveBeenCalledWith("/es/ordenes?search=T-000002", { scroll: false }), { timeout: 2000 });
+    const detail = await screen.findByRole("dialog", { name: "Detalle" });
+    expect(detail).toHaveTextContent("T-000002");
+    expect(detail).not.toHaveTextContent("T-000001");
+  });
+
+  it("un folio que no está entre los resultados no abre nada", async () => {
+    vi.mocked(ticketsService.list).mockResolvedValue({ results: [], info: info(0) } as never);
+    nav.query = "search=T-999999";
+    renderWithProviders(<PaidList variant="boss" />);
+    expect(await screen.findByText("Sin resultados")).toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Detalle" })).toBeNull();
   });
 });

@@ -64,4 +64,29 @@ describe("ScanField (spec 034)", () => {
     renderWithProviders(<ScanField onScan={vi.fn()} disabled />);
     expect(screen.getByLabelText("Código de barras")).toBeDisabled();
   });
+
+  it("las lecturas de la cámara y del teclado comparten la cola y llegan en orden (spec 056)", async () => {
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia: vi.fn(async () => ({ getTracks: () => [{ stop: vi.fn() }], getVideoTracks: () => [{ getCapabilities: () => ({}) }] })) },
+    });
+    Object.defineProperty(HTMLMediaElement.prototype, "play", { configurable: true, value: vi.fn(async () => {}) });
+    Object.defineProperty(HTMLVideoElement.prototype, "videoWidth", { configurable: true, get: () => 640 });
+    Object.defineProperty(HTMLVideoElement.prototype, "videoHeight", { configurable: true, get: () => 480 });
+    const frames = [[{ value: "cam-1" }], [{ value: "cam-2" }]];
+    let i = 0;
+    const detector = { detect: vi.fn(async () => frames[Math.min(i++, frames.length - 1)]) };
+    const order: string[] = [];
+    const onScan = vi.fn(async (code: string) => {
+      if (code === "cam-1") await new Promise((resolve) => setTimeout(resolve, 80));
+      order.push(code);
+    });
+    renderWithProviders(<ScanField onScan={onScan} detector={detector} />);
+    const user = userEvent.setup();
+
+    await user.type(screen.getByLabelText("Código de barras"), "teclado{Enter}");
+    await user.click(screen.getByRole("button", { name: "Escanear con cámara" }));
+
+    await waitFor(() => expect(order).toEqual(["teclado", "cam-1", "cam-2"]), { timeout: 3000 });
+  });
 });

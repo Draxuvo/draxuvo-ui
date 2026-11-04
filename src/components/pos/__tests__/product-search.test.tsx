@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
@@ -8,6 +8,11 @@ import { useAuthStore } from "@/store/auth";
 vi.mock("@/services/sales", () => ({ salesService: { catalog: vi.fn() } }));
 import { salesService } from "@/services/sales";
 import { ProductSearch } from "../product-search";
+
+// La cámara se simula: el detector devuelve siempre el mismo código, como un producto sostenido frente al lente.
+vi.mock("@/lib/scan/detector", () => ({
+  createDetector: vi.fn(async () => ({ detect: vi.fn(async () => [{ value: "7509990000011" }]) })),
+}));
 
 const product = (over: Partial<SaleCatalogProduct>): SaleCatalogProduct => ({
   id: 1, name: "Cuaderno profesional", sku: "PAP-001", price: "42.50", icon: null, category: "Papelería", stock: 18, fractional: false,
@@ -73,5 +78,29 @@ describe("búsqueda de la caja (spec 050)", () => {
   it("desactivado no deja elegir productos", async () => {
     renderWithProviders(<ProductSearch onScan={vi.fn()} onPick={vi.fn()} disabled />);
     expect(await screen.findByRole("button", { name: /Cuaderno profesional/ })).toBeDisabled();
+  });
+
+  it("la cámara agrega el producto una sola vez aunque el código siga a la vista (spec 056)", async () => {
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia: vi.fn(async () => ({ getTracks: () => [{ stop: vi.fn() }], getVideoTracks: () => [{ getCapabilities: () => ({}) }] })) },
+    });
+    Object.defineProperty(HTMLMediaElement.prototype, "play", { configurable: true, value: vi.fn(async () => {}) });
+    Object.defineProperty(HTMLVideoElement.prototype, "videoWidth", { configurable: true, get: () => 640 });
+    Object.defineProperty(HTMLVideoElement.prototype, "videoHeight", { configurable: true, get: () => 480 });
+
+    const onScan = vi.fn();
+    renderWithProviders(<ProductSearch onScan={onScan} onPick={vi.fn()} />);
+    await userEvent.setup().click(screen.getByRole("button", { name: "Escanear con cámara" }));
+    await waitFor(() => expect(onScan).toHaveBeenCalledWith("7509990000011"), { timeout: 2000 });
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    expect(onScan).toHaveBeenCalledTimes(1);
+  });
+
+  it("un código que la caja no conoce solo avisa: la pantalla decide qué hacer (la cámara no agrega nada sola)", async () => {
+    const onScan = vi.fn();
+    renderWithProviders(<ProductSearch onScan={onScan} onPick={vi.fn()} />);
+    await userEvent.setup().type(screen.getByLabelText("Código de barras"), "0000{Enter}");
+    expect(onScan).toHaveBeenCalledWith("0000");
   });
 });
