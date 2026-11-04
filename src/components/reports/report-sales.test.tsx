@@ -66,8 +66,8 @@ beforeEach(() => {
   subscription.mockResolvedValue({ active_modules: BASIC_POS } as Awaited<ReturnType<typeof getSubscription>>);
 });
 
-const tab = (name: string) => screen.getByRole("button", { name });
-const tabs = () => within(screen.getByRole("group", { name: "Reportes" })).getAllByRole("button").map((b) => b.textContent);
+const tab = (name: string) => screen.getByRole("tab", { name });
+const tabs = () => within(screen.getByRole("tablist", { name: "Reportes" })).getAllByRole("tab").map((b) => b.textContent);
 
 describe("Reportes con punto de venta (spec 050)", () => {
   it("Básico con pos ve Resumen, Inventario, Ventas, Ingresos y Gastos", async () => {

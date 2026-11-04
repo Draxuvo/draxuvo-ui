@@ -48,6 +48,9 @@ export function TicketDetail({
   const { data: ticket } = useTicket(initial.id);
   const current = ticket ?? initial;
   const activePayments = (current?.payments ?? []).filter((payment) => !payment.voided_at);
+  // Anulaciones previas (spec 054): con el ticket anulado, la última ya sale en el aviso de arriba.
+  const allVoids = current?.voids ?? [];
+  const previousVoids = current.status === "voided" ? allVoids.slice(0, -1) : allVoids;
 
   const sendWhatsapp = useSendTicketWhatsapp(current.id);
 
@@ -175,6 +178,28 @@ export function TicketDetail({
                 {current.void_reason && (
                   <p className="text-xs">{t("voidReason")}: {current.void_reason}</p>
                 )}
+              </div>
+            )}
+
+            {/* Historial de anulaciones: el ticket conserva su folio al volver a cobrarse (spec 054) */}
+            {previousVoids.length > 0 && (
+              <div>
+                <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{t("voidsTitle")}</p>
+                <ul className="divide-y divide-border rounded-xl border border-border">
+                  {previousVoids.map((void_) => (
+                    <li key={void_.id} className="space-y-0.5 px-4 py-3 text-sm">
+                      <p className="font-medium text-foreground">
+                        {t("voidLine", { date: format(new Date(void_.voided_at), "dd MMM yyyy HH:mm"), by: void_.voided_by?.name ?? "—" })}
+                      </p>
+                      <p className="text-muted-foreground">{t("voidEntryReason", { reason: void_.reason })}</p>
+                      {void_.payments.length > 0 && (
+                        <p className="text-muted-foreground">
+                          {t("voidPayments", { payments: void_.payments.map((p) => `${t(`methods.${p.method}`)} ${money(p.amount)}`).join(", ") })}
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
 

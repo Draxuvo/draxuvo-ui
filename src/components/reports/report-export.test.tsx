@@ -47,7 +47,7 @@ beforeEach(() => {
 
 async function open(tabName: string) {
   renderWithProviders(<ReportContent />);
-  act(() => screen.getByRole("button", { name: tabName }).click());
+  act(() => screen.getByRole("tab", { name: tabName }).click());
 }
 
 describe("exportar a CSV", () => {

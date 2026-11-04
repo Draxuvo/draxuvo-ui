@@ -7,7 +7,7 @@ import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import type { AxiosError } from "axios";
-import { Banknote, CreditCard, Landmark, Download, MessageCircle, Check, Plus, Trash2 } from "lucide-react";
+import { Banknote, CreditCard, Landmark, Download, MessageCircle, Check, Plus, Trash2, TriangleAlert } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,6 +66,8 @@ export function ChargeDialog({ order, open, onOpenChange }: { order: WorkOrder; 
   const [idempotencyKey] = useState(newKey);
   const [phone, setPhone] = useState(order.customer_phone ?? "");
   const charge = useChargeOrder(order.id);
+  // Lo que no alcanzó del inventario al cobrar (spec 054): se avisa a quien cobra, el cobro ya está hecho.
+  const shortages = charge.data?.stock_shortages ?? [];
   const whatsapp = useMutation({
     mutationFn: ({ id, phone }: { id: number; phone?: string }) => ticketsService.sendWhatsapp(id, phone),
   });
@@ -146,6 +148,19 @@ export function ChargeDialog({ order, open, onOpenChange }: { order: WorkOrder; 
               <Check className="size-6 text-sello" aria-hidden="true" />
               {t("charge.folio", { folio: ticket.folio })}
             </p>
+            {shortages.length > 0 && (
+              <div role="alert" className="rounded-etiqueta border border-border bg-muted p-3 text-sm">
+                <p className="flex items-center gap-2 font-semibold">
+                  <TriangleAlert size={16} aria-hidden />
+                  {t("charge.shortagesTitle")}
+                </p>
+                <ul className="mt-1 list-disc pl-6">
+                  {shortages.map((s) => (
+                    <li key={s.product_id}>{t("charge.shortageLine", { name: s.name, missing: s.missing })}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" className="h-11 gap-2" onClick={() => downloadTicketPDF(ticket.id, ticket.folio)}>
                 <Download size={16} aria-hidden="true" />

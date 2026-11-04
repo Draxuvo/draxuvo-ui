@@ -8,7 +8,7 @@ import { storageStatePath } from "../support/session";
 const ANON = { cookies: [], origins: [] };
 const board = (key: string, values?: Record<string, string | number>) => t(`analyticsBoard.${key}`, values);
 const rep = (key: string, values?: Record<string, string | number>) => t(`reports.${key}`, values);
-const tab = (page: Page, key: string) => page.getByRole("button", { name: rep(key), exact: true });
+const tab = (page: Page, key: string) => page.getByRole("tab", { name: rep(key), exact: true });
 const legend = (page: Page, chart: string) => page.getByRole("list", { name: board("legendLabel", { chart: board(chart) }) });
 const stat = (page: Page, label: string) => page.getByText(label, { exact: true }).locator("xpath=..");
 

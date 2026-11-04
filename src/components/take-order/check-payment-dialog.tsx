@@ -73,7 +73,8 @@ export function CheckPaymentDialog({
     if (due == null || due <= 0) return t("errorAmount");
     if (method !== "cash") {
       if (due > balance) return t("errorExceeds");
-      if (!reference.trim()) return t("errorReference");
+      // Spec 054 (H-51): la referencia solo es obligatoria en la transferencia; con tarjeta es opcional.
+      if (method === "transfer" && !reference.trim()) return t("errorReference");
     }
     return null;
   }
@@ -89,7 +90,7 @@ export function CheckPaymentDialog({
         : {
             method,
             amount: fixed(due as number),
-            reference: reference.trim(),
+            ...(reference.trim() ? { reference: reference.trim() } : {}),
             ...(method === "card" && terminal ? { terminal_id: Number(terminal) } : {}),
           };
     if (confirmIncomplete) body.confirm_incomplete = true;
@@ -201,7 +202,7 @@ export function CheckPaymentDialog({
                   </label>
                 )}
                 <label className="block space-y-1 text-sm font-medium">
-                  {t("reference")}
+                  {method === "card" ? t("referenceOptional") : t("reference")}
                   <Input value={reference} onChange={(e) => setReference(e.target.value)} className="h-11" />
                 </label>
               </>

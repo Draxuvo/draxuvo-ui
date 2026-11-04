@@ -301,7 +301,7 @@ test("[SAD-013] estadísticas y reportes de cualquier empresa, con las cifras de
   await page.goto("/es/reportes");
   await expect(page.getByText(co("selectCompanyPrompt"))).toBeVisible();
   await company(empty.companyName);
-  await expect(page.getByRole("button", { name: t("reports.tabSummary"), exact: true })).toBeVisible();
+  await expect(page.getByRole("tab", { name: t("reports.tabSummary"), exact: true })).toBeVisible();
 });
 
 test("[FLU-10] el super admin crea una empresa, la consulta sin frenos y desactiva a un usuario @regresion", async ({ page, request, browser }, info) => {
