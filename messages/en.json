@@ -3224,5 +3224,24 @@
         "error": "The sale could not be cancelled."
       }
     }
+  },
+  "scan": {
+    "open": "Scan with camera",
+    "title": "Scan code",
+    "description": "Point the camera at the barcode. You can keep scanning; close when you are done.",
+    "close": "Close camera",
+    "torchOn": "Turn light on",
+    "torchOff": "Turn light off",
+    "starting": "Starting camera…",
+    "denied": "The camera could not be used because permission was denied. Enable it in your browser settings or type the code by hand.",
+    "unavailable": "This device has no camera available. Type the code by hand.",
+    "insecure": "The camera only works on a secure connection (HTTPS). Type the code by hand.",
+    "failed": "The camera could not be started. Type the code by hand.",
+    "read": "Read: {code}",
+    "invalid": "Invalid code, try again.",
+    "notFound": "Code not found: {code}",
+    "notSellable": "The product {name} is not for sale (code {code}).",
+    "notOnMenu": "The product {name} is not on the menu (code {code}).",
+    "frame": "Scanning frame"
   }
 }
