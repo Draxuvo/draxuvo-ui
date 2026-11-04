@@ -1,4 +1,5 @@
 import { act, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
 import { EXPENSES, INCOME, INVENTORY, PAYROLL, SUMMARY, SUMMARY_BASIC, urlStore } from "@/test/report-fixtures";
@@ -44,7 +45,7 @@ beforeEach(() => {
   subscription.mockResolvedValue({ active_modules: PRO_MODULES } as Awaited<ReturnType<typeof getSubscription>>);
 });
 
-const tab = (name: string) => screen.getByRole("button", { name });
+const tab = (name: string) => screen.getByRole("tab", { name });
 
 describe("ReportContent", () => {
   it("el periodo elegido se conserva al cambiar de pestaña y llega a cada consulta", async () => {
@@ -196,9 +197,9 @@ describe("Plan Básico (spec 033)", () => {
   it("muestra Resumen, Inventario, Gastos y Nómina, sin Ingresos", async () => {
     renderWithProviders(<ReportContent />);
     // Spec 052 (H-43): mientras carga la suscripción no se pinta ninguna pestaña, ni siquiera las que luego se quitan.
-    expect(screen.queryByRole("button", { name: "Ingresos" })).not.toBeInTheDocument();
-    expect(await screen.findByRole("button", { name: "Resumen" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Ingresos" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Ingresos" })).not.toBeInTheDocument();
+    expect(await screen.findByRole("tab", { name: "Resumen" })).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Ingresos" })).not.toBeInTheDocument();
     for (const name of ["Resumen", "Inventario", "Gastos", "Nómina"]) expect(tab(name)).toBeInTheDocument();
   });
 
@@ -232,16 +233,63 @@ describe("Plan Básico (spec 033)", () => {
   it("con tickets activados aparece Ingresos", async () => {
     subscription.mockResolvedValue({ active_modules: [...BASIC_MODULES, "tickets"] } as Awaited<ReturnType<typeof getSubscription>>);
     renderWithProviders(<ReportContent />);
-    expect(await screen.findByRole("button", { name: "Ingresos" })).toBeInTheDocument();
+    expect(await screen.findByRole("tab", { name: "Ingresos" })).toBeInTheDocument();
   });
 
   it("al bajar de Pro a Básico desaparece Ingresos y el Resumen no lo menciona", async () => {
     subscription.mockResolvedValueOnce({ active_modules: PRO_MODULES } as Awaited<ReturnType<typeof getSubscription>>);
     const { unmount } = renderWithProviders(<ReportContent />);
-    await screen.findByRole("button", { name: "Ingresos" });
+    await screen.findByRole("tab", { name: "Ingresos" });
     unmount();
     renderWithProviders(<ReportContent />);
     expect(await screen.findByText("Gastos del periodo")).toBeInTheDocument();
     expect(screen.queryByText("Ingresos cobrados")).not.toBeInTheDocument();
+  });
+});
+
+describe("ReportContent: pestañas accesibles (spec 054, H-52)", () => {
+  // Sin empresa seleccionada no se conocen los módulos y salen todas las pestañas (la API decide con su 403).
+  const names = ["Resumen", "Inventario", "Ventas", "Ingresos", "Gastos", "Nómina"];
+
+  it("las opciones se anuncian como pestañas dentro de una lista con su etiqueta y el panel las relaciona", async () => {
+    renderWithProviders(<ReportContent />);
+    await screen.findByText("Ingresos cobrados");
+
+    expect(screen.getByRole("tablist", { name: "Reportes" })).toBeInTheDocument();
+    expect(screen.getAllByRole("tab").map((el) => el.textContent)).toEqual(names);
+    expect(tab("Resumen")).toHaveAttribute("aria-selected", "true");
+    expect(tab("Ingresos")).toHaveAttribute("aria-selected", "false");
+    const panel = screen.getByRole("tabpanel");
+    expect(panel).toHaveAttribute("aria-labelledby", "reports-tab-summary");
+    expect(tab("Resumen")).toHaveAttribute("aria-controls", panel.id);
+    // Solo la pestaña activa entra al orden de tabulación.
+    expect(tab("Resumen")).toHaveAttribute("tabindex", "0");
+    expect(tab("Gastos")).toHaveAttribute("tabindex", "-1");
+    // Actualizar no es una pestaña.
+    expect(screen.getByRole("button", { name: "Actualizar reporte" })).toBeInTheDocument();
+  });
+
+  it("← → recorren las pestañas en círculo, Inicio y Fin saltan a los extremos y el foco las sigue", async () => {
+    renderWithProviders(<ReportContent />);
+    await screen.findByText("Ingresos cobrados");
+    tab("Resumen").focus();
+
+    await userEvent.keyboard("{ArrowRight}");
+    expect(tab("Inventario")).toHaveAttribute("aria-selected", "true");
+    expect(tab("Inventario")).toHaveFocus();
+
+    await userEvent.keyboard("{End}");
+    expect(tab("Nómina")).toHaveAttribute("aria-selected", "true");
+    expect(tab("Nómina")).toHaveFocus();
+
+    await userEvent.keyboard("{ArrowRight}");
+    expect(tab("Resumen")).toHaveAttribute("aria-selected", "true");
+
+    await userEvent.keyboard("{ArrowLeft}");
+    expect(tab("Nómina")).toHaveAttribute("aria-selected", "true");
+
+    await userEvent.keyboard("{Home}");
+    expect(tab("Resumen")).toHaveAttribute("aria-selected", "true");
+    expect(tab("Resumen")).toHaveFocus();
   });
 });

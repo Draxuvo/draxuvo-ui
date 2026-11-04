@@ -505,7 +505,7 @@ test.describe("reportes", () => {
     const { page, context } = await ownerPage(browser, company);
     await page.goto("/es/reportes");
 
-    const tabsOf = async () => (await page.getByRole("group", { name: t("reports.tabsLabel") }).getByRole("button").allInnerTexts()).map((x) => x.trim()).filter(Boolean);
+    const tabsOf = async () => (await page.getByRole("tablist", { name: t("reports.tabsLabel") }).getByRole("tab").allInnerTexts()).map((x) => x.trim()).filter(Boolean);
     // Las pestañas se filtran cuando llega la suscripción: antes aparecen todas (ver BAS-072).
     await expect.poll(tabsOf, { timeout: 15_000 }).toEqual([t("reports.tabSummary"), t("reports.tabInventory"), t("reports.tabExpenses"), t("reports.tabPayroll")]);
 
@@ -522,7 +522,7 @@ test.describe("reportes", () => {
     await addCounted(request, owner, "CSV-1", 2, { min_stock: 9 });
     const { page, context } = await ownerPage(browser, company);
     await page.goto("/es/reportes");
-    await page.getByRole("button", { name: t("reports.tabInventory") }).click();
+    await page.getByRole("tab", { name: t("reports.tabInventory") }).click();
     const download = page.waitForEvent("download");
     await page.getByRole("button", { name: /Exportar CSV de/ }).first().click();
     expect((await download).suggestedFilename()).toMatch(/\.csv$/);

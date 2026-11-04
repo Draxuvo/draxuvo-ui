@@ -11,10 +11,11 @@ const downloadTicketPDF = vi.hoisted(() => vi.fn());
 const toastError = vi.hoisted(() => vi.fn());
 const toastSuccess = vi.hoisted(() => vi.fn());
 
+const chargeResult = vi.hoisted(() => ({ data: undefined as { stock_shortages?: Array<{ product_id: number; name: string; missing: number }> } | undefined }));
 const terminals = vi.hoisted(() => ({ list: [] as Array<{ id: number; name: string; provider: string; provider_label: string; active: boolean }> }));
 
 vi.mock("@/hooks/use-work-orders", () => ({
-  useChargeOrder: () => ({ mutate: chargeMutate, isPending: false }),
+  useChargeOrder: () => ({ mutate: chargeMutate, isPending: false, data: chargeResult.data }),
 }));
 vi.mock("@/hooks/use-payment-terminals", () => ({
   usePaymentTerminals: () => ({ data: terminals.list }),
@@ -32,6 +33,7 @@ function abre(order: WorkOrder) {
 
 beforeEach(() => {
   terminals.list = [];
+  chargeResult.data = undefined;
   chargeMutate.mockReset();
   sendWhatsapp.mockReset();
   downloadTicketPDF.mockReset();
@@ -204,5 +206,24 @@ describe("ChargeDialog", () => {
     abre(cobrada);
     await userEvent.click(screen.getByRole("button", { name: "Enviar por WhatsApp" }));
     await vi.waitFor(() => expect(toastError).toHaveBeenCalledWith("No se pudo enviar por WhatsApp"));
+  });
+});
+
+describe("ChargeDialog: faltantes de inventario (spec 054)", () => {
+  it("avisa a quien cobra lo que no alcanzó del inventario sin bloquear el ticket", () => {
+    chargeResult.data = { stock_shortages: [{ product_id: 9, name: "Contacto sencillo", missing: 3 }] };
+    abre(cobrada);
+    expect(screen.getByText("Cobrado con folio T-0042")).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent("Faltaron piezas en el inventario");
+    expect(screen.getByText("Contacto sencillo: faltaron 3")).toBeInTheDocument();
+  });
+
+  it("no muestra aviso si todo alcanzó o la respuesta no trae faltantes", () => {
+    chargeResult.data = { stock_shortages: [] };
+    abre(cobrada);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    chargeResult.data = undefined;
+    abre(cobrada);
+    expect(screen.queryByText("Faltaron piezas en el inventario")).not.toBeInTheDocument();
   });
 });

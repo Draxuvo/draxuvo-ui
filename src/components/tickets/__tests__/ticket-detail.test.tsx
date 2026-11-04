@@ -99,3 +99,43 @@ describe("detalle de un ticket de cuenta", () => {
     expect(screen.getByRole("link", { name: /Ver/ })).toBeInTheDocument();
   });
 });
+
+describe("historial de anulaciones (spec 054)", () => {
+  const voidEntry = (id: number, reason: string) => ({
+    id,
+    voided_at: "2026-10-20T10:15:00Z",
+    voided_by: { id: 3, name: "Beto Ruiz" },
+    reason,
+    amount: "500.00",
+    payments: [{ method: "cash" as const, amount: "500.00" }],
+  });
+
+  it("muestra la anulación previa de un ticket que se volvió a cobrar", () => {
+    renderWithProviders(<TicketDetail ticket={{ ...base, voids: [voidEntry(1, "Error de captura")] }} open onClose={() => {}} />);
+    expect(screen.getByText("Anulaciones previas")).toBeInTheDocument();
+    expect(screen.getByText(/Anulado el 20 Oct 2026 \d{2}:15 por Beto Ruiz/)).toBeInTheDocument();
+    expect(screen.getByText("Motivo: Error de captura")).toBeInTheDocument();
+    expect(screen.getByText("Pagos anulados: Efectivo $500.00")).toBeInTheDocument();
+  });
+
+  it("no muestra la sección si el ticket nunca se anuló", () => {
+    renderWithProviders(<TicketDetail ticket={{ ...base, voids: [] }} open onClose={() => {}} />);
+    expect(screen.queryByText("Anulaciones previas")).not.toBeInTheDocument();
+    renderWithProviders(<TicketDetail ticket={base} open onClose={() => {}} />);
+    expect(screen.queryByText("Anulaciones previas")).not.toBeInTheDocument();
+  });
+
+  it("con el ticket anulado la última anulación sale en el aviso y no se repite en el historial", () => {
+    const voided: Ticket = {
+      ...base,
+      status: "voided",
+      voided_at: "2026-10-21T09:00:00Z",
+      voided_by: { id: 3, name: "Beto Ruiz" },
+      void_reason: "Cobro duplicado",
+      voids: [voidEntry(1, "Primera"), voidEntry(2, "Cobro duplicado")],
+    };
+    renderWithProviders(<TicketDetail ticket={voided} open onClose={() => {}} />);
+    expect(screen.getByText("Motivo: Primera")).toBeInTheDocument();
+    expect(screen.queryByText("Motivo: Cobro duplicado")).not.toBeInTheDocument();
+  });
+});

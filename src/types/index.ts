@@ -29,6 +29,8 @@ export interface UserCompany {
   order_mode: OrderMode;
   /** Empresa de demostración (spec 039): se muestra el aviso de demo y no hay pagos reales. */
   demo?: boolean;
+  /** Módulos activos de la empresa (spec 054): el plan más los extras vigentes, menos los que el super admin apagó. */
+  modules?: string[];
 }
 
 /** Empresa principal o sucursal (`/company/branches`, R17). */
@@ -663,6 +665,8 @@ export interface WorkOrder {
   events?: WorkOrderEvent[];
   ticket?: Ticket | null;
   allowed_actions?: WorkOrderAction[];
+  /** Solo en la respuesta del cobro (spec 054): lo que no alcanzó del inventario. */
+  stock_shortages?: SaleShortage[];
   charge_blocked_reason?: "no_items" | null;
   cancel_reason?: string | null;
 }
@@ -892,6 +896,18 @@ export interface Ticket {
   voided_at?: string;
   voided_by?: PersonRef;
   void_reason?: string;
+  /** Historial de anulaciones del cobro (spec 054): sobrevive a un nuevo cobro del mismo ticket. Solo en el detalle. */
+  voids?: TicketVoid[];
+}
+
+/** Una anulación del cobro de un ticket: quién, cuándo, por qué y qué pagos se anularon. */
+export interface TicketVoid {
+  id: number;
+  voided_at: string;
+  voided_by: PersonRef | null;
+  reason: string;
+  amount: number | string;
+  payments: Array<{ method: PaymentMethod; amount: string }>;
 }
 
 // ── Filtros de lista (contracts/ui-routes.md). Los nombres son los de la API (R5). ──

@@ -43,9 +43,10 @@ describe("CheckPaymentDialog", () => {
     expect(await screen.findByText("Ticket T-0005")).toBeInTheDocument();
   });
 
-  it("pide la referencia con tarjeta y no deja pasar del saldo", async () => {
+  // Spec 054 (H-51): la referencia solo es obligatoria con transferencia; con tarjeta es opcional.
+  it("pide la referencia con transferencia y no deja pasar del saldo", async () => {
     renderWithProviders(<CheckPaymentDialog check={check} open onOpenChange={vi.fn()} />);
-    await userEvent.click(screen.getByRole("radio", { name: "Tarjeta" }));
+    await userEvent.click(screen.getByRole("radio", { name: "Transferencia" }));
 
     await userEvent.click(screen.getByRole("button", { name: "Registrar pago" }));
     expect(screen.getByRole("alert")).toHaveTextContent("Escribe la referencia");
@@ -56,6 +57,17 @@ describe("CheckPaymentDialog", () => {
     await userEvent.click(screen.getByRole("button", { name: "Registrar pago" }));
     expect(screen.getByRole("alert")).toHaveTextContent("no puede pasar del saldo");
     expect(restaurantService.addPayment).not.toHaveBeenCalled();
+  });
+
+  it("con tarjeta registra el pago sin referencia y la manda si se captura", async () => {
+    renderWithProviders(<CheckPaymentDialog check={check} open onOpenChange={vi.fn()} />);
+    await userEvent.click(screen.getByRole("radio", { name: "Tarjeta" }));
+    expect(screen.getByLabelText("Referencia (opcional)")).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Registrar pago" }));
+    await waitFor(() =>
+      expect(restaurantService.addPayment).toHaveBeenCalledWith(10, { method: "card", amount: "100.00" }, expect.any(String)),
+    );
   });
 
   it("sugiere el saldo vigente aunque la cuenta cambie con el diálogo ya montado", () => {

@@ -107,9 +107,12 @@ export function TrialBanner() {
 
   if (subscription.status !== "trialing" && subscription.status !== "expired") return null;
 
+  // Spec 054: los mismos días que Suscripción (`trial_days_remaining` de la API, días de calendario); la fecha solo es
+  // respaldo si el campo no llega. Antes el encabezado contaba días completos y decía 29 donde Suscripción decía 30.
   const daysLeft =
-    subscription.status === "trialing" && subscription.trial_ends_at
-      ? Math.max(0, differenceInDays(new Date(subscription.trial_ends_at), new Date()))
+    subscription.status === "trialing"
+      ? (subscription.trial_days_remaining ??
+        (subscription.trial_ends_at ? Math.max(0, differenceInDays(new Date(subscription.trial_ends_at), new Date())) : null))
       : null;
   const isExpired = subscription.status === "expired" || !subscription.active_access;
 

@@ -1,7 +1,7 @@
 "use client";
 // Cascarón de Reportes: pestañas, barra de periodo única y botón de actualizar. Cada pestaña vive en su archivo.
 // Las pestañas salen de los módulos activos de la empresa (spec 033); la API sigue siendo la barrera.
-import { useState } from "react";
+import { useState, type KeyboardEvent } from "react";
 import { useIsFetching, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { RefreshCw } from "lucide-react";
@@ -47,26 +47,51 @@ export function ReportContent({ companyId }: { companyId?: number }) {
   // Una pestaña que deja de estar disponible (cambió el plan o los módulos) cae en Resumen.
   const tab = available[selected] ? selected : "summary";
 
+  const visible = TABS.filter(({ key }) => available[key]);
+
+  // ← → recorren las pestañas en círculo; Inicio y Fin saltan a la primera y a la última, y el foco las sigue.
+  function onTabKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    const index = visible.findIndex(({ key }) => key === tab);
+    const target =
+      event.key === "ArrowRight" ? (index + 1) % visible.length
+      : event.key === "ArrowLeft" ? (index - 1 + visible.length) % visible.length
+      : event.key === "Home" ? 0
+      : event.key === "End" ? visible.length - 1
+      : null;
+    if (target === null || index < 0) return;
+    event.preventDefault();
+    const next = visible[target].key;
+    setTab(next);
+    document.getElementById(`reports-tab-${next}`)?.focus();
+  }
+
   // Hasta conocer los módulos del plan no se pintan pestañas que quizá no le tocan (spec 052, H-43).
   if (modules.loading) return <Skeleton className="h-64 w-full rounded-etiqueta" aria-busy="true" />;
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-2" role="group" aria-label={t("tabsLabel")}>
-        {TABS.filter(({ key }) => available[key]).map(({ key, label }) => (
-          <button
-            key={key}
-            type="button"
-            aria-pressed={tab === key}
-            onClick={() => setTab(key)}
-            className={cn(
-              "rounded-etiqueta border px-4 py-2 text-sm font-semibold foco-etiqueta transition-colors",
-              tab === key ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {t(label)}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Pestañas con rol (spec 054, H-52): se anuncian como pestañas y se recorren con ← → Inicio Fin. */}
+        <div role="tablist" aria-label={t("tabsLabel")} className="flex flex-wrap items-center gap-2" onKeyDown={onTabKeyDown}>
+          {visible.map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              id={`reports-tab-${key}`}
+              aria-selected={tab === key}
+              aria-controls={`reports-panel-${key}`}
+              tabIndex={tab === key ? 0 : -1}
+              onClick={() => setTab(key)}
+              className={cn(
+                "rounded-etiqueta border px-4 py-2 text-sm font-semibold foco-etiqueta transition-colors",
+                tab === key ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {t(label)}
+            </button>
+          ))}
+        </div>
         <button
           type="button"
           aria-label={t("refresh")}
@@ -81,12 +106,14 @@ export function ReportContent({ companyId }: { companyId?: number }) {
 
       <PeriodBar period={period} showCompare={tab === "summary"} />
 
-      {tab === "summary" && <SummaryTab period={period} companyId={companyId} />}
-      {tab === "inventory" && <InventoryTab period={period} companyId={companyId} />}
-      {tab === "sales" && <SalesTab period={period} companyId={companyId} />}
-      {tab === "income" && <IncomeTab period={period} companyId={companyId} />}
-      {tab === "expenses" && <ExpensesTab period={period} companyId={companyId} />}
-      {tab === "payroll" && <PayrollTab period={period} companyId={companyId} />}
+      <div role="tabpanel" id={`reports-panel-${tab}`} aria-labelledby={`reports-tab-${tab}`}>
+        {tab === "summary" && <SummaryTab period={period} companyId={companyId} />}
+        {tab === "inventory" && <InventoryTab period={period} companyId={companyId} />}
+        {tab === "sales" && <SalesTab period={period} companyId={companyId} />}
+        {tab === "income" && <IncomeTab period={period} companyId={companyId} />}
+        {tab === "expenses" && <ExpensesTab period={period} companyId={companyId} />}
+        {tab === "payroll" && <PayrollTab period={period} companyId={companyId} />}
+      </div>
     </div>
   );
 }
