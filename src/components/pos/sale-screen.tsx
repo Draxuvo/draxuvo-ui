@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ModuleLocked, useModuleGate } from "@/components/subscription/module-locked";
+import { useCompanyModule } from "@/hooks/use-company-module";
 import { useAppRouter } from "@/hooks/use-router";
 import {
   useAddSaleItem,
@@ -32,6 +33,8 @@ export function SaleScreen() {
   const router = useAppRouter();
   const role = useAuthStore((s) => s.role);
   const gate = useModuleGate("pos");
+  // Spec 055 (H-56): si la sesión o la suscripción ya dicen que el módulo no está, se avisa sin pedir ventas ni catálogo.
+  const posAvailable = useCompanyModule("pos");
   const [saleId, setSaleIdState] = useState<number | null>(null);
   // La venta actual también vive en una referencia: dos escaneos seguidos llegan antes de que React repinte, y con solo
   // el estado el segundo vería "sin venta" y abriría otra. `opening` evita abrir dos a la vez.
@@ -54,7 +57,7 @@ export function SaleScreen() {
   const discard = useDiscardSale();
   const sale = saleQuery.data ?? null;
   const busy = addItem.isPending || updateItem.isPending || removeItem.isPending || create.isPending;
-  const locked = gate.isLocked(openSales.error);
+  const locked = gate.isLocked(openSales.error) || !posAvailable;
 
   // Al entrar retoma la venta abierta más reciente; si no hay, la venta se abre con el primer artículo.
   const firstOpen = openSales.data?.results[0]?.id ?? null;

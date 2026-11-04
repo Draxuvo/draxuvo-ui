@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
 import type { SaleCatalogProduct } from "@/types";
+import { useAuthStore } from "@/store/auth";
 
 vi.mock("@/services/sales", () => ({ salesService: { catalog: vi.fn() } }));
 import { salesService } from "@/services/sales";
@@ -16,6 +17,12 @@ const product = (over: Partial<SaleCatalogProduct>): SaleCatalogProduct => ({
 const page = (results: SaleCatalogProduct[]) => ({ info: { page_size: 24, page_index: 1, total: results.length, total_pages: 1 }, results });
 
 beforeEach(() => {
+  // El catálogo solo se pide con el módulo (spec 055, H-56): una caja abierta ya tiene sesión.
+  useAuthStore.setState({
+    user: { id: 1, role: "staff", companies: [{ id: 1, role: "staff", name: "Papelería", modules: ["pos"] }] } as never,
+    selectedCompanyId: 1,
+    role: "staff",
+  });
   vi.mocked(salesService.catalog).mockResolvedValue(page([product({}), product({ id: 2, name: "Pluma azul", sku: "PAP-002", price: "9.00", stock: 0 })]) as never);
 });
 

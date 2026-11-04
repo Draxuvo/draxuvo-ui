@@ -28,6 +28,12 @@ const ADMIN_ROUTES = [
   "/alertas",
 ];
 
+// Spec 055 (H-57): pantallas exclusivas del super admin. Quien tiene sesión con otro rol no ve su marco: va a su inicio.
+// `/suscripciones` (plural) no es `/suscripcion` (la del cliente), por eso se compara por segmento completo.
+const SUPER_ADMIN_ROUTES = ["/empresas", "/usuarios", "/demos", "/suscripciones", "/estadisticas", "/whatsapp"];
+
+const isSuperAdminRoute = (bare: string) => SUPER_ADMIN_ROUTES.some((r) => bare === r || bare.startsWith(`${r}/`));
+
 export default function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const localeMatch = pathname.match(/^\/(es|en)/);
@@ -56,6 +62,10 @@ export default function middleware(request: NextRequest) {
           ? `/${locale}/mis-ordenes`
           : `/${locale}/inicio`;
     return NextResponse.redirect(new URL(dest, request.url));
+  }
+
+  if (token && role && role !== "super_admin" && isSuperAdminRoute(bare)) {
+    return NextResponse.redirect(new URL(`/${locale}/${role === "staff" ? "mis-ordenes" : "inicio"}`, request.url));
   }
 
   // Staff solo puede ver sus propias órdenes

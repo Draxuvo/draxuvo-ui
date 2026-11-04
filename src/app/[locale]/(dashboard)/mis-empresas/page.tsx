@@ -18,6 +18,7 @@ import { branchesService } from "@/services/branches";
 import { getSubscription } from "@/services/subscription";
 import { useSwitchCompany } from "@/components/layout/company-switcher";
 import { cn } from "@/lib/utils";
+import { COMPANY_NAME_MAX } from "@/lib/company-name";
 import type { Branch } from "@/types";
 
 /** Empresas por cuenta, la principal incluida (R17, `Company::MAX_COMPANIES_PER_ACCOUNT`). */
@@ -215,10 +216,16 @@ export default function MisEmpresasPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={t("namePlaceholder")}
+                maxLength={COMPANY_NAME_MAX}
                 aria-invalid={nameError}
-                aria-describedby={nameError ? "branch-name-error" : undefined}
+                aria-describedby={nameError ? "branch-name-error" : name.length >= COMPANY_NAME_MAX ? "branch-name-max" : undefined}
                 className="h-11"
               />
+              {name.length >= COMPANY_NAME_MAX && (
+                <p id="branch-name-max" className="text-xs text-muted-foreground">
+                  {t("nameMax", { max: COMPANY_NAME_MAX })}
+                </p>
+              )}
             </div>
             <Button type="submit" disabled={create.isPending} className="h-11 gap-2 rounded-etiqueta px-5 font-semibold">
               <Plus size={18} strokeWidth={1.75} aria-hidden />

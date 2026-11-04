@@ -1,5 +1,4 @@
 import { expect, test, type Page } from "@playwright/test";
-import { knownFailure } from "../../support/known-failure";
 import { t } from "../../support/i18n";
 import { DEMO_PASSWORD, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, storageStatePath } from "../../support/session";
 
@@ -64,7 +63,6 @@ test.describe("dueño frente a las pantallas de super admin", () => {
   test.use({ storageState: storageStatePath("owner", "volta.demo") });
 
   test("[SAD-014] el dueño no se queda en las pantallas de super admin @regresion", async ({ page }) => {
-    knownFailure("H-06");
     for (const route of ["empresas", "usuarios", "suscripciones", "estadisticas"]) {
       await page.goto(`/es/${route}`);
       await expect(page, route).not.toHaveURL(new RegExp(`/es/${route}$`));

@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
 import type { WorkOrder } from "@/types";
+import { useAuthStore } from "@/store/auth";
 import { ChargeDialog } from "./charge-dialog";
 
 const chargeMutate = vi.hoisted(() => vi.fn());
@@ -32,6 +33,7 @@ function abre(order: WorkOrder) {
 }
 
 beforeEach(() => {
+  useAuthStore.setState({ role: null, user: null, selectedCompanyId: null });
   terminals.list = [];
   chargeResult.data = undefined;
   chargeMutate.mockReset();
@@ -225,5 +227,28 @@ describe("ChargeDialog: faltantes de inventario (spec 054)", () => {
     chargeResult.data = undefined;
     abre(cobrada);
     expect(screen.queryByText("Faltaron piezas en el inventario")).not.toBeInTheDocument();
+  });
+
+  // Spec 055 (H-59): WhatsApp es un módulo del plan Empresa.
+  const sesion = (modules: string[]) =>
+    useAuthStore.setState({
+      role: "staff",
+      selectedCompanyId: 3,
+      user: { id: 1, role: "user", companies: [{ id: 3, name: "A", role: "staff", modules }] } as never,
+    });
+
+  it("sin el módulo WhatsApp en el plan no ofrece el envío ni pide el teléfono", () => {
+    sesion(["work_orders", "tickets"]);
+    abre(cobrada);
+    expect(screen.getByText("Cobrado con folio T-0042")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Descargar PDF" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Enviar por WhatsApp" })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Teléfono")).not.toBeInTheDocument();
+  });
+
+  it("con el módulo WhatsApp del plan sí lo ofrece", () => {
+    sesion(["work_orders", "tickets", "whatsapp"]);
+    abre(cobrada);
+    expect(screen.getByRole("button", { name: "Enviar por WhatsApp" })).toBeInTheDocument();
   });
 });

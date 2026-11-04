@@ -1,5 +1,6 @@
 // src/app/[locale]/(auth)/registro/page.tsx
 "use client";
+import { COMPANY_NAME_MAX } from "@/lib/company-name";
 import { Suspense, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -87,7 +88,7 @@ function RegistrationForm() {
     phone: z.string().trim().min(1, t("errors.phoneRequired")),
     email: z.string().trim().email(t("errors.emailInvalid")),
     password: z.string().min(8, t("errors.passwordMin")),
-    company_name: z.string().trim().min(1, t("errors.company_nameRequired")),
+    company_name: z.string().trim().min(1, t("errors.company_nameRequired")).max(COMPANY_NAME_MAX, t("errors.company_nameTooLong", { max: COMPANY_NAME_MAX })),
     plan: z.enum(PLAN_KEYS),
     billing_cycle: z.enum(CYCLES),
   });
@@ -222,6 +223,7 @@ function RegistrationForm() {
                       type={type}
                       autoComplete={autoComplete}
                       placeholder={t(`placeholders.${name}`)}
+                      maxLength={name === "company_name" ? COMPANY_NAME_MAX : undefined}
                       aria-invalid={!!error}
                       aria-describedby={error ? errorId : undefined}
                       className={FIELD}

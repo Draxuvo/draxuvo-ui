@@ -1,6 +1,7 @@
 // src/components/tickets/ticket-detail.tsx
 "use client";
 import { useDemoInfo } from "@/hooks/use-demo";
+import { useCompanyModule } from "@/hooks/use-company-module";
 import { useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
@@ -44,6 +45,8 @@ export function TicketDetail({
   const { isDemo } = useDemoInfo();
   const locale = useLocale();
   const role = useAuthStore((s) => s.role);
+  // Spec 055 (H-59): WhatsApp es un módulo del plan Empresa; sin él no se ofrece enviar el ticket.
+  const whatsappAvailable = useCompanyModule("whatsapp");
 
   const { data: ticket } = useTicket(initial.id);
   const current = ticket ?? initial;
@@ -352,7 +355,7 @@ export function TicketDetail({
               </Button>
             )}
 
-            {current.status === "paid" && (
+            {current.status === "paid" && whatsappAvailable && (
               <Button
                 variant="outline"
                 size="sm"
@@ -368,7 +371,7 @@ export function TicketDetail({
       </Sheet>
 
       {/* WhatsApp dialog: el teléfono viene de la orden y se puede cambiar */}
-      <Dialog open={showWhatsapp} onOpenChange={handleSkipWhatsapp}>
+      <Dialog open={showWhatsapp && whatsappAvailable} onOpenChange={handleSkipWhatsapp}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">

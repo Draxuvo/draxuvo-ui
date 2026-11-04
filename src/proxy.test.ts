@@ -56,3 +56,30 @@ describe("proxy: ventas de mostrador (spec 050)", () => {
     expect(location(middleware(request("/es/venta")))).toContain("/es/login");
   });
 });
+
+describe("proxy: pantallas del super admin (spec 055, H-57)", () => {
+  const paths = ["/es/empresas", "/es/usuarios", "/es/demos", "/es/suscripciones", "/es/estadisticas", "/es/whatsapp", "/en/usuarios", "/es/empresas/12"];
+
+  it("dueño y administrador vuelven a su inicio", () => {
+    for (const role of ["owner", "admin"]) {
+      for (const path of paths) expect(location(middleware(request(path, `auth_token=jwt; user_role=${role}`))), `${role} ${path}`).toContain("/inicio");
+    }
+  });
+
+  it("el personal vuelve a sus órdenes", () => {
+    for (const path of paths) expect(location(middleware(request(path, "auth_token=jwt; user_role=staff"))), path).toContain("/mis-ordenes");
+  });
+
+  it("el super admin entra a todas", () => {
+    for (const path of paths) expect(middleware(request(path, "auth_token=jwt; user_role=super_admin")), path).toBe(passthrough.sentinel);
+  });
+
+  it("sin sesión pide iniciar sesión", () => {
+    for (const path of paths) expect(location(middleware(request(path))), path).toContain("/login");
+  });
+
+  it("no confunde con las rutas del cliente (`/suscripcion`, `/demo`)", () => {
+    expect(middleware(request("/es/suscripcion", "auth_token=jwt; user_role=owner"))).toBe(passthrough.sentinel);
+    expect(middleware(request("/es/demo", "auth_token=jwt; user_role=owner"))).toBe(passthrough.sentinel);
+  });
+});

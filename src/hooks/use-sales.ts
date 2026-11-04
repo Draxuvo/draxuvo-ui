@@ -2,6 +2,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { salesService, type AddItemInput, type SalesListParams } from "@/services/sales";
 import { useModuleGate } from "@/components/subscription/module-locked";
+import { useCompanyModule } from "@/hooks/use-company-module";
 import type { ChargePaymentInput, Sale } from "@/types";
 
 const KEY = ["sales"] as const;
@@ -19,7 +20,8 @@ export function useSales(params: SalesListParams = {}, enabled = true) {
 /** Las ventas abiertas del usuario (la lista ya viene recortada por rol en la API). */
 export function useOpenSales(enabled = true) {
   const gate = useModuleGate("pos");
-  return useSales({ status: "open", page_size: 50 }, enabled && gate.enabled);
+  const available = useCompanyModule("pos");
+  return useSales({ status: "open", page_size: 50 }, enabled && gate.enabled && available);
 }
 
 export function useSale(id: number | null) {
@@ -29,6 +31,10 @@ export function useSale(id: number | null) {
 }
 
 export function useSalesCatalog(search: string, enabled = true) {
+  // Spec 055 (H-56): sin el módulo del plan no se pide el catálogo (daba un 403 en consola antes del aviso de módulo).
+  const gate = useModuleGate("pos");
+  const available = useCompanyModule("pos");
+  enabled = enabled && gate.enabled && available;
   return useQuery({
     queryKey: [...KEY, "catalog", search],
     queryFn: () => salesService.catalog({ search }),
