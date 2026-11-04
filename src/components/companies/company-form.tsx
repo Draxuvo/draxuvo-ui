@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
+import { COMPANY_NAME_MAX } from "@/lib/company-name";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -38,7 +39,7 @@ export function CompanyForm({ open, onOpenChange, company }: CompanyFormProps) {
   });
 
   const schema = z.object({
-    name: z.string().min(1, t("nameRequired")),
+    name: z.string().min(1, t("nameRequired")).max(COMPANY_NAME_MAX, t("nameTooLong", { max: COMPANY_NAME_MAX })),
     active: z.boolean(),
   });
 
@@ -96,7 +97,7 @@ export function CompanyForm({ open, onOpenChange, company }: CompanyFormProps) {
               <Label className="text-xs font-medium text-foreground">
                 {t("name")}
               </Label>
-              <Input placeholder={t("namePlaceholder")} {...register("name")} />
+              <Input placeholder={t("namePlaceholder")} maxLength={COMPANY_NAME_MAX} {...register("name")} />
               {errors.name && (
                 <p className="text-xs text-destructive">{errors.name.message}</p>
               )}

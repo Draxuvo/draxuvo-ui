@@ -3,6 +3,7 @@
 // terminal en que se cobró (y, si se quiere, autorización y últimos 4) y transferencia con su referencia. Con
 // un solo pago de tarjeta o transferencia el monto es el total. Al confirmar muestra el folio, el PDF y WhatsApp.
 import { useDemoInfo } from "@/hooks/use-demo";
+import { useCompanyModule } from "@/hooks/use-company-module";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -57,6 +58,8 @@ export function ChargeDialog({ order, open, onOpenChange }: { order: WorkOrder; 
   const t = useTranslations("workOrders");
   const td = useTranslations("demo");
   const { isDemo } = useDemoInfo();
+  // Spec 055 (H-59): sin el módulo WhatsApp del plan no se pide el teléfono ni se ofrece el envío.
+  const whatsappAvailable = useCompanyModule("whatsapp");
   const locale = useLocale();
   const money = new Intl.NumberFormat(locale === "en" ? "en-US" : "es-MX", { style: "currency", currency: "MXN" });
   const total = Number(order.total ?? 0);
@@ -167,28 +170,30 @@ export function ChargeDialog({ order, open, onOpenChange }: { order: WorkOrder; 
                 {t("charge.downloadPdf")}
               </Button>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="charge-phone">
-                {t("charge.phone")}
-              </label>
-              <div className="flex gap-2">
-                <Input id="charge-phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t("charge.phonePlaceholder")} inputMode="tel" className="h-11" />
-                <Button
-                  variant="outline"
-                  className="h-11 gap-2"
-                  disabled={whatsapp.isPending}
-                  onClick={() =>
-                    whatsapp.mutate(
-                      { id: ticket.id, phone: phone || undefined },
-                      { onSuccess: () => toast.success(isDemo ? td("simulated") : t("charge.whatsappSent")), onError: () => toast.error(t("charge.whatsappError")) },
-                    )
-                  }
-                >
-                  <MessageCircle size={16} aria-hidden="true" />
-                  {t("charge.sendWhatsapp")}
-                </Button>
+            {whatsappAvailable && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="charge-phone">
+                  {t("charge.phone")}
+                </label>
+                <div className="flex gap-2">
+                  <Input id="charge-phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t("charge.phonePlaceholder")} inputMode="tel" className="h-11" />
+                  <Button
+                    variant="outline"
+                    className="h-11 gap-2"
+                    disabled={whatsapp.isPending}
+                    onClick={() =>
+                      whatsapp.mutate(
+                        { id: ticket.id, phone: phone || undefined },
+                        { onSuccess: () => toast.success(isDemo ? td("simulated") : t("charge.whatsappSent")), onError: () => toast.error(t("charge.whatsappError")) },
+                      )
+                    }
+                  >
+                    <MessageCircle size={16} aria-hidden="true" />
+                    {t("charge.sendWhatsapp")}
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
             <DialogFooter>
               <Button className="h-11" onClick={() => onOpenChange(false)}>
                 {t("charge.done")}

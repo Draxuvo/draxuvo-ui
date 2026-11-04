@@ -255,15 +255,14 @@ test.describe("ver la orden desde un ticket", () => {
 test.describe("dueño de Volta (sin WhatsApp en su plan)", () => {
   test.use({ storageState: authFile("owner-volta.demo") });
 
-  test("[ORD-025] reenviar por WhatsApp sin el módulo en el plan avisa que no está incluido @regresion", async ({ page }) => {
+  test("[ORD-025] sin el módulo WhatsApp en el plan el ticket no ofrece reenviar por WhatsApp @regresion", async ({ page }) => {
     await page.goto("/es/tickets?status=paid");
     const first = page.getByRole("button").filter({ hasText: /T-\d+/ }).first();
     await expect(first).toBeVisible();
     await first.click();
-    await page.getByRole("dialog").first().getByRole("button", { name: tk("resendWhatsapp") }).click();
-    const whatsapp = page.getByRole("dialog").filter({ hasText: tk("sendWhatsappTitle") });
-    await whatsapp.getByPlaceholder(tk("phonePlaceholder")).fill("5219876543210");
-    await whatsapp.getByRole("button", { name: tk("send"), exact: true }).click();
-    await expect(page.getByText(t("api.moduleNotInPlan", { module: "WhatsApp" }))).toBeVisible();
+    const detail = page.getByRole("dialog").first();
+    // Spec 055 (H-59): WhatsApp es de Empresa; en Pro no se ofrece el envío (la API respondería 403).
+    await expect(detail.getByRole("button", { name: tk("download") })).toBeVisible();
+    await expect(detail.getByRole("button", { name: tk("resendWhatsapp") })).toHaveCount(0);
   });
 });

@@ -1,5 +1,4 @@
 import { expect, test } from "@playwright/test";
-import { knownFailure } from "../../support/known-failure";
 import { storageStatePath } from "../../support/session";
 
 const ANON = { cookies: [], origins: [] };
@@ -76,7 +75,6 @@ test.describe("staff con sesión", () => {
   }
 
   test("[VEM-003] reportes, suscripción y pantallas de super admin también redirigen @regresion", async ({ page }) => {
-    knownFailure("H-06");
     for (const route of ["reportes", "suscripcion", "empresas", "usuarios", "suscripciones", "estadisticas"]) {
       await page.goto(`/es/${route}`);
       await expect(page, route).toHaveURL(/\/es\/mis-ordenes$/);

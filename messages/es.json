@@ -965,6 +965,7 @@
     "inactive": "Inactiva",
     "empty": "No hay empresas registradas",
     "nameRequired": "Nombre requerido",
+    "nameTooLong": "El nombre admite hasta {max} caracteres",
     "namePlaceholder": "Acme Corp",
     "createTitle": "Nueva empresa",
     "createSubtitle": "Completa los datos para registrar la empresa",
@@ -2013,6 +2014,7 @@
       "emailInvalid": "Ingresa un correo válido",
       "passwordMin": "La contraseña debe tener al menos 8 caracteres",
       "company_nameRequired": "El nombre de la empresa es obligatorio",
+      "company_nameTooLong": "El nombre de la empresa admite hasta {max} caracteres",
       "generic": "No se pudo crear la cuenta. Inténtalo de nuevo."
     },
     "plan": "Plan",
@@ -2210,6 +2212,7 @@
     "name": "Nombre",
     "namePlaceholder": "Por ejemplo, Sucursal Norte",
     "nameRequired": "Escribe el nombre de la sucursal",
+    "nameMax": "Máximo {max} caracteres",
     "create": "Agregar",
     "creating": "Agregando...",
     "created": "{company} se agregó a tu cuenta",

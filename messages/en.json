@@ -965,6 +965,7 @@
     "inactive": "Inactive",
     "empty": "No companies registered",
     "nameRequired": "Name required",
+    "nameTooLong": "The name can be up to {max} characters",
     "namePlaceholder": "Acme Corp",
     "createTitle": "New company",
     "createSubtitle": "Fill in the details to register the company",
@@ -2013,6 +2014,7 @@
       "emailInvalid": "Enter a valid email",
       "passwordMin": "Password must be at least 8 characters",
       "company_nameRequired": "Company name is required",
+      "company_nameTooLong": "The company name can be up to {max} characters",
       "generic": "Could not create the account. Please try again."
     },
     "plan": "Plan",
@@ -2210,6 +2212,7 @@
     "name": "Name",
     "namePlaceholder": "For example, North branch",
     "nameRequired": "Enter the branch name",
+    "nameMax": "Maximum {max} characters",
     "create": "Add",
     "creating": "Adding...",
     "created": "{company} was added to your account",

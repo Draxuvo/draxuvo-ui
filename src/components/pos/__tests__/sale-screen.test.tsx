@@ -222,4 +222,24 @@ describe("caja de venta (spec 050)", () => {
     await userEvent.setup().click(screen.getByRole("button", { name: "Volver" }));
     expect(push).toHaveBeenCalledWith("/es/mis-ordenes");
   });
+
+  // Spec 055 (H-56): sin el módulo la caja avisa sin pedir ventas ni catálogo (antes dejaba un 403 en consola).
+  it("si la sesión dice que el plan no tiene punto de venta, avisa y no pide ventas ni catálogo", async () => {
+    useAuthStore.setState({
+      user: { id: 1, role: "staff", companies: [{ id: 1, role: "staff", name: "Papelería", modules: ["work_orders", "tickets"] }] } as never,
+    });
+    renderWithProviders(<SaleScreen />);
+    expect(await screen.findByText("Este módulo no está en tu plan")).toBeInTheDocument();
+    expect(salesService.list).not.toHaveBeenCalled();
+    expect(salesService.catalog).not.toHaveBeenCalled();
+  });
+
+  it("con el módulo en la sesión la caja carga y pide el catálogo", async () => {
+    useAuthStore.setState({
+      user: { id: 1, role: "staff", companies: [{ id: 1, role: "staff", name: "Papelería", modules: ["pos"] }] } as never,
+    });
+    renderWithProviders(<SaleScreen />);
+    await vi.waitFor(() => expect(salesService.catalog).toHaveBeenCalled());
+    expect(screen.queryByText("Este módulo no está en tu plan")).not.toBeInTheDocument();
+  });
 });

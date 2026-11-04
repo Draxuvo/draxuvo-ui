@@ -8,6 +8,8 @@ vi.mock("@/hooks/use-tickets", () => ({
   useSendTicketWhatsapp: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 vi.mock("@/lib/ticket-pdf", () => ({ downloadTicketPDF: vi.fn() }));
+const whatsappModule = vi.hoisted(() => ({ on: true }));
+vi.mock("@/hooks/use-company-module", () => ({ useCompanyModule: () => whatsappModule.on }));
 // Spec 030: el módulo Terminales está apagado; el historial del cobro no depende de él.
 vi.mock("@/components/subscription/module-locked", () => ({
   useModuleLocked: () => true,
@@ -43,7 +45,10 @@ const checkTicket: Ticket = {
   items: [{ description: "Tacos al pastor", quantity: 2, unit_price: 70, subtotal: 140 }],
 };
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  whatsappModule.on = true;
+});
 
 describe("detalle de un ticket de cuenta", () => {
   it("muestra la mesa, el mesero y el método mixto", () => {
@@ -137,5 +142,20 @@ describe("historial de anulaciones (spec 054)", () => {
     renderWithProviders(<TicketDetail ticket={voided} open onClose={() => {}} />);
     expect(screen.getByText("Motivo: Primera")).toBeInTheDocument();
     expect(screen.queryByText("Motivo: Cobro duplicado")).not.toBeInTheDocument();
+  });
+});
+
+// Spec 055 (H-59): WhatsApp es un módulo del plan Empresa.
+describe("WhatsApp del ticket según el plan", () => {
+  it("con el módulo ofrece reenviar por WhatsApp", () => {
+    renderWithProviders(<TicketDetail ticket={checkTicket} open onClose={() => {}} />);
+    expect(screen.getByRole("button", { name: "Reenviar por WhatsApp" })).toBeInTheDocument();
+  });
+
+  it("sin el módulo no lo ofrece y conserva la descarga del PDF", () => {
+    whatsappModule.on = false;
+    renderWithProviders(<TicketDetail ticket={checkTicket} open onClose={() => {}} />);
+    expect(screen.queryByRole("button", { name: "Reenviar por WhatsApp" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Descargar/ })).toBeInTheDocument();
   });
 });
