@@ -1,6 +1,7 @@
 // src/components/companies/company-modules-sheet.tsx
 // Módulos de una empresa para el super admin (spec 017): solo él los activa y desactiva. Cada interruptor guarda al
 // momento; si falla, queda como estaba. El módulo extra (spec 053) trae su precio y pide confirmar antes de aplicarlo.
+// Spec 058: al final, la sección «Cobro» con «Cobro solo por jefes».
 "use client";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -15,6 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { formatCents } from "@/components/subscription/plan-picker";
 import { addAddon, getCompanyModules, reactivateAddon, removeAddon, updateModules } from "@/services/subscription";
 import { cn } from "@/lib/utils";
+import { ChargePolicySection } from "./charge-policy-section";
 import type { AddonKey, Company, CompanyAddon, ModuleKey, Subscription } from "@/types";
 
 const DATE_LOCALES = { es, en: enUS };
@@ -156,6 +158,9 @@ export function CompanyModulesSheet({ company, subscription, onOpenChange }: Com
               )}
             </section>
           )}
+
+          {/* Sin suscripción la empresa no opera: no hay cobro que configurar. */}
+          {company && subscription && <ChargePolicySection companyId={company.id} />}
         </div>
       </SheetContent>
 

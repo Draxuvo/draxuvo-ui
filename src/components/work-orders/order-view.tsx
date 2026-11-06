@@ -251,6 +251,11 @@ export function OrderView({ id, backHref, onEdit }: OrderViewProps) {
               </Button>
             )}
             {order.charge_blocked_reason === "no_items" && <p className="text-sm text-muted-foreground">{t("errors.no_items")}</p>}
+            {order.charge_blocked_reason === "boss_only" && (
+              <p role="note" className="text-sm text-muted-foreground">
+                {t("errors.boss_only")}
+              </p>
+            )}
             <div className="flex flex-col gap-2 [&>button]:w-full">{secondary}</div>
           </div>
         </aside>
@@ -259,6 +264,11 @@ export function OrderView({ id, backHref, onEdit }: OrderViewProps) {
       {/* Celular: la acción principal queda fija abajo y las demás en una fila. */}
       <div role="region" aria-label={t("aria.bottomBar")} className="fixed inset-x-0 bottom-0 z-30 space-y-2 border-t border-border bg-card p-3 lg:hidden">
         {order.charge_blocked_reason === "no_items" && <p className="text-sm text-muted-foreground">{t("errors.no_items")}</p>}
+        {order.charge_blocked_reason === "boss_only" && (
+          <p role="note" className="text-sm text-muted-foreground">
+            {t("errors.boss_only")}
+          </p>
+        )}
         {primary && (
           <Button className="h-12 w-full text-base" onClick={primary.run} disabled={primary.pending}>
             {primary.label}

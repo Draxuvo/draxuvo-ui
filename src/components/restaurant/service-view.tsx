@@ -69,6 +69,7 @@ export function ServiceView({ enabled, onConfigure }: { enabled: boolean; onConf
                   total={num(table.check?.total)}
                   owner={table.check?.waiter?.name}
                   mine={table.check?.mine}
+                  chargeRequested={!!table.check?.charge_requested_at}
                   now={now}
                   onClick={() => void pick(table)}
                 />
@@ -94,6 +95,7 @@ export function ServiceView({ enabled, onConfigure }: { enabled: boolean; onConf
                   total={num(check.total)}
                   owner={check.waiter?.name}
                   mine={check.mine}
+                  chargeRequested={!!check.charge_requested_at}
                   now={now}
                   onClick={() => router.push(`/pedido?cuenta=${check.id}&from=restaurante`)}
                 />

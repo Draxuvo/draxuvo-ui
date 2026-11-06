@@ -3,12 +3,14 @@
 // vive en el servidor como borrador, así que sobrevive a recargar y se retoma desde otro equipo. Un cajero puede
 // tener varias abiertas a la vez.
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, HandCoins, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ModuleLocked, useModuleGate } from "@/components/subscription/module-locked";
+import { useBossOnlyCharge, useIsChargeBoss } from "@/hooks/use-boss-only-charge";
 import { useCompanyModule } from "@/hooks/use-company-module";
 import { useAppRouter } from "@/hooks/use-router";
 import {
@@ -16,14 +18,19 @@ import {
   useCreateSale,
   useDiscardSale,
   useOpenSales,
+  useRefreshSale,
   useRemoveSaleItem,
+  useReturnSale,
   useSale,
+  useSalesQueue,
+  useSubmitSale,
   useUpdateSaleItem,
 } from "@/hooks/use-sales";
 import { useAuthStore } from "@/store/auth";
 import type { AddItemInput } from "@/services/sales";
-import type { SaleCatalogProduct, SaleItem } from "@/types";
-import { ITEM_ERROR_CODES, errorCode } from "./lib";
+import type { Sale, SaleCatalogProduct, SaleItem } from "@/types";
+import { ChargeQueueList } from "./charge-queue-list";
+import { BOSS_ONLY_CODES, ITEM_ERROR_CODES, errorCode, isBossOnlyError } from "./lib";
 import { PosChargeDialog } from "./pos-charge-dialog";
 import { ProductSearch } from "./product-search";
 import { SaleCart } from "./sale-cart";
@@ -47,16 +54,32 @@ export function SaleScreen() {
   const [chargeOpen, setChargeOpen] = useState(false);
   const [discardOpen, setDiscardOpen] = useState(false);
   const [focusSignal, setFocusSignal] = useState(0);
+  // Spec 058: con «Cobro solo por jefes», el jefe ve la pestaña «Por cobrar» (también desde `?vista=por-cobrar`) y puede
+  // abrir una venta directo con `?venta=<id>` (lo usan el contador del encabezado y el aviso push).
+  const searchParams = useSearchParams();
+  const bossOnly = useBossOnlyCharge();
+  const isBoss = useIsChargeBoss();
+  const showQueueTab = bossOnly && isBoss;
+  const [queueOpen, setQueueOpen] = useState(searchParams.get("vista") === "por-cobrar");
+  const linkedSale = Number(searchParams.get("venta")) || null;
 
   const openSales = useOpenSales();
+  const queue = useSalesQueue(showQueueTab);
+  const queued = queue.data?.results ?? [];
   const saleQuery = useSale(saleId);
   const create = useCreateSale();
   const addItem = useAddSaleItem();
   const updateItem = useUpdateSaleItem();
   const removeItem = useRemoveSaleItem();
   const discard = useDiscardSale();
+  const submit = useSubmitSale();
+  const returnSale = useReturnSale();
+  const refreshSale = useRefreshSale();
   const sale = saleQuery.data ?? null;
-  const busy = addItem.isPending || updateItem.isPending || removeItem.isPending || create.isPending;
+  const busy = addItem.isPending || updateItem.isPending || removeItem.isPending || create.isPending || submit.isPending || returnSale.isPending;
+  // Spec 058: una venta que el cajero ya pasó a cobro no se edita; el siguiente artículo abre otra venta.
+  const saleLockedRef = useRef(false);
+  saleLockedRef.current = !!sale && !!sale.actions && !sale.actions.includes("add_item");
   const locked = gate.isLocked(openSales.error) || !posAvailable;
 
   // Al entrar retoma la venta abierta más reciente; si no hay, la venta se abre con el primer artículo.
@@ -67,20 +90,29 @@ export function SaleScreen() {
   useEffect(() => {
     if (restored.current || !listLoaded) return;
     restored.current = true;
-    if (saleRef.current === null && firstOpen !== null) setSaleId(firstOpen);
-  }, [listLoaded, firstOpen, setSaleId]);
+    if (saleRef.current !== null) return;
+    if (linkedSale !== null) setSaleId(linkedSale);
+    else if (firstOpen !== null) setSaleId(firstOpen);
+  }, [listLoaded, firstOpen, linkedSale, setSaleId]);
 
   const refocus = useCallback(() => setFocusSignal((n) => n + 1), []);
 
   const reportItemError = useCallback(
     (err: unknown) => {
       const code = errorCode(err);
-      toast.error(code && (ITEM_ERROR_CODES as readonly string[]).includes(code) ? t(`errors.${code}`) : t("errors.generic"));
+      const known = [...ITEM_ERROR_CODES, ...BOSS_ONLY_CODES] as readonly string[];
+      toast.error(code && known.includes(code) ? t(`errors.${code}`) : t("errors.generic"));
+      // Spec 058: la opción cambió o la venta ya espera cobro; se recarga para mostrar el aviso.
+      if (isBossOnlyError(err) && saleRef.current !== null) refreshSale(saleRef.current);
     },
-    [t],
+    [t, refreshSale],
   );
 
   const ensureSale = useCallback(async () => {
+    if (saleRef.current !== null && saleLockedRef.current) {
+      saleRef.current = null;
+      saleLockedRef.current = false;
+    }
     if (saleRef.current !== null) return saleRef.current;
     opening.current ??= create.mutateAsync().then((created) => {
       setSaleId(created.id);
@@ -135,9 +167,43 @@ export function SaleScreen() {
     refocus();
   }
 
+  // Spec 058: el cajero pasa la venta a cobro y la caja queda lista para otra.
+  function onSubmit() {
+    if (!sale) return;
+    submit
+      .mutateAsync({ saleId: sale.id, lockVersion: sale.lock_version })
+      .then(() => {
+        toast.success(t("bossOnly.submitted"));
+        startNewSale();
+      })
+      .catch((err) => {
+        const code = errorCode(err);
+        toast.error(code && ["nothing_to_submit", "already_submitted", "stale_object", ...BOSS_ONLY_CODES].includes(code) ? t(`errors.${code}`) : t("errors.generic"));
+        refreshSale(sale.id);
+      });
+  }
+
+  function onReturn() {
+    if (!sale) return;
+    returnSale
+      .mutateAsync(sale.id)
+      .then((returned) => {
+        toast.success(t("bossOnly.returned", { name: returned.opened_by?.name ?? "" }));
+        startNewSale();
+      })
+      .catch(() => toast.error(t("errors.generic")));
+  }
+
+  function pickQueued(picked: Sale) {
+    setSaleId(picked.id);
+    refocus();
+  }
+
   if (locked) return <ModuleLocked module="pos" />;
 
-  const others = (openSales.data?.results ?? []).filter((s) => s.id !== saleId);
+  // Las ventas que esperan cobro van en su pestaña, no entre los botones de ventas abiertas.
+  const queuedIds = new Set(queued.map((s) => s.id));
+  const others = (openSales.data?.results ?? []).filter((s) => s.id !== saleId && !(showQueueTab && queuedIds.has(s.id)));
 
   return (
     <div className="flex h-dvh flex-col gap-3 p-3 md:p-4">
@@ -148,6 +214,19 @@ export function SaleScreen() {
         </Button>
         <h1 className="font-display text-2xl font-extrabold uppercase">{t("title")}</h1>
         <div className="ml-auto flex flex-wrap items-center gap-2">
+          {showQueueTab && (
+            <Button
+              type="button"
+              variant={queueOpen ? "default" : "outline"}
+              className="h-11 gap-1.5"
+              aria-pressed={queueOpen}
+              onClick={() => setQueueOpen((open) => !open)}
+            >
+              <HandCoins size={16} aria-hidden />
+              {t("queue.tab")}
+              <span className="tabular-nums">({queued.length})</span>
+            </Button>
+          )}
           {others.length > 0 && (
             <nav aria-label={t("openSales")} className="flex gap-2">
               {others.map((s) => (
@@ -165,7 +244,11 @@ export function SaleScreen() {
       </header>
 
       <div className="grid min-h-0 flex-1 gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <ProductSearch onScan={onScan} onPick={onPick} disabled={chargeOpen} focusSignal={focusSignal} />
+        {showQueueTab && queueOpen ? (
+          <ChargeQueueList sales={queued} loading={queue.isLoading} selectedId={saleId} onPick={pickQueued} />
+        ) : (
+          <ProductSearch onScan={onScan} onPick={onPick} disabled={chargeOpen} focusSignal={focusSignal} />
+        )}
         <SaleCart
           sale={sale}
           busy={busy}
@@ -173,6 +256,9 @@ export function SaleScreen() {
           onRemove={onRemove}
           onCharge={() => setChargeOpen(true)}
           onDiscard={() => setDiscardOpen(true)}
+          onSubmit={onSubmit}
+          onReturn={onReturn}
+          onNewSale={startNewSale}
         />
       </div>
 

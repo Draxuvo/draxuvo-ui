@@ -62,6 +62,11 @@ export function OpenChecks({
                       {t("openChecksReady", { count: check.ready })}
                     </span>
                   )}
+                  {check.chargeRequested && (
+                    <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
+                      {t("bossOnly.chargeRequested")}
+                    </span>
+                  )}
                   {check.state === "to_pay" && (
                     <span className="rounded-full bg-estado-pendiente px-2 py-0.5 text-xs font-semibold text-estado-pendiente-foreground">
                       {t("openChecksToPay")}

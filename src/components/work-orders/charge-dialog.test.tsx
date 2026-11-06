@@ -252,3 +252,19 @@ describe("ChargeDialog: faltantes de inventario (spec 054)", () => {
     expect(screen.getByRole("button", { name: "Enviar por WhatsApp" })).toBeInTheDocument();
   });
 });
+
+describe("cobro solo por jefes (spec 058)", () => {
+  it("si la API rechaza con charge_boss_only, avisa y cierra el diálogo", async () => {
+    const onOpenChange = vi.fn();
+    chargeMutate.mockImplementation((_vars, { onError }) =>
+      onError({ response: { data: { error: { details: { code: "charge_boss_only" } } } } }),
+    );
+    renderWithProviders(<ChargeDialog order={pendiente} open onOpenChange={onOpenChange} />);
+    await userEvent.type(screen.getByLabelText("Recibido"), "900");
+    await userEvent.click(screen.getByRole("button", { name: "Confirmar cobro" }));
+
+    expect(toastError).toHaveBeenCalledWith("El cobro lo hace un administrador o el dueño.");
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+});
+

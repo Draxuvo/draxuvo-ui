@@ -168,7 +168,8 @@ describe("OrderPanel", () => {
     id: 1, product_id: null, name: "Tostada", quantity: 2, unit_price: 30, editable: true, sent: false, ...over,
   });
   const current = (lines: Line[], over: Partial<CurrentOrder> = {}): CurrentOrder => ({
-    selection: { kind: "check", id: 9 }, title: "4", lines, total: 60, canAdd: true, canSend: true, canCharge: true, canRelease: false, ...over,
+    selection: { kind: "check", id: 9 }, title: "4", lines, total: 60, canAdd: true, canSend: true, canCharge: true, canRelease: false,
+    chargeBlocked: false, canRequestCharge: false, chargeRequestedAt: null, ...over,
   });
   const handlers = { onQuantity: vi.fn(), onRemove: vi.fn(), onNote: vi.fn(), onSend: vi.fn(), onCharge: vi.fn(), onRelease: vi.fn() };
 
@@ -214,3 +215,46 @@ describe("OrderPanel", () => {
     expect(screen.getByText("Elige una mesa para ver su orden.")).toBeInTheDocument();
   });
 });
+
+describe("cobro solo por jefes en la orden (spec 058)", () => {
+  const line: Line = { id: 1, product_id: null, name: "Tostada", quantity: 2, unit_price: 30, editable: false, sent: true };
+  const current = (over: Partial<CurrentOrder> = {}): CurrentOrder => ({
+    selection: { kind: "check", id: 9 }, title: "4", lines: [line], total: 60, canAdd: true, canSend: false, canCharge: false,
+    canRelease: false, chargeBlocked: true, canRequestCharge: true, chargeRequestedAt: null, ...over,
+  });
+  const handlers = { onQuantity: vi.fn(), onRemove: vi.fn(), onNote: vi.fn(), onSend: vi.fn(), onCharge: vi.fn(), onRelease: vi.fn() };
+
+  it("el mesero ve el aviso y «Pedir cobro» en lugar de Cobrar", async () => {
+    const onRequestCharge = vi.fn();
+    renderWithProviders(
+      <OrderPanel current={current()} loading={false} missing={false} canNote={false} sending={false} {...handlers} onRequestCharge={onRequestCharge} />,
+    );
+    expect(screen.getByText("El cobro lo hace un administrador o el dueño.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Cobrar" })).not.toBeInTheDocument();
+    await userEvent.setup().click(screen.getByRole("button", { name: "Pedir cobro" }));
+    expect(onRequestCharge).toHaveBeenCalled();
+  });
+
+  it("con el cobro ya pedido muestra la hora y no lo ofrece otra vez", () => {
+    renderWithProviders(
+      <OrderPanel
+        current={current({ canRequestCharge: false, chargeRequestedAt: "2026-11-05T18:30:00Z" })}
+        loading={false} missing={false} canNote={false} sending={false} {...handlers} onRequestCharge={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(/Cobro pedido a las/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Pedir cobro" })).not.toBeInTheDocument();
+  });
+
+  it("el plano marca la mesa con cobro pedido", () => {
+    const tile: SourceTile = {
+      key: "table:1", name: "4", state: "occupied", openedAt: new Date().toISOString(), total: 60, owner: "Sara", mine: true,
+      selection: { kind: "check", id: 9 }, tableId: 1, chargeRequested: true,
+    };
+    renderWithProviders(
+      <TablePlan mode="restaurant" selection={null} loading={false} error={false} tiles={[tile]} onPick={vi.fn()} onCreate={vi.fn()} />,
+    );
+    expect(screen.getByRole("button", { name: /Cobro pedido/ })).toBeInTheDocument();
+  });
+});
+

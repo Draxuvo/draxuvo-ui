@@ -84,3 +84,45 @@ describe("venta en curso (spec 050)", () => {
     expect(screen.queryByRole("button", { name: "Descartar venta" })).not.toBeInTheDocument();
   });
 });
+
+describe("cobro solo por jefes (spec 058)", () => {
+  it("el cajero ve el aviso y «Pasar a cobro» en lugar de Cobrar", async () => {
+    const onSubmit = vi.fn();
+    setup({ onSubmit, sale: sale({ actions: ["add_item", "discard", "submit"], charge_blocked_reason: "boss_only" }) });
+    expect(screen.queryByRole("button", { name: /Cobrar/ })).not.toBeInTheDocument();
+    expect(screen.getByText("El cobro lo hace un administrador o el dueño.")).toBeInTheDocument();
+    await userEvent.setup().click(screen.getByRole("button", { name: "Pasar a cobro" }));
+    expect(onSubmit).toHaveBeenCalled();
+  });
+
+  it("una venta ya pasada a cobro queda en solo lectura para el cajero y ofrece una venta nueva", async () => {
+    const onNewSale = vi.fn();
+    setup({
+      onNewSale,
+      sale: sale({ actions: [], charge_blocked_reason: "boss_only", submitted_at: "2026-11-05T18:00:00Z" }),
+    });
+    expect(screen.getByText("Esperando cobro")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sumar uno a Cuaderno profesional" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Descartar venta" })).not.toBeInTheDocument();
+    await userEvent.setup().click(screen.getByRole("button", { name: "Nueva venta" }));
+    expect(onNewSale).toHaveBeenCalled();
+  });
+
+  it("el jefe cobra una venta lista y puede regresarla al cajero", async () => {
+    const onReturn = vi.fn();
+    const h = setup({
+      onReturn,
+      sale: sale({
+        actions: ["add_item", "charge", "discard", "return"],
+        submitted_at: "2026-11-05T18:00:00Z",
+        opened_by: { id: 3, name: "Lucía Caja" },
+      }),
+    });
+    expect(screen.getByText("Pasada a cobro por Lucía Caja")).toBeInTheDocument();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Regresar al cajero" }));
+    expect(onReturn).toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Cobrar $85.00" }));
+    expect(h.onCharge).toHaveBeenCalled();
+  });
+});

@@ -1,8 +1,9 @@
 "use client";
 // La orden de la mesa elegida: renglones con + y −, nota, total fijo y las acciones que la API permite.
+// Spec 058: con «Cobro solo por jefes» el personal ve un aviso en lugar de Cobrar y, en mesas, «Pedir cobro».
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { ConciergeBell, DoorOpen, Minus, Plus, StickyNote, Trash2 } from "lucide-react";
+import { BellRing, ConciergeBell, DoorOpen, Minus, Plus, ShieldCheck, StickyNote, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ProductGlyph } from "@/components/product-icon";
@@ -22,6 +23,8 @@ export function OrderPanel({
   onSend,
   onCharge,
   onRelease,
+  onRequestCharge,
+  requestingCharge = false,
 }: {
   current: CurrentOrder | null;
   loading: boolean;
@@ -36,6 +39,9 @@ export function OrderPanel({
   onSend: () => void;
   onCharge: () => void;
   onRelease: () => void;
+  /** Spec 058: «Pedir cobro» de una cuenta de mesa. */
+  onRequestCharge?: () => void;
+  requestingCharge?: boolean;
 }) {
   const t = useTranslations("takeOrder");
   const locale = useLocale();
@@ -164,6 +170,18 @@ export function OrderPanel({
           <span className="text-sm text-muted-foreground">{t("total")}</span>
           <span className="font-display text-2xl font-extrabold tabular-nums">{money.format(total)}</span>
         </div>
+        {current.chargeRequestedAt && (
+          <p role="status" className="flex items-center gap-1.5 text-sm font-medium text-estado-pendiente-foreground">
+            <BellRing size={14} aria-hidden />
+            {t("bossOnly.requestedAt", { time: new Date(current.chargeRequestedAt).toLocaleTimeString(locale === "en" ? "en-US" : "es-MX", { hour: "2-digit", minute: "2-digit" }) })}
+          </p>
+        )}
+        {current.chargeBlocked && (
+          <p role="note" className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <ShieldCheck size={14} aria-hidden />
+            {t("bossOnly.notice")}
+          </p>
+        )}
         <div className="flex gap-2">
           {onAddMore && current.canAdd && (
             <Button type="button" variant="outline" className="min-h-11 flex-1 lg:hidden" onClick={onAddMore}>
@@ -173,6 +191,11 @@ export function OrderPanel({
           {current.canSend && (
             <Button type="button" variant="outline" className="min-h-11 flex-1" disabled={sending} onClick={onSend}>
               {sending ? t("sending") : t("send")}
+            </Button>
+          )}
+          {current.canRequestCharge && onRequestCharge && (
+            <Button type="button" className="min-h-11 flex-1" disabled={requestingCharge} onClick={onRequestCharge}>
+              {t("bossOnly.requestCharge")}
             </Button>
           )}
           {current.canCharge && (

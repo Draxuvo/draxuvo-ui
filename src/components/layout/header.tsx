@@ -2,6 +2,7 @@
 "use client";
 import { useAuthStore } from "@/store/auth";
 import { AlertBell } from "@/components/alerts/alert-bell";
+import { ChargeQueueChip } from "@/components/charge-queue/charge-queue-chip";
 import { AttendanceButton } from "@/components/attendance/attendance-button";
 import { useLogoutFlow } from "@/components/attendance/logout-dialog";
 import { useTranslations } from "next-intl";
@@ -78,6 +79,7 @@ export function Header() {
       <CompanySwitcher className="md:ml-1" />
 
       <div className="ml-auto flex items-center gap-1 sm:gap-3">
+        <ChargeQueueChip />
         <AlertBell />
         <AttendanceButton />
         <LocaleSwitcher />

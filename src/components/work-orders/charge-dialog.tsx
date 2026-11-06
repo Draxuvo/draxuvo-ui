@@ -12,6 +12,7 @@ import { Banknote, CreditCard, Landmark, Download, MessageCircle, Check, Plus, T
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useQueryClient } from "@tanstack/react-query";
 import { useChargeOrder } from "@/hooks/use-work-orders";
 import { usePaymentTerminals } from "@/hooks/use-payment-terminals";
 import { useMutation } from "@tanstack/react-query";
@@ -57,6 +58,7 @@ export function newKey() {
 export function ChargeDialog({ order, open, onOpenChange }: { order: WorkOrder; open: boolean; onOpenChange: (open: boolean) => void }) {
   const t = useTranslations("workOrders");
   const td = useTranslations("demo");
+  const queryClient = useQueryClient();
   const { isDemo } = useDemoInfo();
   // Spec 055 (H-59): sin el módulo WhatsApp del plan no se pide el teléfono ni se ofrece el envío.
   const whatsappAvailable = useCompanyModule("whatsapp");
@@ -131,6 +133,12 @@ export function ChargeDialog({ order, open, onOpenChange }: { order: WorkOrder; 
           const details = error.response?.data?.error?.details;
           if (details?.reason === "no_items") return void toast.error(t("charge.noItems"));
           const code = details?.code;
+          // Spec 058: la empresa reservó el cobro a los jefes (la opción pudo cambiar con el diálogo abierto).
+          if (code === "charge_boss_only") {
+            toast.error(t("errors.boss_only"));
+            queryClient.invalidateQueries({ queryKey: ["work-orders"] });
+            return void onOpenChange(false);
+          }
           toast.error(code && (ERROR_CODES as readonly string[]).includes(code) ? t(`charge.errors.${code}`) : t("charge.error"));
         },
       },

@@ -6,14 +6,19 @@ import { useAuthStore } from "@/store/auth";
 import type { Sale, SaleItem } from "@/types";
 
 const push = vi.hoisted(() => vi.fn());
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace: push, back: vi.fn() }), usePathname: () => "/es/venta" }));
+const search = vi.hoisted(() => ({ params: new URLSearchParams() }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push, replace: push, back: vi.fn() }),
+  usePathname: () => "/es/venta",
+  useSearchParams: () => search.params,
+}));
 vi.mock("@/services/subscription", () => ({ getSubscription: vi.fn().mockResolvedValue({ active_modules: ["inventory", "pos"] }) }));
 vi.mock("@/hooks/use-payment-terminals", () => ({ usePaymentTerminals: () => ({ data: [] }) }));
 vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 vi.mock("@/services/sales", () => ({
   salesService: {
     list: vi.fn(), catalog: vi.fn(), get: vi.fn(), create: vi.fn(), addItem: vi.fn(), updateItem: vi.fn(),
-    removeItem: vi.fn(), discard: vi.fn(), charge: vi.fn(),
+    removeItem: vi.fn(), discard: vi.fn(), charge: vi.fn(), submit: vi.fn(), returnToCashier: vi.fn(), queue: vi.fn(),
   },
 }));
 
@@ -36,6 +41,7 @@ const page = <T,>(results: T[]) => ({ info: { page_size: 20, page_index: 1, tota
 
 beforeEach(() => {
   vi.resetAllMocks();
+  search.params = new URLSearchParams();
   useAuthStore.setState({
     user: { id: 1, role: "staff", companies: [{ id: 1, role: "staff", name: "Papelería" }] } as never,
     selectedCompanyId: 1,
@@ -241,5 +247,59 @@ describe("caja de venta (spec 050)", () => {
     renderWithProviders(<SaleScreen />);
     await vi.waitFor(() => expect(salesService.catalog).toHaveBeenCalled());
     expect(screen.queryByText("Este módulo no está en tu plan")).not.toBeInTheDocument();
+  });
+});
+
+describe("cobro solo por jefes en la caja (spec 058)", () => {
+  const asAdmin = () =>
+    useAuthStore.setState({
+      user: { id: 2, role: "admin", companies: [{ id: 1, role: "admin", name: "Papelería", boss_only_charge: true, modules: ["inventory", "pos"] }] } as never,
+      selectedCompanyId: 1,
+      role: "admin",
+    });
+
+  it("el cajero pasa la venta a cobro y la caja queda lista para otra", async () => {
+    useAuthStore.setState({
+      user: { id: 1, role: "staff", companies: [{ id: 1, role: "staff", name: "Papelería", boss_only_charge: true }] } as never,
+      selectedCompanyId: 1,
+      role: "staff",
+    });
+    const ready = sale({ items: [item()], items_count: 1, total: "42.50", actions: ["add_item", "discard", "submit"], charge_blocked_reason: "boss_only" });
+    vi.mocked(salesService.list).mockResolvedValue(page([ready]) as never);
+    vi.mocked(salesService.get).mockResolvedValue(ready);
+    vi.mocked(salesService.submit).mockResolvedValue({ ...ready, submitted_at: "2026-11-05T18:00:00Z", actions: [] });
+
+    renderWithProviders(<SaleScreen />);
+    await userEvent.setup().click(await screen.findByRole("button", { name: "Pasar a cobro" }));
+
+    await waitFor(() => expect(salesService.submit).toHaveBeenCalledWith(7, 0));
+    expect(toast.success).toHaveBeenCalledWith("Venta pasada a cobro. Un administrador o el dueño la cobrará.");
+    expect(screen.queryByRole("button", { name: "Por cobrar (0)" })).not.toBeInTheDocument();
+  });
+
+  it("el jefe ve «Por cobrar», con las ventas de los cajeros en orden, y abre una", async () => {
+    asAdmin();
+    const first = sale({ id: 11, items_count: 2, total: "85.00", opened_by: { id: 3, name: "Lucía Caja" }, submitted_at: "2026-11-05T17:00:00Z" });
+    const second = sale({ id: 12, items_count: 1, total: "42.50", opened_by: { id: 4, name: "Pedro Caja" }, submitted_at: "2026-11-05T17:05:00Z" });
+    vi.mocked(salesService.queue).mockResolvedValue(page([first, second]) as never);
+    search.params = new URLSearchParams("vista=por-cobrar");
+
+    renderWithProviders(<SaleScreen />);
+    const lucia = await screen.findByRole("button", { name: "Abrir venta de Lucía Caja" });
+    const buttons = screen.getAllByRole("button", { name: /Abrir venta de/ });
+    expect(buttons.map((b) => b.getAttribute("aria-label"))).toEqual(["Abrir venta de Lucía Caja", "Abrir venta de Pedro Caja"]);
+    expect(screen.getByRole("button", { name: /Por cobrar/ })).toHaveTextContent("(2)");
+
+    await userEvent.setup().click(lucia);
+    await waitFor(() => expect(salesService.get).toHaveBeenCalledWith(11));
+  });
+
+  it("`?venta=` abre esa venta al entrar", async () => {
+    asAdmin();
+    vi.mocked(salesService.queue).mockResolvedValue(page([]) as never);
+    search.params = new URLSearchParams("venta=21");
+
+    renderWithProviders(<SaleScreen />);
+    await waitFor(() => expect(salesService.get).toHaveBeenCalledWith(21));
   });
 });

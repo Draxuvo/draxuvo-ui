@@ -1051,6 +1051,31 @@
           "generic": "The change could not be applied."
         }
       }
+    },
+    "chargePolicy": {
+      "title": "Charging",
+      "label": "Owner-only charging",
+      "description": "Staff build sales, finish orders and take orders, but only the owner and administrators charge.",
+      "on": "On",
+      "off": "Off",
+      "saved": "Change applied",
+      "error": "Charging could not be changed",
+      "history": "Latest changes",
+      "historyOn": "Turned on by {actor} on {date}",
+      "historyOff": "Turned off by {actor} on {date}",
+      "cancel": "Cancel",
+      "confirmButton": "Confirm",
+      "applying": "Applying…",
+      "confirm": {
+        "on": {
+          "title": "Turn on owner-only charging?",
+          "body": "From the next charge, staff can no longer charge sales, orders or checks: they send them to charge and the owner or an administrator charges them."
+        },
+        "off": {
+          "title": "Turn off owner-only charging?",
+          "body": "Staff charge again as before. Sales sent to charge go back to their cashier and tables lose the charge-requested mark."
+        }
+      }
     }
   },
   "forgotPassword": {
@@ -1331,7 +1356,9 @@
       "desc": "Turned on by the Draxuvo team and billed with your subscription.",
       "active": "Active",
       "endsOn": "Active until {date}"
-    }
+    },
+    "bossOnlyCharge": "Owner-only charging: on",
+    "bossOnlyChargeDesc": "Your staff don't charge: they send sales to charge and request the charge of tables; the owner and administrators charge. To change it, contact Draxuvo."
   },
   "profile": {
     "pageTitle": "My profile",
@@ -1984,7 +2011,8 @@
       "locked": "The order is locked for changes. It was reloaded.",
       "forbidden": "You do not have access to this order",
       "notFound": "We could not find this order",
-      "photo": "The photo could not be uploaded"
+      "photo": "The photo could not be uploaded",
+      "boss_only": "Charging is done by an administrator or the owner."
     },
     "createdBy": "Created by"
   },
@@ -2360,7 +2388,8 @@
       "mine": "Yours",
       "table": "Table {name}",
       "openFor": "open for {time}",
-      "readyBadge": "{count} ready"
+      "readyBadge": "{count} ready",
+      "chargeRequested": "Charge requested"
     },
     "summary": {
       "title": "Service summary",
@@ -2566,7 +2595,14 @@
     "alertToPay": "{source} to charge",
     "alertTableTaken": "{source}: someone else took it",
     "alertOpen": "Open {text}",
-    "alertDismiss": "Dismiss alert"
+    "alertDismiss": "Dismiss alert",
+    "bossOnly": {
+      "notice": "Charging is done by an administrator or the owner.",
+      "requestCharge": "Request charge",
+      "requested": "Charge requested. An administrator or the owner will charge the check.",
+      "requestedAt": "Charge requested at {time}",
+      "chargeRequested": "Charge requested"
+    }
   },
   "productIcons": {
     "title": "Icon",
@@ -3140,7 +3176,12 @@
       "product_without_price": "This product has no price.",
       "invalid_quantity": "The quantity is not valid.",
       "not_open": "The sale is no longer open.",
-      "generic": "The action could not be completed."
+      "generic": "The action could not be completed.",
+      "charge_boss_only": "Charging is done by an administrator or the owner.",
+      "sale_submitted": "The sale is ready to charge; only an administrator or the owner can change it.",
+      "nothing_to_submit": "Add at least one item before sending it to charge.",
+      "already_submitted": "The sale was already sent to charge.",
+      "stale_object": "The sale changed. Review it and try again."
     },
     "charge": {
       "button": "Charge {total}",
@@ -3223,6 +3264,26 @@
         "done": "Sale cancelled",
         "error": "The sale could not be cancelled."
       }
+    },
+    "bossOnly": {
+      "notice": "Charging is done by an administrator or the owner.",
+      "submit": "Send to charge",
+      "submitted": "Sale sent to charge. An administrator or the owner will charge it.",
+      "waiting": "Waiting to be charged",
+      "waitingBody": "You sent this sale to charge; you can no longer change it. Start a new sale to keep selling.",
+      "returnToCashier": "Return to cashier",
+      "returned": "The sale went back to {name}.",
+      "submittedBy": "Sent to charge by {name}"
+    },
+    "queue": {
+      "tab": "To charge",
+      "sale": "Sale",
+      "empty": "No sales waiting to be charged.",
+      "emptyBody": "When a cashier sends a sale to charge it will show up here.",
+      "cashier": "Cashier",
+      "sentAt": "Sent to charge",
+      "items": "{count, plural, one {# item} other {# items}}",
+      "open": "Open sale from {name}"
     }
   },
   "scan": {
@@ -3244,5 +3305,12 @@
     "notOnMenu": "The product {name} is not on the menu (code {code}).",
     "frame": "Scanning frame",
     "added": "Added: {name}"
+  },
+  "chargeQueue": {
+    "title": "To charge",
+    "label": "To charge: {count}",
+    "sales": "Sales sent to charge",
+    "workOrders": "Finished orders",
+    "checks": "Tables that asked to be charged"
   }
 }
