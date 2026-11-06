@@ -69,6 +69,10 @@ export const restaurantService = {
     apiClient.post(`${base}/checks`, body).then((r) => r.data),
 
   /** Libera la mesa: cancela la cuenta mientras nada se haya mandado a cocina o a la barra. */
+  /** Spec 058: el mesero avisa que el cliente pidió la cuenta («Cobro solo por jefes»). */
+  requestCharge: (id: number): Promise<Check> =>
+    apiClient.post(`${base}/checks/${id}/charge_request`, {}, { skipErrorToast: true }).then((r) => r.data),
+
   cancelCheck: (id: number): Promise<Check> =>
     apiClient.post(`${base}/checks/${id}/cancel`, {}).then((r) => r.data),
 

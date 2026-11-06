@@ -43,6 +43,7 @@ export function CheckPaymentDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const t = useTranslations("takeOrder.pay");
+  const tb = useTranslations("takeOrder.bossOnly");
   const locale = useLocale();
   const money = new Intl.NumberFormat(locale === "en" ? "en-US" : "es-MX", { style: "currency", currency: "MXN" });
   const apply = useApplyCheck();
@@ -111,7 +112,12 @@ export function CheckPaymentDialog({
       const e = err as AxiosError<{ error?: { code?: string; details?: { code?: string; pending?: number } } }>;
       const code = e.response?.data?.error?.details?.code ?? e.response?.data?.error?.code;
       if (e.response) setKey(newKey());
-      if (code === "incomplete_items") {
+      if (code === "charge_boss_only") {
+        // Spec 058: la empresa reservó el cobro a los jefes; se recarga la cuenta para mostrar el aviso.
+        toast.error(tb("notice"));
+        void restaurantService.getCheck(check.id).then(apply);
+        onOpenChange(false);
+      } else if (code === "incomplete_items") {
         setPending(Number(e.response?.data?.error?.details?.pending ?? 0));
       } else {
         setError(t("error"));

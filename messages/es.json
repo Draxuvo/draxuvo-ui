@@ -1051,6 +1051,31 @@
           "generic": "No se pudo aplicar el cambio."
         }
       }
+    },
+    "chargePolicy": {
+      "title": "Cobro",
+      "label": "Cobro solo por jefes",
+      "description": "El personal arma ventas, termina órdenes y toma pedidos, pero solo el dueño y los administradores cobran.",
+      "on": "Activo",
+      "off": "Apagado",
+      "saved": "Cambio aplicado",
+      "error": "No se pudo cambiar el cobro",
+      "history": "Últimos cambios",
+      "historyOn": "Encendido por {actor} el {date}",
+      "historyOff": "Apagado por {actor} el {date}",
+      "cancel": "Cancelar",
+      "confirmButton": "Confirmar",
+      "applying": "Aplicando…",
+      "confirm": {
+        "on": {
+          "title": "¿Activar cobro solo por jefes?",
+          "body": "Desde el siguiente cobro, el personal ya no podrá cobrar ventas, órdenes ni cuentas: las pasará a cobro y las cobrará el dueño o un administrador."
+        },
+        "off": {
+          "title": "¿Apagar cobro solo por jefes?",
+          "body": "El personal vuelve a cobrar como antes. Las ventas pasadas a cobro regresan a su cajero y las mesas pierden la marca de cobro pedido."
+        }
+      }
     }
   },
   "forgotPassword": {
@@ -1331,7 +1356,9 @@
       "desc": "Los activa el equipo de Draxuvo y se cobran junto con tu suscripción.",
       "active": "Activo",
       "endsOn": "Activo hasta el {date}"
-    }
+    },
+    "bossOnlyCharge": "Cobro solo por jefes: activo",
+    "bossOnlyChargeDesc": "Tu personal no cobra: pasa las ventas a cobro y pide el cobro de las mesas; el cobro lo hacen el dueño y los administradores. Para cambiarlo, contacta a Draxuvo."
   },
   "profile": {
     "pageTitle": "Mi perfil",
@@ -1984,7 +2011,8 @@
       "locked": "La orden está bloqueada para cambios. Se recargó.",
       "forbidden": "No tienes acceso a esta orden",
       "notFound": "No encontramos esta orden",
-      "photo": "No se pudo subir la foto"
+      "photo": "No se pudo subir la foto",
+      "boss_only": "El cobro lo hace un administrador o el dueño."
     },
     "createdBy": "Creada por"
   },
@@ -2360,7 +2388,8 @@
       "mine": "Tuya",
       "table": "Mesa {name}",
       "openFor": "{time} abierta",
-      "readyBadge": "{count} listos"
+      "readyBadge": "{count} listos",
+      "chargeRequested": "Cobro pedido"
     },
     "summary": {
       "title": "Resumen del servicio",
@@ -2566,7 +2595,14 @@
     "alertToPay": "{source} por cobrar",
     "alertTableTaken": "{source}: la tomó otra persona",
     "alertOpen": "Abrir {text}",
-    "alertDismiss": "Descartar aviso"
+    "alertDismiss": "Descartar aviso",
+    "bossOnly": {
+      "notice": "El cobro lo hace un administrador o el dueño.",
+      "requestCharge": "Pedir cobro",
+      "requested": "Cobro pedido. Un administrador o el dueño cobrará la cuenta.",
+      "requestedAt": "Cobro pedido a las {time}",
+      "chargeRequested": "Cobro pedido"
+    }
   },
   "productIcons": {
     "title": "Icono",
@@ -3140,7 +3176,12 @@
       "product_without_price": "Este producto no tiene precio.",
       "invalid_quantity": "La cantidad no es válida.",
       "not_open": "La venta ya no está abierta.",
-      "generic": "No se pudo completar la acción."
+      "generic": "No se pudo completar la acción.",
+      "charge_boss_only": "El cobro lo hace un administrador o el dueño.",
+      "sale_submitted": "La venta ya está lista para cobro; solo un administrador o el dueño la puede cambiar.",
+      "nothing_to_submit": "Agrega al menos un artículo antes de pasar a cobro.",
+      "already_submitted": "La venta ya se pasó a cobro.",
+      "stale_object": "La venta cambió. Revísala y vuelve a intentar."
     },
     "charge": {
       "button": "Cobrar {total}",
@@ -3223,6 +3264,26 @@
         "done": "Venta cancelada",
         "error": "No se pudo cancelar la venta."
       }
+    },
+    "bossOnly": {
+      "notice": "El cobro lo hace un administrador o el dueño.",
+      "submit": "Pasar a cobro",
+      "submitted": "Venta pasada a cobro. Un administrador o el dueño la cobrará.",
+      "waiting": "Esperando cobro",
+      "waitingBody": "Pasaste esta venta a cobro; ya no puedes cambiarla. Abre una venta nueva para seguir vendiendo.",
+      "returnToCashier": "Regresar al cajero",
+      "returned": "La venta regresó a {name}.",
+      "submittedBy": "Pasada a cobro por {name}"
+    },
+    "queue": {
+      "tab": "Por cobrar",
+      "sale": "Venta",
+      "empty": "No hay ventas esperando cobro.",
+      "emptyBody": "Cuando un cajero pase una venta a cobro aparecerá aquí.",
+      "cashier": "Cajero",
+      "sentAt": "Pasada a cobro",
+      "items": "{count, plural, one {# artículo} other {# artículos}}",
+      "open": "Abrir venta de {name}"
     }
   },
   "scan": {
@@ -3244,5 +3305,12 @@
     "notOnMenu": "El producto {name} no está en el menú (código {code}).",
     "frame": "Marco de lectura",
     "added": "Agregado: {name}"
+  },
+  "chargeQueue": {
+    "title": "Por cobrar",
+    "label": "Por cobrar: {count}",
+    "sales": "Ventas pasadas a cobro",
+    "workOrders": "Órdenes terminadas",
+    "checks": "Mesas con cobro pedido"
   }
 }

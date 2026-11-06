@@ -169,6 +169,16 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
     });
   }
 
+  // Spec 058: el mesero avisa que el cliente pidió la cuenta; un jefe la cobra.
+  async function requestCharge() {
+    try {
+      await source.requestCharge();
+      toast.success(t("bossOnly.requested"));
+    } catch {
+      toast.error(t("saveError"));
+    }
+  }
+
   async function charge() {
     const current = source.current;
     if (!current) return;
@@ -264,6 +274,8 @@ function Board({ mode }: { mode: "restaurant" | "orders" }) {
             onSend={() => void send()}
             onCharge={() => void charge()}
             onRelease={() => void release()}
+            onRequestCharge={() => void requestCharge()}
+            requestingCharge={source.requestingCharge}
           />
         </section>
 

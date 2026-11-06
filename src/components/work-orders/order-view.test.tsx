@@ -124,6 +124,12 @@ describe("OrderView", () => {
     expect(screen.getAllByText("Agrega al menos un concepto con precio para cobrar").length).toBeGreaterThan(0);
   });
 
+  it("con cobro solo por jefes, el responsable ve el aviso y no Cobrar (spec 058)", () => {
+    pinta(orden("done", ["reopen"], { charge_blocked_reason: "boss_only" }));
+    expect(screen.getAllByText("El cobro lo hace un administrador o el dueño.").length).toBeGreaterThan(0);
+    expect(botones("Cobrar")).toHaveLength(0);
+  });
+
   it("un 404 muestra el estado de no encontrada", () => {
     pinta(undefined, { error: { response: { status: 404 } } });
     expect(screen.getByRole("heading", { name: "No encontramos esta orden" })).toBeInTheDocument();

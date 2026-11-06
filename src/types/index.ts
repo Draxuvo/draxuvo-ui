@@ -31,6 +31,8 @@ export interface UserCompany {
   demo?: boolean;
   /** Módulos activos de la empresa (spec 054): el plan más los extras vigentes, menos los que el super admin apagó. */
   modules?: string[];
+  /** «Cobro solo por jefes» (spec 058): solo decide si se muestra el contador «Por cobrar»; la regla vive en la API. */
+  boss_only_charge?: boolean;
 }
 
 /** Empresa principal o sucursal (`/company/branches`, R17). */
@@ -435,6 +437,8 @@ export interface Subscription {
   available_modules: ModuleKey[];
   /** De dónde viene cada módulo disponible: el plan o un módulo extra contratado. */
   module_sources?: Partial<Record<ModuleKey, "plan" | "addon">>;
+  /** Spec 058: «Cobro solo por jefes» (lo cambia el super admin; dueño y administrador lo ven en solo lectura). */
+  boss_only_charge?: boolean;
   active_access: boolean;
   trial_days_remaining?: number;
   /** Sucursal: la suscripción es la de la empresa principal y el cobro se administra allá. */
@@ -667,7 +671,8 @@ export interface WorkOrder {
   allowed_actions?: WorkOrderAction[];
   /** Solo en la respuesta del cobro (spec 054): lo que no alcanzó del inventario. */
   stock_shortages?: SaleShortage[];
-  charge_blocked_reason?: "no_items" | null;
+  /** "no_items": sin conceptos con precio; "boss_only": «Cobro solo por jefes» (spec 058), cobra un jefe. */
+  charge_blocked_reason?: "no_items" | "boss_only" | null;
   cancel_reason?: string | null;
 }
 
@@ -1080,7 +1085,12 @@ export interface Check {
   items: CheckItem[];
   payments: CheckPayment[];
   ticket_id: number | null;
-  allowed_actions: ("add_item" | "send" | "pay" | "reassign" | "cancel" | "close")[];
+  /** Spec 058: «cobro pedido» (el mesero avisó que el cliente pidió la cuenta). */
+  charge_requested_at?: string | null;
+  charge_requested_by?: PersonRef | null;
+  /** Spec 058: "boss_only" si «Cobro solo por jefes» impide cobrar a quien la ve. */
+  charge_blocked_reason?: "boss_only" | null;
+  allowed_actions: ("add_item" | "send" | "pay" | "request_charge" | "reassign" | "cancel" | "close")[];
 }
 
 export interface ItemCounts {
@@ -1098,6 +1108,8 @@ export interface CheckSummary {
   total?: string;
   counts: ItemCounts;
   mine: boolean;
+  /** Spec 058: «cobro pedido». */
+  charge_requested_at?: string | null;
 }
 
 export interface TableSummary extends DiningTable {
@@ -1478,7 +1490,14 @@ export interface Sale {
   lock_version: number;
   created_at: string;
   folio: string | null;
-  /** Acciones permitidas al usuario: add_item, charge, discard, ticket, cancel. */
+  /** Spec 058: cuándo el cajero la pasó a cobro (lista para cobro); null si está en captura. */
+  submitted_at?: string | null;
+  /** Spec 058: última vez que un jefe la regresó al cajero. */
+  returned_at?: string | null;
+  returned_by?: PersonRef | null;
+  /** Spec 058: "boss_only" si «Cobro solo por jefes» impide cobrar a quien la ve. */
+  charge_blocked_reason?: "boss_only" | null;
+  /** Acciones permitidas al usuario: add_item, charge, discard, submit, return, ticket, cancel. */
   actions?: string[];
   items?: SaleItem[];
   ticket?: SaleTicket | null;
@@ -1519,3 +1538,25 @@ export interface SalesFilters {
 
 /** Tamaños del ticket de una venta: carta o rollo térmico. */
 export type TicketPaper = "a4" | "thermal58" | "thermal80";
+
+/** Spec 058: un cambio de «Cobro solo por jefes» hecho por el super admin. */
+export interface ChargePolicyChange {
+  enabled: boolean;
+  actor: string;
+  created_at: string;
+}
+
+/** Spec 058: `GET|PATCH /company/charge_policy` (solo super admin). */
+export interface ChargePolicy {
+  boss_only_charge: boolean;
+  changes: ChargePolicyChange[];
+}
+
+/** Spec 058: `GET /charge_queue`, lo que espera el cobro de un jefe. */
+export interface ChargeQueue {
+  enabled: boolean;
+  sales: number;
+  work_orders: number;
+  checks: number;
+  total: number;
+}

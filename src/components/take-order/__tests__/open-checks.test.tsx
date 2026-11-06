@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
 import { useAuthStore } from "@/store/auth";
@@ -37,6 +37,16 @@ beforeEach(() => {
 });
 
 describe("OpenChecks", () => {
+  it("marca la cuenta que pidió el cobro (spec 058)", async () => {
+    vi.mocked(restaurantService.overview).mockResolvedValue({
+      ...overview,
+      results: overview.results.map((t) => (t.check?.id === 31 ? { ...t, check: { ...t.check, charge_requested_at: ago(1) } } : t)),
+    } as never);
+    renderWithProviders(<Harness scope="all" />);
+    const link = await screen.findByRole("link", { name: "Abrir cuenta de 4" });
+    expect(within(link).getByText("Cobro pedido")).toBeInTheDocument();
+  });
+
   it("el operador ve solo las suyas, con mesa, total, mesero y tiempo", async () => {
     renderWithProviders(<Harness scope="mine" />);
 

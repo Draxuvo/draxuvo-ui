@@ -16,6 +16,11 @@ export const ITEM_ERROR_CODES = [
   "not_open",
 ] as const;
 
+/** Spec 058: rechazos de «Cobro solo por jefes» que recargan la venta y muestran el aviso. */
+export const BOSS_ONLY_CODES = ["charge_boss_only", "sale_submitted"] as const;
+
+export const isBossOnlyError = (err: unknown) => (BOSS_ONLY_CODES as readonly string[]).includes(errorCode(err) ?? "");
+
 export const CHARGE_ERROR_CODES = ["empty", "not_open", "stale_object"] as const;
 
 /** Paso de la cantidad: una pieza, o media si el producto se vende por fracción. */

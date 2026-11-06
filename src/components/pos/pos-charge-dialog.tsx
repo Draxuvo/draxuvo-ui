@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { MAX_PAYMENTS, PaymentRow, emptyRow, newKey, num, round, type PaymentRowState } from "@/components/work-orders/charge-dialog";
-import { useChargeSale } from "@/hooks/use-sales";
+import { useChargeSale, useRefreshSale } from "@/hooks/use-sales";
 import { usePaymentTerminals } from "@/hooks/use-payment-terminals";
 import type { ChargePaymentInput, PaymentMethod, Sale, SaleChargeResult } from "@/types";
 import { CHARGE_ERROR_CODES, errorCode, formatMoney } from "./lib";
@@ -37,6 +37,7 @@ export function PosChargeDialog({ sale, open, onOpenChange, onDone }: PosChargeD
   const [idempotencyKey] = useState(newKey);
   const [result, setResult] = useState<SaleChargeResult | null>(null);
   const charge = useChargeSale(sale.id);
+  const refreshSale = useRefreshSale();
 
   const single = rows.length === 1;
   const amountOf = (row: PaymentRowState) => (single ? total : num(row.amount));
@@ -90,6 +91,12 @@ export function PosChargeDialog({ sale, open, onOpenChange, onDone }: PosChargeD
         onSuccess: setResult,
         onError: (err) => {
           const code = errorCode(err);
+          // Spec 058: la empresa reservó el cobro a los jefes (la opción pudo cambiar con el diálogo abierto).
+          if (code === "charge_boss_only") {
+            toast.error(t("errors.charge_boss_only"));
+            refreshSale(sale.id);
+            return void onOpenChange(false);
+          }
           if (code && (PAYMENT_ERROR_CODES as readonly string[]).includes(code)) return void toast.error(tw(`charge.errors.${code}`));
           if (code && (CHARGE_ERROR_CODES as readonly string[]).includes(code)) return void toast.error(t(`charge.errors.${code}`));
           toast.error(t("charge.errors.generic"));

@@ -2,6 +2,7 @@ import { apiClient } from "@/lib/api";
 import type {
   AddonKey,
   BillingCycle,
+  ChargePolicy,
   CheckoutResponse,
   CompanyModulesDetail,
   ModuleKey,
@@ -41,6 +42,13 @@ export const createCheckout = (
 
 // Módulos extra (spec 053): solo el super admin los enciende y apaga, con `X-Company-Id` de la empresa que administra.
 const asCompany = (companyId: number) => ({ headers: { "X-Company-Id": String(companyId) }, skipErrorToast: true });
+
+// Spec 058: «Cobro solo por jefes» de una empresa (solo super admin).
+export const getChargePolicy = (companyId: number): Promise<ChargePolicy> =>
+  apiClient.get("/api/v1/company/charge_policy", asCompany(companyId)).then((r) => r.data);
+
+export const updateChargePolicy = (companyId: number, enabled: boolean): Promise<ChargePolicy> =>
+  apiClient.patch("/api/v1/company/charge_policy", { boss_only_charge: enabled }, asCompany(companyId)).then((r) => r.data);
 
 export const getCompanyModules = (companyId: number): Promise<CompanyModulesDetail> =>
   apiClient.get("/api/v1/company/modules", { headers: { "X-Company-Id": String(companyId) } }).then((r) => r.data);

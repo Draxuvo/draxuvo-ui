@@ -44,6 +44,17 @@ export const salesService = {
       .post<SaleChargeResult>(`/api/v1/sales/${id}/charge`, payload, { headers: { "Idempotency-Key": idempotencyKey }, skipErrorToast: true })
       .then((r) => r.data),
 
+  /** Spec 058: el cajero pasa su venta a cobro (con «Cobro solo por jefes»). */
+  submit: (id: number, lockVersion: number) =>
+    apiClient.post<Sale>(`/api/v1/sales/${id}/submit`, { lock_version: lockVersion }, { skipErrorToast: true }).then((r) => r.data),
+
+  /** Spec 058: un jefe regresa al cajero una venta lista para cobro. */
+  returnToCashier: (id: number) => apiClient.post<Sale>(`/api/v1/sales/${id}/return`, undefined, { skipErrorToast: true }).then((r) => r.data),
+
+  /** Spec 058: ventas listas para cobro de todos los cajeros (solo jefes), de la más antigua a la más reciente. */
+  queue: ({ page = 1, page_size = 50 }: { page?: number; page_size?: number } = {}) =>
+    apiClient.get<PaginatedResponse<Sale>>("/api/v1/sales", { params: { queue: 1, page, page_size } }).then((r) => r.data),
+
   /** Cancela una venta cobrada (solo dueño y administrador). */
   cancel: (id: number, reason: string) => apiClient.post<Sale>(`/api/v1/sales/${id}/cancel`, { reason }, { skipErrorToast: true }).then((r) => r.data),
 

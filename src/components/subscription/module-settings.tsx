@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 const VIEW_ROLES = new Set(["owner", "admin"]);
 
 // Módulos del plan con su estado, en solo lectura (spec 017): los activa y desactiva el super admin, no el negocio.
-// Solo se listan los módulos que el plan incluye.
+// Solo se listan los módulos que el plan incluye. Spec 058: debajo, «Cobro solo por jefes» si el super admin lo activó.
 export function ModuleSettings() {
   const t = useTranslations("subscription");
   const tm = useTranslations("modules");
@@ -43,6 +43,12 @@ export function ModuleSettings() {
           );
         })}
       </ul>
+      {subscription.boss_only_charge && (
+        <div role="note" className="mt-4 rounded-etiqueta border border-border bg-muted/40 p-3">
+          <p className="text-sm font-semibold text-foreground">{t("bossOnlyCharge")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("bossOnlyChargeDesc")}</p>
+        </div>
+      )}
     </section>
   );
 }

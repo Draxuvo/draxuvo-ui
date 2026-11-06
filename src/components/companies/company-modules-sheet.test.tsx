@@ -7,9 +7,12 @@ import type { Company, Subscription } from "@/types";
 const toastError = vi.hoisted(() => vi.fn());
 const toastSuccess = vi.hoisted(() => vi.fn());
 vi.mock("sonner", () => ({ toast: { error: toastError, success: toastSuccess } }));
-vi.mock("@/services/subscription", () => ({ updateModules: vi.fn(), getCompanyModules: vi.fn(), addAddon: vi.fn(), removeAddon: vi.fn(), reactivateAddon: vi.fn() }));
+vi.mock("@/services/subscription", () => ({
+  updateModules: vi.fn(), getCompanyModules: vi.fn(), addAddon: vi.fn(), removeAddon: vi.fn(), reactivateAddon: vi.fn(),
+  getChargePolicy: vi.fn(), updateChargePolicy: vi.fn(),
+}));
 
-import { addAddon, getCompanyModules, reactivateAddon, removeAddon, updateModules } from "@/services/subscription";
+import { addAddon, getChargePolicy, getCompanyModules, reactivateAddon, removeAddon, updateChargePolicy, updateModules } from "@/services/subscription";
 import { CompanyModulesSheet } from "./company-modules-sheet";
 
 const company = { id: 12, name: "Taller Uno" } as Company;
@@ -22,6 +25,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(updateModules).mockResolvedValue({} as never);
   vi.mocked(getCompanyModules).mockResolvedValue({ addons: [], changes: [] } as never);
+  vi.mocked(getChargePolicy).mockResolvedValue({ boss_only_charge: false, changes: [] });
 });
 
 const addon = (over = {}) => ({ key: "pos", requires: ["inventory"], available: true, price: { monthly: 19_900, annual: 199_000 }, cycle: "monthly", state: "off", ends_at: null, ...over });
@@ -33,7 +37,8 @@ describe("módulos de una empresa para el super admin (spec 017)", () => {
 
     expect(screen.getByText("Módulos de Taller Uno")).toBeInTheDocument();
     expect(screen.getByText("Plan Básico · suscripción: active")).toBeInTheDocument();
-    expect(screen.getAllByRole("switch")).toHaveLength(3);
+    // Más el interruptor de «Cobro solo por jefes» (spec 058).
+    expect(screen.getAllByRole("switch")).toHaveLength(4);
     expect(screen.queryByText("Restaurante")).not.toBeInTheDocument();
   });
 
@@ -72,7 +77,8 @@ describe("módulos de una empresa para el super admin (spec 017)", () => {
   it("el extra no sale en la lista genérica aunque la empresa ya lo tenga disponible", () => {
     const withPos = { ...subscription, available_modules: [...subscription.available_modules, "pos"], active_modules: [...subscription.active_modules, "pos"] } as unknown as Subscription;
     renderWithProviders(<CompanyModulesSheet company={company} subscription={withPos} onOpenChange={() => {}} />);
-    expect(screen.getAllByRole("switch")).toHaveLength(3);
+    // Más el interruptor de «Cobro solo por jefes» (spec 058).
+    expect(screen.getAllByRole("switch")).toHaveLength(4);
   });
 });
 
@@ -141,5 +147,36 @@ describe("módulo extra para el super admin (spec 053)", () => {
     await userEvent.click(screen.getByRole("button", { name: "Confirmar" }));
     await waitFor(() => expect(toastError).toHaveBeenCalledWith("No se pudo cobrar. Revisa el método de pago de la empresa."));
     expect(toastSuccess).not.toHaveBeenCalled();
+  });
+});
+
+describe("cobro solo por jefes (spec 058)", () => {
+  it("encender pide confirmar, manda el id de la empresa y muestra el historial", async () => {
+    vi.mocked(updateChargePolicy).mockResolvedValue({
+      boss_only_charge: true,
+      changes: [{ enabled: true, actor: "Draxuvo Admin", created_at: "2026-11-05T18:00:00Z" }],
+    });
+    renderWithProviders(<CompanyModulesSheet company={company} subscription={subscription} onOpenChange={() => {}} />);
+
+    const toggle = await screen.findByRole("switch", { name: "Cobro solo por jefes" });
+    await waitFor(() => expect(toggle).toBeEnabled());
+    await userEvent.click(toggle);
+    expect(screen.getByText("¿Activar cobro solo por jefes?")).toBeInTheDocument();
+    expect(updateChargePolicy).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole("button", { name: "Confirmar" }));
+    await waitFor(() => expect(updateChargePolicy).toHaveBeenCalledWith(12, true));
+    expect(await screen.findByText(/Encendido por Draxuvo Admin/)).toBeInTheDocument();
+    expect(screen.getByRole("switch", { name: "Cobro solo por jefes" })).toBeChecked();
+  });
+
+  it("cancelar la confirmación no cambia nada", async () => {
+    renderWithProviders(<CompanyModulesSheet company={company} subscription={subscription} onOpenChange={() => {}} />);
+    const toggle = await screen.findByRole("switch", { name: "Cobro solo por jefes" });
+    await waitFor(() => expect(toggle).toBeEnabled());
+    await userEvent.click(toggle);
+    await userEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+    expect(updateChargePolicy).not.toHaveBeenCalled();
+    expect(toggle).not.toBeChecked();
   });
 });

@@ -100,3 +100,22 @@ describe("módulos de la suscripción en solo lectura (spec 017)", () => {
     expect(screen.getAllByText("Desactivado")).toHaveLength(1);
   });
 });
+
+describe("cobro solo por jefes en solo lectura (spec 058)", () => {
+  it("con la opción activa el dueño ve el aviso sin interruptor", async () => {
+    vi.mocked(getSubscription).mockResolvedValue({
+      plan: "pro", status: "active", available_modules: [...pro], active_modules: [...pro], boss_only_charge: true,
+    } as unknown as Subscription);
+    renderWithProviders(<ModuleSettings />);
+
+    expect(await screen.findByText("Cobro solo por jefes: activo")).toBeInTheDocument();
+    expect(screen.queryByRole("switch")).not.toBeInTheDocument();
+  });
+
+  it("apagada no se menciona", async () => {
+    subscription(pro, pro);
+    renderWithProviders(<ModuleSettings />);
+    expect(await screen.findByText("Restaurante")).toBeInTheDocument();
+    expect(screen.queryByText("Cobro solo por jefes: activo")).not.toBeInTheDocument();
+  });
+});

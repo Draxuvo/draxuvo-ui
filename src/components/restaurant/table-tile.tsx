@@ -37,6 +37,8 @@ export interface TableTileProps {
   mine?: boolean;
   /** Artículos listos sin entregar de la cuenta (spec 043, FR-012). */
   ready?: number;
+  /** Spec 058: el mesero pidió el cobro. */
+  chargeRequested?: boolean;
   now: number;
   selected?: boolean;
   /** Etiqueta de apoyo, p. ej. "Para llevar". */
@@ -47,7 +49,7 @@ export interface TableTileProps {
 }
 
 export function TableTile({
-  name, state, openedAt, total, owner, mine, ready, now, selected, caption, inactive, onClick, className,
+  name, state, openedAt, total, owner, mine, ready, chargeRequested, now, selected, caption, inactive, onClick, className,
 }: TableTileProps) {
   const t = useTranslations("restaurant.tile");
   const locale = useLocale();
@@ -60,6 +62,7 @@ export function TableTile({
   // Si la mesa ya se llama "Mesa 1" no se repite la palabra.
   const parts = [caption ?? (/^(mesa|table)\b/i.test(name.trim()) ? name : t("table", { name })), stateText];
   if (ready) parts.push(t("readyBadge", { count: ready }));
+  if (chargeRequested) parts.push(t("chargeRequested"));
   if (open && minutes != null) parts.push(t("openFor", { time: formatMinutes(minutes) }));
   if (open && total != null) parts.push(money.format(total));
   if (open && owner) parts.push(mine ? t("mine") : owner);
@@ -73,6 +76,11 @@ export function TableTile({
           {ready ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-estado-completada px-2 py-0.5 text-xs font-semibold text-estado-completada-foreground">
               {t("readyBadge", { count: ready })}
+            </span>
+          ) : null}
+          {chargeRequested ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
+              {t("chargeRequested")}
             </span>
           ) : null}
           <span className="inline-flex items-center gap-1 rounded-full bg-background/70 px-2 py-0.5 text-xs font-semibold text-foreground">

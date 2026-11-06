@@ -89,6 +89,7 @@ export function TablePlan({
             owner={tile.owner}
             mine={tile.mine}
             ready={tile.ready}
+            chargeRequested={tile.chargeRequested}
             now={now}
             selected={isSelected(tile)}
             onClick={() => onPick(tile)}

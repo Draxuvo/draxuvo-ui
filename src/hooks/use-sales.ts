@@ -67,6 +67,32 @@ export const useUpdateSaleItem = () =>
 
 export const useRemoveSaleItem = () => useSaleMutation(({ saleId, itemId }: { saleId: number; itemId: number }) => salesService.removeItem(saleId, itemId));
 
+/** Spec 058: pasar a cobro y regresar al cajero. */
+export const useSubmitSale = () => useSaleMutation(({ saleId, lockVersion }: { saleId: number; lockVersion: number }) => salesService.submit(saleId, lockVersion));
+
+export const useReturnSale = () => useSaleMutation((saleId: number) => salesService.returnToCashier(saleId));
+
+/** Spec 058: la cola «Por cobrar» de la caja (solo jefes con la opción activa). Se refresca cada 30 s. */
+export function useSalesQueue(enabled = true) {
+  const gate = useModuleGate("pos");
+  const available = useCompanyModule("pos");
+  return useQuery({
+    queryKey: [...KEY, "list", "queue"],
+    queryFn: () => salesService.queue(),
+    enabled: enabled && gate.enabled && available,
+    refetchInterval: 30_000,
+  });
+}
+
+/** Vuelve a pedir una venta (p. ej. tras un rechazo de «Cobro solo por jefes»). */
+export function useRefreshSale() {
+  const qc = useQueryClient();
+  return (saleId: number) => {
+    qc.invalidateQueries({ queryKey: saleKey(saleId) });
+    qc.invalidateQueries({ queryKey: [...KEY, "list"] });
+  };
+}
+
 export const useCancelSale = () => useSaleMutation(({ saleId, reason }: { saleId: number; reason: string }) => salesService.cancel(saleId, reason));
 
 export function useDiscardSale() {

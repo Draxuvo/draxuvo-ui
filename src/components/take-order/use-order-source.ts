@@ -8,6 +8,7 @@ import {
 import {
   listWorkOrders, useAddItem, useCreateWorkOrder, useDeleteItem, useUpdateItem, useWorkOrder,
 } from "@/hooks/use-work-orders";
+import { useBossOnlyCharge, useIsChargeBoss } from "@/hooks/use-boss-only-charge";
 import { useAuthStore } from "@/store/auth";
 import type { Check, TableState, WorkOrder } from "@/types";
 import { inOrderCount, tapProduct, type Line, type MenuCard } from "./lib";
@@ -29,6 +30,8 @@ export interface SourceTile {
   selection: Selection;
   /** Mesa libre: al tocarla se abre su cuenta. */
   tableId?: number;
+  /** Spec 058: el mesero pidió el cobro. */
+  chargeRequested?: boolean;
 }
 
 export interface CurrentOrder {
@@ -41,6 +44,12 @@ export interface CurrentOrder {
   canCharge: boolean;
   /** Cuenta de mesa que se puede cancelar para liberar la mesa (nada mandado todavía). */
   canRelease: boolean;
+  /** Spec 058: «Cobro solo por jefes» impide cobrar a quien la ve; se muestra el aviso en lugar de Cobrar. */
+  chargeBlocked: boolean;
+  /** Spec 058: el mesero puede avisar que el cliente pidió la cuenta. */
+  canRequestCharge: boolean;
+  /** Spec 058: cuándo se pidió el cobro, si ya se pidió. */
+  chargeRequestedAt: string | null;
   check?: Check;
   order?: WorkOrder;
 }
@@ -82,6 +91,10 @@ export function orderLines(order: WorkOrder): Line[] {
 export function useOrderSource(mode: "restaurant" | "orders", selection: Selection) {
   const companyId = useAuthStore((s) => s.selectedCompanyId);
   const restaurant = mode === "restaurant";
+  // Spec 058: en modo pedido las órdenes no traen el motivo hasta terminarse; la sesión dice si el personal no cobra.
+  const bossOnly = useBossOnlyCharge();
+  const isBoss = useIsChargeBoss();
+  const staffCannotCharge = bossOnly && !isBoss;
 
   // ── Cuentas de mesa
   const overview = useTablesOverview({ enabled: restaurant });
@@ -120,6 +133,7 @@ export function useOrderSource(mode: "restaurant" | "orders", selection: Selecti
         ready: t.check?.counts?.ready ?? 0,
         selection: t.check ? { kind: "check", id: t.check.id } : null,
         tableId: t.id,
+        chargeRequested: !!t.check?.charge_requested_at,
       })),
       ...(overview.data?.takeouts ?? []).map((c): SourceTile => ({
         key: `check:${c.id}`,
@@ -131,6 +145,7 @@ export function useOrderSource(mode: "restaurant" | "orders", selection: Selecti
         mine: c.mine,
         ready: c.counts?.ready ?? 0,
         selection: { kind: "check", id: c.id },
+        chargeRequested: !!c.charge_requested_at,
       })),
     ];
   } else {
@@ -160,6 +175,9 @@ export function useOrderSource(mode: "restaurant" | "orders", selection: Selecti
       canSend: open && c.allowed_actions.includes("send") && c.items.some((i) => i.status === "draft"),
       canCharge: open && c.allowed_actions.includes("pay") && c.items.length > 0,
       canRelease: open && c.allowed_actions.includes("cancel"),
+      chargeBlocked: open && c.charge_blocked_reason === "boss_only",
+      canRequestCharge: open && c.allowed_actions.includes("request_charge"),
+      chargeRequestedAt: c.charge_requested_at ?? null,
       check: c,
     };
   } else if (!restaurant && order.data && selection?.kind === "order") {
@@ -174,8 +192,11 @@ export function useOrderSource(mode: "restaurant" | "orders", selection: Selecti
       canAdd: open,
       canSend: false,
       canCharge:
-        (o.items_count ?? 0) > 0 && (actions.includes("charge") || (open && actions.includes("finish"))),
+        !staffCannotCharge && (o.items_count ?? 0) > 0 && (actions.includes("charge") || (open && actions.includes("finish"))),
       canRelease: false,
+      chargeBlocked: staffCannotCharge || o.charge_blocked_reason === "boss_only",
+      canRequestCharge: false,
+      chargeRequestedAt: null,
       order: o,
     };
   }
@@ -222,6 +243,11 @@ export function useOrderSource(mode: "restaurant" | "orders", selection: Selecti
     return checkActions.cancel.mutateAsync();
   }
 
+  /** Spec 058: el mesero avisa que el cliente pidió la cuenta. */
+  async function requestCharge() {
+    return checkActions.requestCharge.mutateAsync();
+  }
+
   async function send(idempotencyKey: string) {
     return checkActions.send.mutateAsync(idempotencyKey);
   }
@@ -241,6 +267,8 @@ export function useOrderSource(mode: "restaurant" | "orders", selection: Selecti
     setNote,
     send,
     release,
+    requestCharge,
+    requestingCharge: checkActions.requestCharge.isPending,
     sending: checkActions.send.isPending,
     inOrder: (card: MenuCard) => (current ? inOrderCount(current.lines, card) : 0),
   };
