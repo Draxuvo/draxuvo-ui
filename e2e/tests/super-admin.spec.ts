@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { searchCompanies } from "../support/companies";
 import { createCompany, uniquePrefix } from "../support/data";
 import { t } from "../support/i18n";
 import { knownFailure } from "../support/known-failure";
@@ -47,7 +48,7 @@ test("[SAD-014] el super admin desactiva un módulo de una empresa y el dueño d
 
   // 1. Abre los módulos de la empresa: solo los de su plan, con interruptor.
   await page.goto("/es/empresas");
-  await page.getByPlaceholder(co("searchPlaceholder")).fill(company.companyName);
+  await searchCompanies(page, company.companyName);
   await expect(row(page, company.companyName)).toContainText("8/8");
   await row(page, company.companyName).getByRole("button", { name: co("modules.open", { name: company.companyName }) }).click();
   const sheet = page.getByRole("dialog");
