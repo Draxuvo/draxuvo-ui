@@ -96,8 +96,8 @@ test("[REP-010] sin módulos activos el dashboard lo dice y ofrece ver los plane
   test.setTimeout(90_000);
   const company = await createCompany(request, { workerIndex: info.workerIndex });
   const owner = await ownerOf(browser, company);
-  // Solo el super admin apaga módulos (spec 017).
-  await setDisabledModules(request, owner.headers["X-Company-Id"], ["employees", "attendance", "inventory"]);
+  // Solo el super admin apaga módulos (spec 017). Básico incluye Reportes desde la spec 033: se apagan todos los de su plan.
+  await setDisabledModules(request, owner.headers["X-Company-Id"], ["employees", "attendance", "inventory", "reports"]);
 
   await owner.page.goto("/es/dashboard");
   await expect(owner.page.getByText(board("empty.noModules"))).toBeVisible();

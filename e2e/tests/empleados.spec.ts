@@ -41,11 +41,17 @@ test.describe("permisos por rol en empleados y asistencia", () => {
       }
     });
 
-    test("[EPL-013] la API le niega la lista de empleados al staff @regresion", async ({ page }) => {
-      knownFailure("H-02");
+    test("[EPL-013] la API solo le da al staff la lista mínima de empleados y le niega el alta @regresion", async ({ page }) => {
+      // H-02, corregido en la spec 052: el personal lee id, nombre, usuario y estado (para asignar responsable), nada más.
       await page.goto("/es/mis-ordenes");
-      const response = await page.request.get(`${API_URL}/api/v1/employees`, { headers: await apiHeaders(page) });
-      expect(response.status()).toBe(403);
+      const headers = await apiHeaders(page);
+      const response = await page.request.get(`${API_URL}/api/v1/employees`, { headers });
+      expect(response.status()).toBe(200);
+      const { results } = (await response.json()) as { results: Record<string, unknown>[] };
+      expect(results.length).toBeGreaterThan(0);
+      for (const employee of results) expect(Object.keys(employee).sort()).toEqual(["id", "name", "status", "user_id"]);
+      const create = await page.request.post(`${API_URL}/api/v1/employees`, { headers, data: { employee: { name: "No permitido" } } });
+      expect(create.status()).toBe(403);
     });
   });
 

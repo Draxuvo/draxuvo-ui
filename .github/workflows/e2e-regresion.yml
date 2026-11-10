@@ -32,6 +32,8 @@ jobs:
       SECRET_KEY_BASE: e2e-secret-key-base-0000000000000000000000000000000000000000000000000000
       SUPER_ADMIN_PASSWORD: E2eSuperAdmin123*
       STRIPE_WEBHOOK_SECRET: whsec_e2e_test
+      # El mismo tope de intentos con que e2e/ci/up.sh arranca la API; las pruebas lo leen para saber si se elevó (EMP-062).
+      LOGIN_RATE_LIMIT: "100"
       E2E_LOG_DIR: ${{ github.workspace }}/e2e-logs
       CI: "true"
 

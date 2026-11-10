@@ -1,25 +1,22 @@
 import { expect, test } from "@playwright/test";
-import { API_URL, DEMO_PASSWORD, storageStatePath } from "../support/session";
+import { createCompany, createStaff } from "../support/data";
+import { storageStatePath } from "../support/session";
 import { t } from "../support/i18n";
 
 // Spec 026: el modal de entrada, el botón de salida y la lista con salida y duración.
-// Usa una sesión propia (sin la entrada que deja global-setup) del staff de Volta.
+// Usa su propia empresa y su propio personal: cerrar el turno de staff@volta dejaba el aviso «Marcar entrada» encima de
+// las demás pruebas de ese usuario, que comparten la entrada abierta que deja global-setup (spec 060).
 
 test.describe("asistencia explícita (spec 026)", () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 
-  test("[ASI-001] el staff marca entrada desde el modal y salida desde el encabezado @regresion", async ({ page, request }) => {
-    const login = await request.post(`${API_URL}/api/v1/auth/login`, { data: { email: "staff@volta.demo", password: DEMO_PASSWORD } });
-    expect(login.ok()).toBeTruthy();
-    const { token, user } = await login.json();
-    const company = user.companies[0].id;
-    const headers = { Authorization: `Bearer ${token}`, "X-Company-Id": String(company) };
-    // Sin turno abierto: si quedó uno de una corrida anterior, se cierra.
-    await request.post(`${API_URL}/api/v1/my_attendance/check_out`, { headers, failOnStatusCode: false });
+  test("[ASI-001] el staff marca entrada desde el modal y salida desde el encabezado @regresion", async ({ page, request }, info) => {
+    const company = await createCompany(request, { workerIndex: info.workerIndex, plan: "pro" });
+    const staff = await createStaff(request, company);
 
     await page.goto("/es/login");
-    await page.getByLabel(t("auth.email"), { exact: true }).fill("staff@volta.demo");
-    await page.getByLabel(t("auth.password"), { exact: true }).fill(DEMO_PASSWORD);
+    await page.getByLabel(t("auth.email"), { exact: true }).fill(staff.email);
+    await page.getByLabel(t("auth.password"), { exact: true }).fill(staff.password);
     await page.getByRole("button", { name: t("auth.submit") }).click();
 
     const dialog = page.getByRole("dialog", { name: t("attendance.entry.title") });

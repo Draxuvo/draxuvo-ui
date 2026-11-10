@@ -1086,6 +1086,8 @@ test.describe("permisos y aislamiento entre empresas en Pro", () => {
   });
 
   test("[PRO-103] el inicio de sesión se frena tras muchos intentos fallidos @regresion", async ({ request }, info) => {
+    // Pasa el tope del entorno de pruebas (LOGIN_RATE_LIMIT=100) con más de 100 inicios de sesión seguidos: no caben en 30 s.
+    test.setTimeout(90_000);
     const { company } = await newOwner(request, info.workerIndex);
     let blocked = 0;
     for (let i = 0; i < 130; i++) {
