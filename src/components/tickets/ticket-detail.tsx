@@ -95,7 +95,9 @@ export function TicketDetail({
   }
 
   const orderTotal = Number(current.total ?? 0);
-  const orderHref = `/${locale}${role === "staff" ? "/mis-ordenes" : "/ordenes"}/${current.work_order_id}`;
+  // La API manda la orden como `work_order.id` (antes se leía un `work_order_id` que nunca llegaba: H-23, spec 060).
+  const workOrderId = current.work_order?.id ?? null;
+  const orderHref = `/${locale}${role === "staff" ? "/mis-ordenes" : "/ordenes"}/${workOrderId}`;
   const check = current.check;
   const checkTitle = check
     ? check.table
@@ -138,7 +140,7 @@ export function TicketDetail({
               <div className="space-y-1">
                 <p className="text-xs font-medium text-muted-foreground">{current.sale ? t("sale") : check ? t("check") : t("workOrder")}</p>
                 <p className="text-sm text-foreground">
-                  {current.sale ? t("saleTitle", { id: current.sale.id }) : (checkTitle ?? current.work_order?.title ?? `#${current.work_order_id}`)}
+                  {current.sale ? t("saleTitle", { id: current.sale.id }) : (checkTitle ?? current.work_order?.title ?? `#${workOrderId}`)}
                 </p>
               </div>
               {check?.waiter && (
@@ -346,7 +348,7 @@ export function TicketDetail({
               {t("download")}
             </Button>
 
-            {current.work_order_id != null && (
+            {workOrderId != null && (
               <Button asChild variant="outline" size="sm" className="gap-2 min-h-11 sm:min-h-0">
                 <Link href={orderHref}>
                   <ExternalLink size={14} aria-hidden="true" />

@@ -871,7 +871,6 @@ export interface TicketItem {
 export interface Ticket {
   id: number;
   folio: string;
-  work_order_id?: number | null;
   work_order?: {
     id: number;
     title: string;
