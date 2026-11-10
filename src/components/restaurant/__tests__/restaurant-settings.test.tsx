@@ -19,6 +19,7 @@ vi.mock("@/services/restaurant", () => ({
     updateTable: vi.fn(),
     openCheck: vi.fn(),
     stockAlerts: vi.fn(),
+    menuLinks: vi.fn(),
   },
 }));
 let locked = false;
@@ -201,6 +202,20 @@ describe("configuración del restaurante", () => {
     await waitFor(() => expect(restaurantService.updateTable).toHaveBeenCalledTimes(2));
     expect(restaurantService.updateTable).toHaveBeenCalledWith(2, { position: 1 });
     expect(restaurantService.updateTable).toHaveBeenCalledWith(1, { position: 2 });
+  });
+
+  it("abre las tarjetas QR de las mesas (spec 059)", async () => {
+    vi.mocked(restaurantService.menuLinks).mockResolvedValue([
+      { table_id: 1, name: "1", url: "https://draxuvo.com/m/abc", generated_at: "2026-11-09T12:00:00Z" },
+    ]);
+    const user = userEvent.setup();
+    renderWithProviders(<RestaurantePage />);
+    await openSettings(user);
+
+    expect(screen.getByRole("heading", { name: "Menú QR" })).toBeInTheDocument();
+    expect(restaurantService.menuLinks).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Tarjetas QR" }));
+    expect(await screen.findByText("https://draxuvo.com/m/abc")).toBeInTheDocument();
   });
 
   it("sin mesas guía a crear la primera", async () => {

@@ -1002,6 +1002,15 @@ export interface DiningTable {
   state?: TableState;
 }
 
+/** Enlace público del menú de una mesa activa (spec 059, GET /restaurant/menu_links). */
+export interface MenuLink {
+  table_id: number;
+  name: string;
+  /** `https://draxuvo.com/m/<token>`: lo que codifica el QR de la tarjeta. */
+  url: string;
+  generated_at: string;
+}
+
 export interface CheckItem {
   id: number;
   name: string;

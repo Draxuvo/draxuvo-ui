@@ -2437,6 +2437,31 @@
       "timbre": "Timbre",
       "pulso": "Pulso",
       "arpegio": "Arpegio"
+    },
+    "menuQr": {
+      "sectionTitle": "Menú QR",
+      "sectionHint": "Imprime una tarjeta con QR para cada mesa: el cliente la escanea y ve tu menú en su teléfono, sin descargar nada.",
+      "button": "Tarjetas QR",
+      "title": "Tarjetas QR de las mesas",
+      "description": "Elige las mesas, descarga el PDF y recorta las tarjetas (4 por hoja carta).",
+      "selectAll": "Marcar todas",
+      "selectNone": "Ninguna",
+      "selected": "{count, plural, one {# mesa seleccionada} other {# mesas seleccionadas}}",
+      "select": "Imprimir la tarjeta de {name}",
+      "copy": "Copiar enlace",
+      "copied": "Enlace copiado",
+      "open": "Abrir menú",
+      "download": "Descargar PDF",
+      "downloading": "Generando…",
+      "empty": "Primero da de alta mesas en el plano para imprimir sus tarjetas.",
+      "error": "No pudimos cargar los enlaces de las mesas.",
+      "retry": "Reintentar",
+      "regenerate": "Regenerar enlace",
+      "regenerateTitle": "¿Regenerar el enlace de {name}?",
+      "regenerateBody": "Las tarjetas impresas de esta mesa dejarán de funcionar. Tendrás que imprimir y colocar la tarjeta nueva.",
+      "regenerateConfirm": "Regenerar",
+      "regenerated": "Enlace nuevo listo; imprime la tarjeta de esta mesa.",
+      "cancel": "Cancelar"
     }
   },
   "terminals": {

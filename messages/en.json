@@ -2437,6 +2437,31 @@
       "timbre": "Doorbell",
       "pulso": "Pulse",
       "arpegio": "Arpeggio"
+    },
+    "menuQr": {
+      "sectionTitle": "QR menu",
+      "sectionHint": "Print a QR card for each table: guests scan it and see your menu on their phone, with nothing to install.",
+      "button": "QR cards",
+      "title": "Table QR cards",
+      "description": "Choose the tables, download the PDF and cut out the cards (4 per letter sheet).",
+      "selectAll": "Select all",
+      "selectNone": "None",
+      "selected": "{count, plural, one {# table selected} other {# tables selected}}",
+      "select": "Print the card for {name}",
+      "copy": "Copy link",
+      "copied": "Link copied",
+      "open": "Open menu",
+      "download": "Download PDF",
+      "downloading": "Generating…",
+      "empty": "Add tables to the floor plan first to print their cards.",
+      "error": "We could not load the table links.",
+      "retry": "Try again",
+      "regenerate": "Regenerate link",
+      "regenerateTitle": "Regenerate the link for {name}?",
+      "regenerateBody": "The printed cards for this table will stop working. You will need to print and place the new card.",
+      "regenerateConfirm": "Regenerate",
+      "regenerated": "New link ready; print this table's card.",
+      "cancel": "Cancel"
     }
   },
   "terminals": {

@@ -90,7 +90,10 @@ export function useStationMutations() {
 
 export function useTableMutations() {
   const client = useQueryClient();
-  const refresh = () => client.invalidateQueries({ queryKey: ["restaurant", "tables"] });
+  const refresh = () => {
+    void client.invalidateQueries({ queryKey: ["restaurant", "menu-links"] });
+    return client.invalidateQueries({ queryKey: ["restaurant", "tables"] });
+  };
   return {
     create: useMutation({
       mutationFn: (data: TablePayload) => restaurantService.createTable(data),
@@ -102,6 +105,25 @@ export function useTableMutations() {
       onSuccess: refresh,
     }),
   };
+}
+
+// Menú QR (spec 059): enlaces de las mesas activas para imprimir tarjetas.
+export function useMenuLinks({ enabled = true }: { enabled?: boolean } = {}) {
+  const companyId = useAuthStore((s) => s.selectedCompanyId);
+  return useQuery({
+    queryKey: ["restaurant", "menu-links", companyId],
+    queryFn: restaurantService.menuLinks,
+    enabled,
+  });
+}
+
+/** Regenera el enlace de una mesa: las tarjetas impresas de esa mesa dejan de servir. */
+export function useRegenerateMenuLink() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (tableId: number) => restaurantService.regenerateMenuLink(tableId),
+    onSuccess: () => client.invalidateQueries({ queryKey: ["restaurant", "menu-links"] }),
+  });
 }
 
 /** El plano y la cuenta abierta se consultan cada 4 s con la pestaña visible (spec 018, R6). */
