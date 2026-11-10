@@ -1,16 +1,17 @@
 // src/components/restaurant/settings-tab.tsx
 "use client";
-// Restaurante → Configuración (dueño y administrador): estaciones, plano de mesas y existencias.
+// Restaurante → Configuración (dueño y administrador): estaciones, plano de mesas, tarjetas QR (spec 059) y existencias.
 import { useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { ExternalLink, Pencil, Plus } from "lucide-react";
+import { ExternalLink, Pencil, Plus, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useStations } from "@/hooks/use-restaurant";
 import type { DiningTable, Station } from "@/types";
 import { cn } from "@/lib/utils";
 import { FloorPlanEditor } from "./floor-plan-editor";
+import { MenuCardsSheet } from "./menu-qr/menu-cards-sheet";
 import { STATION_KIND } from "./station-kind";
 import { StationForm } from "./station-form";
 import { StockAlerts } from "./stock-alerts";
@@ -26,6 +27,8 @@ export function SettingsTab({ enabled }: { enabled: boolean }) {
   const [stationOpen, setStationOpen] = useState(false);
   const [table, setTable] = useState<DiningTable | null>(null);
   const [tableOpen, setTableOpen] = useState(false);
+  const [cardsOpen, setCardsOpen] = useState(false);
+  const tq = useTranslations("restaurant.menuQr");
 
   const editStation = (value: Station | null) => {
     setStation(value);
@@ -100,10 +103,24 @@ export function SettingsTab({ enabled }: { enabled: boolean }) {
 
       <FloorPlanEditor enabled={enabled} onEdit={editTable} />
 
+      <section aria-labelledby="menu-qr-title" className="flex flex-wrap items-end justify-between gap-3">
+        <div className="max-w-prose">
+          <h2 id="menu-qr-title" className="font-display text-xl font-extrabold">
+            {tq("sectionTitle")}
+          </h2>
+          <p className="text-sm text-muted-foreground">{tq("sectionHint")}</p>
+        </div>
+        <Button variant="outline" onClick={() => setCardsOpen(true)} className="gap-2">
+          <QrCode size={16} aria-hidden />
+          {tq("button")}
+        </Button>
+      </section>
+
       <StockAlerts enabled={enabled} />
 
       <StationForm open={stationOpen} onOpenChange={setStationOpen} station={station} />
       <TableForm open={tableOpen} onOpenChange={setTableOpen} table={table} />
+      <MenuCardsSheet open={cardsOpen} onOpenChange={setCardsOpen} />
     </div>
   );
 }

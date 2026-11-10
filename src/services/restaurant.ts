@@ -1,7 +1,7 @@
 // src/services/restaurant.ts
 import { apiClient } from "@/lib/api";
 import type {
-  Check, DiningTable, PaymentMethod, PaymentResponse, RoundResponse, Station, StationBoard, StationKind, StockAlert, TablesResponse,
+  Check, DiningTable, MenuLink, PaymentMethod, PaymentResponse, RoundResponse, Station, StationBoard, StationKind, StockAlert, TablesResponse,
 } from "@/types";
 
 const base = "/api/v1/restaurant";
@@ -47,6 +47,19 @@ export const restaurantService = {
 
   updateTable: (id: number, data: Partial<TablePayload>): Promise<DiningTable> =>
     apiClient.patch(`${base}/tables/${id}`, { table: data }).then((r) => r.data),
+
+  // Menú QR (spec 059): enlaces de las mesas activas, regenerar uno y PDF de tarjetas.
+  menuLinks: (): Promise<MenuLink[]> =>
+    apiClient.get(`${base}/menu_links`).then((r) => r.data.results),
+
+  regenerateMenuLink: (tableId: number): Promise<MenuLink> =>
+    apiClient.post(`${base}/tables/${tableId}/menu_link`).then((r) => r.data),
+
+  /** Sin `tableIds`: todas las mesas activas. */
+  menuCardsPdf: (tableIds?: number[]): Promise<Blob> =>
+    apiClient
+      .post(`${base}/menu_cards/pdf`, tableIds ? { table_ids: tableIds } : {}, { responseType: "blob" })
+      .then((r) => r.data),
 
   board: (stationId: number): Promise<StationBoard> =>
     apiClient.get(`${base}/stations/${stationId}/board`).then((r) => r.data),
