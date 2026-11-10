@@ -20,8 +20,9 @@ vi.mock("@/services/tickets", () => ({ ticketsService: { list: vi.fn(), getById:
 vi.mock("@/services/restaurant", () => ({ restaurantService: { overview: vi.fn() } }));
 vi.mock("@/services/analytics", () => ({ getDashboardStats: vi.fn().mockResolvedValue({ active_modules: [] }) }));
 vi.mock("@/services/employees", () => ({ employeesService: { list: vi.fn().mockResolvedValue({ results: [] }) } }));
+const EMPTY_SUMMARY = { counts: { open: 0, in_progress: 0, done: 0, paid_today: 0, unassigned: 0 }, to_charge_total: 0 };
 const summary = vi.hoisted(() => ({
-  data: { counts: { open: 0, in_progress: 0, done: 0, paid_today: 0, unassigned: 0 }, to_charge_total: 0 },
+  data: undefined as { counts: Record<string, number>; to_charge_total: number } | undefined,
 }));
 vi.mock("@/hooks/use-work-orders", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/hooks/use-work-orders")>()),
@@ -51,6 +52,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   nav.query = "";
   plan.locked = [];
+  summary.data = EMPTY_SUMMARY;
   vi.mocked(ticketsService.list).mockResolvedValue({ results: [], info: { total: 0, page_index: 1, page_end: 1 } } as never);
   useAuthStore.setState({
     selectedCompanyId: 1,
@@ -75,6 +77,17 @@ describe("Órdenes en un restaurante con mesas (spec 032)", () => {
     expect(screen.getByRole("link", { name: "Cobradas hoy: 1 · Ver cobradas" })).toHaveAttribute("href", "/es/ordenes?vista=cobradas");
     expect(screen.queryByText(/Sin asignar/)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Nueva cuenta" })).toBeInTheDocument();
+  });
+
+  it("mientras llega el resumen no pinta los grupos vacíos de órdenes de trabajo debajo de las cuentas", async () => {
+    summary.data = undefined;
+    vi.mocked(restaurantService.overview).mockResolvedValue(tables);
+    renderWithProviders(<OrdenesPage />);
+
+    expect(await screen.findByRole("heading", { name: /^Por cobrar \(1\)/ })).toBeInTheDocument();
+    expect(screen.getAllByRole("heading", { name: /^Por cobrar/ })).toHaveLength(1);
+    expect(screen.getAllByRole("heading", { name: /^Abiertas/ })).toHaveLength(1);
+    expect(screen.queryByRole("heading", { name: /^En curso/ })).not.toBeInTheDocument();
   });
 
   it("una empresa de servicio conserva Órdenes de trabajo y sus grupos", async () => {
