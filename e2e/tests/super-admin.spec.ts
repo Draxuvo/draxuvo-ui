@@ -50,8 +50,8 @@ test("[SAD-014] el super admin desactiva un módulo de una empresa y el dueño d
   await row(page, company.companyName).getByRole("button", { name: co("modules.open", { name: company.companyName }) }).click();
   const sheet = page.getByRole("dialog");
   await expect(sheet.getByText(co("modules.title", { name: company.companyName }))).toBeVisible();
-  // 8 módulos del plan Pro más el interruptor del módulo extra (spec 053).
-  await expect(sheet.getByRole("switch")).toHaveCount(9);
+  // 8 módulos del plan Pro, el interruptor del módulo extra (spec 053) y el de «Cobro solo por jefes» (spec 058).
+  await expect(sheet.getByRole("switch")).toHaveCount(10);
 
   // 2. Desactiva Inventario: avisa, el resumen baja y queda registrado por la API.
   await sheet.getByRole("switch", { name: t("modules.inventory") }).click();
