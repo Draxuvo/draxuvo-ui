@@ -140,7 +140,9 @@ function Group({
   const { data, isLoading } = useWorkOrders(filters, { page_size: expanded ? PAGE_SIZE : GROUP_SIZE }, { enabled });
   const orders = data?.results ?? [];
   const total = data?.info?.total ?? count ?? 0;
-  if (hideEmpty && count === 0) return null;
+  // Sin el resumen todavía, el grupo decide con su propia consulta; mientras carga no se pinta (antes salía vacío
+  // un instante debajo de las cuentas: DEM-002, spec 060).
+  if (hideEmpty && !(count ?? (isLoading ? 0 : total))) return null;
 
   return (
     <section aria-label={title} className="space-y-2">

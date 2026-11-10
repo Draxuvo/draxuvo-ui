@@ -321,10 +321,11 @@ test.describe("quien es staff en una empresa y dueño en otra", () => {
 test.describe("staff de una empresa sin el módulo", () => {
   test.use({ storageState: storageStatePath("staff", "donchuy.demo") });
 
-  test("[VEM-012] en Don Chuy (plan Básico) Mis órdenes dice que el módulo no está en el plan y la API lo niega @regresion", async ({ page }) => {
+  test("[VEM-012] en Don Chuy (plan Básico) Mis órdenes lleva a su asistencia y la API niega las órdenes @regresion", async ({ page }) => {
     await page.goto("/es/mis-ordenes");
-    await expect(page.getByText(t("subscription.moduleLocked"))).toBeVisible();
-    await expect(page.getByText(t("subscription.moduleLockedDesc", { module: t("modules.work_orders") }))).toBeVisible();
+    // Sin órdenes de trabajo en el plan, el inicio del personal es su asistencia (spec 052, H-40), no el bloqueo del módulo.
+    await expect(page.getByRole("heading", { name: t("attendance.home.title"), level: 1 })).toBeVisible();
+    await expect(page.getByText(t("subscription.moduleLocked"))).toHaveCount(0);
     // El staff no administra la suscripción: sin botón para mejorar el plan.
     await expect(page.getByRole("link", { name: t("subscription.upgradePlan") })).toHaveCount(0);
     const response = await page.request.get(`${API_URL}/api/v1/work_orders`, { headers: await apiHeaders(page) });
@@ -336,12 +337,15 @@ test.describe("staff de una empresa sin el módulo", () => {
 test.describe("staff de una empresa sin el módulo de tickets", () => {
   test.use({ storageState: storageStatePath("staff", "donchuy.demo") });
 
-  test("[VEM-012] en Don Chuy Mis cobradas dice que el módulo no está en el plan, sin ofrecer mejorarlo @regresion", async ({ page }) => {
-    // /mis-tickets redirige a Mis órdenes; sin ninguno de los dos módulos (plan Básico) lo que se ve es el bloqueo del módulo.
+  test("[VEM-012] en Don Chuy Mis cobradas lleva a su asistencia, sin error ni oferta de mejorar, y la API niega los tickets @regresion", async ({ page }) => {
+    // /mis-tickets redirige a Mis órdenes; sin ninguno de los dos módulos (plan Básico) se ve su asistencia (spec 052).
     await page.goto("/es/mis-tickets");
-    await expect(page.getByText(t("subscription.moduleLocked"))).toBeVisible();
+    await expect(page.getByRole("heading", { name: t("attendance.home.title"), level: 1 })).toBeVisible();
     await expect(page.getByText(t("tickets.loadError"))).toHaveCount(0);
     await expect(page.getByRole("button", { name: t("api.moduleNotInPlanAction") })).toHaveCount(0);
+    const response = await page.request.get(`${API_URL}/api/v1/tickets`, { headers: await apiHeaders(page) });
+    expect(response.status()).toBe(403);
+    expect((await response.json()).error.details.code).toBe("module_not_in_plan");
   });
 });
 

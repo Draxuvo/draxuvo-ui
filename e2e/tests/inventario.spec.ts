@@ -162,7 +162,8 @@ test.describe("administrador de Volta", () => {
     await page.goto("/es/inventario");
     await expect(page.getByRole("heading", { name: t("inventory.title") })).toBeVisible();
     for (const header of ["sku", "name", "stock", "unitCost", "actions"]) {
-      await expect(page.getByRole("columnheader", { name: t(`inventory.${header}`) })).toBeVisible();
+      // exact: «Producto» también aparece en el encabezado de la casilla de selección.
+      await expect(page.getByRole("columnheader", { name: t(`inventory.${header}`), exact: true })).toBeVisible();
     }
     // El subtítulo cuenta los productos y el aviso de stock bajo trae el conteo real.
     await expect(page.getByText(/^\d+ productos/)).toBeVisible();

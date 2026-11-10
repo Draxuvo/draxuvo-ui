@@ -678,6 +678,8 @@ test.describe("permisos y seguridad", () => {
   });
 
   test("[BAS-067] el inicio de sesión se frena tras varios intentos fallidos @regresion", async ({ request }, info) => {
+    // Pasa el tope del entorno de pruebas (LOGIN_RATE_LIMIT=100) con más de 100 inicios de sesión seguidos: no caben en 30 s.
+    test.setTimeout(90_000);
     const { company } = await newOwner(request, info.workerIndex);
     const codes: number[] = [];
     for (let i = 0; i < 120; i++) {

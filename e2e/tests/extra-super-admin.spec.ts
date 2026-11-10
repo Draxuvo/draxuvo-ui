@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { searchCompanies } from "../support/companies";
 import { createCompany } from "../support/data";
 import { t } from "../support/i18n";
 import { API_URL, authFile } from "../support/session";
@@ -22,7 +23,7 @@ test.describe("el super admin enciende el extra desde la hoja «Módulos»", () 
   test("[EXT-001] enciende el extra con confirmación de precio, queda en el historial y el dueño lo ve sin poder cambiarlo @pr", async ({ page, request, browser }, info) => {
     const company = await newCompany(request, info.workerIndex);
     await page.goto("/es/empresas");
-    await page.getByPlaceholder(co("searchPlaceholder")).fill(company.companyName);
+    await searchCompanies(page, company.companyName);
     await row(page, company.companyName).getByRole("button", { name: co("modules.open", { name: company.companyName }) }).click();
 
     const sheet = page.getByRole("dialog");

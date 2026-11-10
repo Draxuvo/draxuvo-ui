@@ -1,7 +1,6 @@
 import { expect, test, type Browser, type Locator, type Page } from "@playwright/test";
 import { createCompany, uniquePrefix } from "../support/data";
 import { t } from "../support/i18n";
-import { knownFailure } from "../support/known-failure";
 import { createOrderViaUI } from "../support/orders";
 import { API_URL, authFile, storageStatePath } from "../support/session";
 
@@ -133,20 +132,22 @@ test("[ORD-024] conceptos, pasos, notas, fotos e historia de una orden @regresio
   const total = () => page.getByText(wo("concepts.total"), { exact: true }).locator("xpath=..");
 
   // Conceptos: uno del catálogo, uno libre; se edita un precio y se quita uno.
+  // Solo dentro de Conceptos: la Historia también lista renglones con «×» y con el nombre del concepto.
+  const concepts = page.getByRole("region", { name: wo("concepts.title") });
   await page.getByLabel(wo("concepts.addFromCatalog")).click();
   await page.getByRole("dialog").getByRole("listitem").first().getByRole("button").click();
   await page.getByRole("button", { name: wo("concepts.add"), exact: true }).click();
-  await expect(page.getByRole("listitem").filter({ hasText: "×" })).toHaveCount(2);
+  await expect(concepts.getByRole("listitem").filter({ hasText: "×" })).toHaveCount(2);
   await page.getByLabel(wo("concepts.freeDescription")).fill("Material");
   await page.getByLabel(wo("concepts.price"), { exact: true }).fill("50");
   await page.getByRole("button", { name: wo("concepts.addFree") }).click();
-  await expect(page.getByRole("listitem").filter({ hasText: "Material" })).toBeVisible();
-  const material = page.getByRole("listitem").filter({ hasText: "Material" });
+  const material = concepts.getByRole("listitem").filter({ hasText: "Material" });
+  await expect(material).toBeVisible();
   await material.getByLabel(wo("concepts.editPrice")).fill("80");
   await material.getByLabel(wo("concepts.editPrice")).blur();
   await expect(material).toContainText("$80.00");
   await page.getByRole("button", { name: wo("concepts.deleteAria", { description: "Material" }) }).click();
-  await expect(page.getByRole("listitem").filter({ hasText: "Material" })).toHaveCount(0);
+  await expect(material).toHaveCount(0);
   await expect(total()).toContainText("$");
 
   // Pasos: agregar, marcar, desmarcar y borrar.
@@ -241,10 +242,10 @@ test.describe("dueño de Sazón", () => {
 });
 
 test.describe("ver la orden desde un ticket", () => {
-  test.use({ storageState: storageStatePath("owner", "sazon.demo") });
+  // Volta cobra órdenes de trabajo; los tickets de Sazón son de cuentas de mesa y no tienen «Ver orden».
+  test.use({ storageState: storageStatePath("owner", "volta.demo") });
 
   test("[ORD-025] Ver orden en el detalle del ticket abre la orden del cobro @regresion", async ({ page }) => {
-    knownFailure("H-23");
     await page.goto("/es/tickets?status=paid");
     await ticketRow(page, /T-\d+/).first().click();
     await page.getByRole("dialog").first().getByRole("link", { name: tk("viewOrder") }).click();

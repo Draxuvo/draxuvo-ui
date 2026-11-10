@@ -66,6 +66,8 @@ test.describe("Sazón: dueño", () => {
     await open.first().click();
 
     await expect(page.getByRole("list", { name: tr("station.summary") })).toBeVisible();
-    await expect(page.getByRole("button", { name: /sonido/i })).toBeVisible();
+    // El interruptor del sonido (apagado o encendido); el botón «Sonidos» de la spec 046 es otro.
+    const soundToggle = new RegExp(`^(${tr("station.soundOff")}|${tr("station.soundOn")})$`);
+    await expect(page.getByRole("button", { name: soundToggle })).toBeVisible();
   });
 });

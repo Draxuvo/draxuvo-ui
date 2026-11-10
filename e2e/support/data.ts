@@ -1,4 +1,5 @@
 import type { APIRequestContext } from "@playwright/test";
+import { passwordToken } from "./tokens";
 
 const API_URL = process.env.E2E_API_URL ?? "http://localhost:3000";
 
@@ -67,4 +68,37 @@ export async function createCompany(
     userId: user.id,
     companyId,
   };
+}
+
+export interface NewStaff {
+  email: string;
+  name: string;
+  password: string;
+  employeeId: number;
+  userId: number;
+}
+
+/**
+ * Personal de piso (rol staff) de una empresa nueva, con contraseña ya fijada, creado como lo haría el dueño:
+ * ficha con acceso y enlace de alta. Úsalo cuando la prueba cambia el estado de la persona (turno, acceso), para no
+ * tocar las sesiones de demo que comparten las demás pruebas.
+ */
+export async function createStaff(request: APIRequestContext, company: NewCompany, prefix: string = company.prefix): Promise<NewStaff> {
+  const headers = { Authorization: `Bearer ${company.token}`, "X-Company-Id": String(company.companyId) };
+  const email = `${prefix}-staff@mailinator.com`;
+  const name = `Personal ${prefix}`;
+  const created = await request.post(`${API_URL}/api/v1/employees`, {
+    headers,
+    data: { employee: { name, email, phone: "5512345678", salary: 8000 }, access: { role: "staff" } },
+  });
+  if (created.status() !== 201) throw new Error(`createStaff: alta falló (${created.status()}): ${await created.text()}`);
+  const employee = await created.json();
+  const members = await request.get(`${API_URL}/api/v1/company/members`, { headers });
+  const member = (await members.json()).results.find((m: { email: string }) => m.email === email);
+  if (!member) throw new Error(`createStaff: ${email} no aparece entre los miembros`);
+  const set = await request.put(`${API_URL}/api/v1/passwords/update_with_token`, {
+    data: { token: passwordToken({ id: member.id, email, fullName: name }), new_password: E2E_PASSWORD, new_password_confirmation: E2E_PASSWORD },
+  });
+  if (set.status() !== 200) throw new Error(`createStaff: contraseña falló (${set.status()}): ${await set.text()}`);
+  return { email, name, password: E2E_PASSWORD, employeeId: employee.id, userId: member.id };
 }

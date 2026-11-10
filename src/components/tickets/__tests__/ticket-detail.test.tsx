@@ -36,7 +36,6 @@ const base: Ticket = {
 const checkTicket: Ticket = {
   ...base,
   work_order: null,
-  work_order_id: null,
   check: { id: 31, table: "4", takeout_name: null, waiter: { id: 1, name: "Ana" } },
   payments: [
     { method: "cash", amount: "200.00", reference: null, amount_received: "300.00", change_given: "100.00" },
@@ -97,11 +96,12 @@ describe("detalle de un ticket de cuenta", () => {
   });
 
   it("un ticket de orden de trabajo conserva su enlace a la orden", () => {
-    const order: Ticket = { ...base, payment_method: "cash", work_order_id: 5, work_order: { id: 5, title: "Cambiar balatas" } };
+    // La API solo manda la orden anidada (`work_order.id`), sin `work_order_id` (H-23, spec 060).
+    const order: Ticket = { ...base, payment_method: "cash", work_order: { id: 5, title: "Cambiar balatas" } };
     renderWithProviders(<TicketDetail ticket={order} open onClose={() => {}} />);
 
     expect(screen.getByText("Cambiar balatas")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Ver/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Ver/ })).toHaveAttribute("href", expect.stringMatching(/\/ordenes\/5$/));
   });
 });
 

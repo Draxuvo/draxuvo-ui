@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { searchCompanies } from "../support/companies";
 import { createCompany, uniquePrefix } from "../support/data";
 import { t } from "../support/i18n";
 import { knownFailure } from "../support/known-failure";
@@ -11,6 +12,8 @@ const ANON = { cookies: [], origins: [] };
 const sa = (key: string, values?: Record<string, string | number>) => t(`adminSubscriptions.${key}`, values);
 const co = (key: string, values?: Record<string, string | number>) => t(`companies.${key}`, values);
 const us = (key: string, values?: Record<string, string | number>) => t(`adminUsers.${key}`, values);
+// Nombre del selector de rol de cada empresa en el formulario de usuario: «Rol en <empresa>».
+const companyRole = new RegExp(`^${us("companyRole", { company: "" })}`);
 const board = (key: string) => t(`analyticsBoard.${key}`);
 const row = (page: Page, text: string) => page.getByRole("row").filter({ hasText: text });
 /** Los dos íconos del final de cada fila (sin nombre accesible, solo tooltip): editar y eliminar. */
@@ -45,7 +48,7 @@ test("[SAD-014] el super admin desactiva un módulo de una empresa y el dueño d
 
   // 1. Abre los módulos de la empresa: solo los de su plan, con interruptor.
   await page.goto("/es/empresas");
-  await page.getByPlaceholder(co("searchPlaceholder")).fill(company.companyName);
+  await searchCompanies(page, company.companyName);
   await expect(row(page, company.companyName)).toContainText("8/8");
   await row(page, company.companyName).getByRole("button", { name: co("modules.open", { name: company.companyName }) }).click();
   const sheet = page.getByRole("dialog");
@@ -132,8 +135,9 @@ test("[SAD-011] usuarios: crear con empresa, activar, editar y eliminar @regresi
   await sheet.getByPlaceholder(us("secondLastNamePlaceholder"), { exact: true }).fill("Soto");
   await sheet.getByPlaceholder(us("phonePlaceholder"), { exact: true }).fill("5512345678");
   await sheet.getByPlaceholder(us("emailPlaceholder"), { exact: true }).fill(email);
-  await sheet.getByRole("combobox").first().selectOption({ label: us("roles.admin") });
+  // El rol se elige dentro de cada empresa (spec 014): primero la empresa, luego su rol.
   await sheet.getByRole("checkbox").first().evaluate((input: HTMLInputElement) => input.click());
+  await sheet.getByRole("combobox", { name: companyRole }).first().selectOption({ label: us("roles.admin") });
   await sheet.getByPlaceholder(us("emailPlaceholder"), { exact: true }).press("Enter");
   await expect(page.getByText(us("createSuccess"), { exact: true })).toBeVisible();
   await expect(page.getByText(us("createEmailSent"))).toBeVisible();
@@ -167,7 +171,6 @@ test("[SAD-011] usuarios: crear con empresa, activar, editar y eliminar @regresi
 });
 
 test("[SAD-011] el rol que se elige al crear un usuario queda guardado @regresion", async ({ page }, info) => {
-  knownFailure("H-27");
   const prefix = uniquePrefix(info.workerIndex);
   const email = `${prefix}@mailinator.com`;
   await page.goto("/es/usuarios");
@@ -178,8 +181,9 @@ test("[SAD-011] el rol que se elige al crear un usuario queda guardado @regresio
   await sheet.getByPlaceholder(us("secondLastNamePlaceholder"), { exact: true }).fill("Soto");
   await sheet.getByPlaceholder(us("phonePlaceholder"), { exact: true }).fill("5512345678");
   await sheet.getByPlaceholder(us("emailPlaceholder"), { exact: true }).fill(email);
-  await sheet.getByRole("combobox").first().selectOption({ label: us("roles.admin") });
+  // El rol se elige dentro de cada empresa (spec 014): primero la empresa, luego su rol.
   await sheet.getByRole("checkbox").first().evaluate((input: HTMLInputElement) => input.click());
+  await sheet.getByRole("combobox", { name: companyRole }).first().selectOption({ label: us("roles.admin") });
   await sheet.getByPlaceholder(us("emailPlaceholder"), { exact: true }).press("Enter");
   await expect(page.getByText(us("createSuccess"), { exact: true })).toBeVisible();
 
