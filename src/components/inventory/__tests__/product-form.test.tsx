@@ -10,7 +10,7 @@ vi.mock("@/hooks/use-router", () => ({ useAppRouter: () => ({ push, replace: vi.
 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("@/services/inventory", () => ({
-  inventoryService: { create: vi.fn(), update: vi.fn(), getById: vi.fn(), generateBarcodes: vi.fn() },
+  inventoryService: { create: vi.fn(), update: vi.fn(), getById: vi.fn(), generateBarcodes: vi.fn(), uploadPhoto: vi.fn() },
 }));
 vi.mock("@/services/restaurant", () => ({ restaurantService: { stations: vi.fn() } }));
 vi.mock("@/services/product-types", () => ({ productTypesService: { list: vi.fn(), units: vi.fn() } }));
@@ -132,6 +132,47 @@ describe("icono del producto (spec 026)", () => {
     await user.click(screen.getByRole("button", { name: "Guardar cambios" }));
     await waitFor(() => expect(inventoryService.create).toHaveBeenCalled());
     expect(vi.mocked(inventoryService.create).mock.calls[0][0]).toMatchObject({ icon: "taco" });
+  });
+
+  describe("foto para el menú (spec 061)", () => {
+    it("sin permiso no aparece la sección de foto", async () => {
+      renderWithProviders(<ProductForm open onOpenChange={() => {}} />);
+      await screen.findByRole("option", { name: "Platillo" });
+      expect(screen.queryByText("Foto para el menú")).not.toBeInTheDocument();
+    });
+
+    it("al dar de alta, la foto elegida se sube después de crear el producto, con su estilo", async () => {
+      vi.mocked(inventoryService.create).mockResolvedValue({ id: 41 } as never);
+      vi.mocked(inventoryService.uploadPhoto).mockResolvedValue({ id: 41 } as never);
+      URL.createObjectURL = vi.fn(() => "blob:local");
+      URL.revokeObjectURL = vi.fn();
+      renderWithProviders(<ProductForm open onOpenChange={() => {}} canEditIcon />);
+      const user = userEvent.setup();
+      await fill(user, "Platillo");
+
+      await user.upload(await screen.findByLabelText("Foto para el menú"), new File(["x"], "pozole.jpg", { type: "image/jpeg" }));
+      await user.click(screen.getByRole("radio", { name: "Miniatura" }));
+      expect(inventoryService.uploadPhoto).not.toHaveBeenCalled();
+      await user.click(screen.getByRole("button", { name: "Guardar cambios" }));
+
+      await waitFor(() => expect(inventoryService.uploadPhoto).toHaveBeenCalledWith(41, expect.any(File), "thumbnail"));
+    });
+
+    it("si la foto falla, el producto queda creado y se avisa", async () => {
+      const { toast } = await import("sonner");
+      vi.mocked(inventoryService.create).mockResolvedValue({ id: 41 } as never);
+      vi.mocked(inventoryService.uploadPhoto).mockRejectedValue(new Error("red"));
+      URL.createObjectURL = vi.fn(() => "blob:local");
+      URL.revokeObjectURL = vi.fn();
+      renderWithProviders(<ProductForm open onOpenChange={() => {}} canEditIcon />);
+      const user = userEvent.setup();
+      await fill(user, "Platillo");
+      await user.upload(await screen.findByLabelText("Foto para el menú"), new File(["x"], "pozole.jpg", { type: "image/jpeg" }));
+      await user.click(screen.getByRole("button", { name: "Guardar cambios" }));
+
+      await waitFor(() => expect(toast.error).toHaveBeenCalledWith("El producto se guardó, pero la foto no. Ábrelo y vuelve a subirla."));
+      expect(toast.success).toHaveBeenCalled();
+    });
   });
 
   describe("códigos de barras (spec 034)", () => {

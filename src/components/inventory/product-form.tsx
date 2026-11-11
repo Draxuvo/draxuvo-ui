@@ -2,7 +2,7 @@
 // Alta y edición de producto. El tipo (spec 016) decide los campos: precio, estación y "disponible" si se vende;
 // existencia, mínimo y unidad si se cuenta; decimales si el tipo los admite.
 "use client";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Controller, useForm, useWatch, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { isAxiosError } from "axios";
 import { BarcodeInput } from "./barcode-input";
 import { IconPicker } from "./icon-picker";
+import { ProductPhoto, type PendingPhoto } from "./product-photo";
 import { saveLabelSelection, selectionItem } from "@/hooks/use-label-selection";
 import { useAppRouter } from "@/hooks/use-router";
 import { inventoryService, type ProductPayload } from "@/services/inventory";
@@ -105,11 +106,26 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId, canEdi
     queryKey: ["products", product?.id],
     queryFn: () => inventoryService.getById(product!.id),
     enabled: open && isEdit,
+    // Spec 061: mientras la API prepara la foto del menú, se consulta hasta que esté lista.
+    refetchInterval: (query) => (query.state.data?.photo && !query.state.data.photo.ready ? 2000 : false),
   });
 
+  // Foto elegida al dar de alta: se sube después de crear el producto (spec 061).
+  const pendingPhoto = useRef<PendingPhoto | null>(null);
+
+  // El formulario se llena una vez por apertura: los cambios del detalle (foto guardada o lista, spec 061) no deben
+  // borrar lo que el usuario ya capturó (FR-008).
+  const filledFor = useRef<number | "new" | null>(null);
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      filledFor.current = null;
+      pendingPhoto.current = null;
+      return;
+    }
+    const key = isEdit ? product!.id : "new";
+    if (filledFor.current === key) return;
     if (isEdit && !productData) return;
+    filledFor.current = key;
     const source = isEdit ? productData : null;
     reset({
       product_type_id: source?.product_type ? String(source.product_type.id) : defaultTypeId ? String(defaultTypeId) : "",
@@ -127,7 +143,7 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId, canEdi
       icon: source?.icon ?? "",
       barcodes: source?.barcodes ?? initialBarcodes ?? [],
     });
-  }, [open, productData, isEdit, reset, defaultTypeId, initialBarcodes]);
+  }, [open, productData, isEdit, product, reset, defaultTypeId, initialBarcodes]);
 
   const barcodes = useWatch({ control, name: "barcodes" });
   // Un código propio nuevo se agrega a la lista (sin quitar los que ya tiene) y se guarda con el producto (spec 035).
@@ -138,6 +154,7 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId, canEdi
   });
 
   const typeId = useWatch({ control, name: "product_type_id" });
+  const name = useWatch({ control, name: "name" });
   const type = types.data?.find((item) => String(item.id) === typeId);
 
   // Estación solo si la empresa tiene el módulo de restaurante.
@@ -166,8 +183,16 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId, canEdi
       }
       return isEdit ? inventoryService.update(product!.id, payload) : inventoryService.create(payload);
     },
-    onSuccess: (saved) => {
+    onSuccess: async (saved) => {
       toast.success(isEdit ? t("updateSuccess") : t("createSuccess"));
+      const photo = pendingPhoto.current;
+      if (!isEdit && photo) {
+        try {
+          await inventoryService.uploadPhoto(saved.id, photo.file, photo.style);
+        } catch {
+          toast.error(t("photo.productSavedPhotoFailed"));
+        }
+      }
       qc.invalidateQueries({ queryKey: ["products"] });
       onSaved?.(saved);
       onOpenChange(false);
@@ -325,6 +350,14 @@ export function ProductForm({ open, onOpenChange, product, defaultTypeId, canEdi
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-ring"
               />
             </div>
+
+            {canEditIcon && restaurant && (isEdit ? productData : true) && (
+              isEdit ? (
+                <ProductPhoto productId={product!.id} productName={productData!.name} photo={productData!.photo} />
+              ) : (
+                <ProductPhoto productName={name || t("createTitle")} onPendingChange={(photo) => { pendingPhoto.current = photo; }} />
+              )
+            )}
 
             {type?.sellable && restaurant && (
               <div className="space-y-1.5">

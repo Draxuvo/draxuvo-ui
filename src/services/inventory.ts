@@ -13,6 +13,7 @@ import type {
   Product,
   ProductFilters,
   ProductImport,
+  ProductPhotoStyle,
   StockCount,
   StockMovement,
   StockReceiptItem,
@@ -85,6 +86,35 @@ export const inventoryService = {
 
   remove: (id: number): Promise<void> =>
     apiClient.delete(`/api/v1/products/${id}`).then((r) => r.data),
+
+  /** Sube o reemplaza la foto del menú QR (spec 061). Los errores los explica el formulario, no el aviso global. */
+  uploadPhoto: (
+    id: number,
+    file: File,
+    style: ProductPhotoStyle,
+    { onProgress, signal }: { onProgress?: (percent: number) => void; signal?: AbortSignal } = {},
+  ): Promise<Product> => {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("style", style);
+    return apiClient
+      .put(`/api/v1/products/${id}/photo`, form, {
+        headers: { "Content-Type": "multipart/form-data" },
+        signal,
+        skipErrorToast: true,
+        onUploadProgress: (event) => {
+          if (event.total) onProgress?.(Math.round((event.loaded / event.total) * 100));
+        },
+      })
+      .then((r) => r.data);
+  },
+
+  /** Cambia solo el estilo, sin volver a subir la foto. */
+  updatePhotoStyle: (id: number, style: ProductPhotoStyle): Promise<Product> =>
+    apiClient.patch(`/api/v1/products/${id}/photo`, { style }, { skipErrorToast: true }).then((r) => r.data),
+
+  removePhoto: (id: number): Promise<Product> =>
+    apiClient.delete(`/api/v1/products/${id}/photo`, { skipErrorToast: true }).then((r) => r.data),
 
   menu: (): Promise<{ menu: import("@/types").MenuCategory[] }> =>
     apiClient.get("/api/v1/products/menu").then((r) => r.data),

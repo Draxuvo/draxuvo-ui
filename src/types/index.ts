@@ -203,6 +203,22 @@ export interface Product {
   available_qty?: number | null;
   sold_out?: boolean;
   low?: boolean;
+  /** Foto del menú QR (spec 061). Solo la trae el detalle del producto (`GET /products/:id`), nunca las listas. */
+  photo?: ProductPhoto | null;
+}
+
+/** Cómo sale la foto en el menú QR: tarjeta grande (4:3) o miniatura en el renglón (spec 061). */
+export type ProductPhotoStyle = "card" | "thumbnail";
+
+export interface ProductPhoto {
+  style: ProductPhotoStyle;
+  /** `false` mientras la API prepara las versiones para el teléfono; entonces no hay URLs. */
+  ready: boolean;
+  /** Versión de tarjeta (960×720). Caduca en 1 h. */
+  url: string | null;
+  /** Versión de miniatura (240×240). Caduca en 1 h. */
+  thumbnail_url: string | null;
+  updated_at: string;
 }
 
 export interface MenuCategory {
