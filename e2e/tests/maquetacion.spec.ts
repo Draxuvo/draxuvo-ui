@@ -106,7 +106,10 @@ for (const [label, viewport, expected] of [
         await page.getByRole("button", { name: /Nuevo producto/ }).first().click();
         const dialog = page.getByRole("dialog");
         await expect(dialog).toBeVisible();
-        const heights = await dialog.locator("input:not([type=hidden]):not([type=checkbox]), select").evaluateAll((els) =>
+        // Casillas, radios y el selector de archivo de la foto (spec 061, oculto: su control visible es un botón) no son
+        // campos de texto.
+        const fields = "input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=file]), select";
+        const heights = await dialog.locator(fields).evaluateAll((els) =>
           els.filter((el) => el.getBoundingClientRect().height > 0).map((el) => Math.round(el.getBoundingClientRect().height * 10) / 10),
         );
         expect(heights.length).toBeGreaterThan(2);
