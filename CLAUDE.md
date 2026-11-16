@@ -133,6 +133,10 @@ All list endpoints accept `page`, `page_size`, `search`. Backend returns `Pagina
 ### Multi-Company
 Active company ID stored in `localStorage` (`selected_company_id`) and sent as `X-Company-Id` on every request. Changing the selected company triggers a full re-fetch.
 
+### Company brand
+
+With an active company, the sidebar and header show `CompanyMark` (`src/components/brand/company-mark.tsx`: the company logo from `user.companies[].logo_url`, or a tile with its initial), never the Draxuvo `Logo`. `Logo` stays only in the super admin global panel (`role === "super_admin" && !companyView`) and in screens without a company (auth pages, demo). Owner and admin manage the logo in `/negocio` (spec 063).
+
 ### Styling
 Use `cn()` from `src/lib/utils.ts` for all conditional classNames. Tailwind v4 — config is entirely in `src/app/globals.css` via `@theme inline` CSS variables. Do not create a `tailwind.config.ts`.
 
