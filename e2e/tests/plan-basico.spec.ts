@@ -99,7 +99,7 @@ test.describe("alta y alcance del plan Básico", () => {
     // El menú se filtra por módulos cuando llega la suscripción: antes de eso muestra los del rol (ver BAS-072).
     await expect
       .poll(async () => (await menu(page).getByRole("link").allInnerTexts()).map((l) => l.trim()), { timeout: 15_000 })
-      .toEqual([t("nav.home"), t("nav.dashboard"), t("nav.people"), t("nav.inventory"), t("nav.reports"), t("nav.alerts"), t("subscription.nav")]);
+      .toEqual([t("nav.home"), t("nav.dashboard"), t("nav.people"), t("nav.inventory"), t("nav.reports"), t("nav.alerts"), t("nav.business"), t("subscription.nav")]);
     await expect(page.getByText(t("subscription.trialStatus")).or(page.getByText(/días? de prueba|días para/i)).first()).toBeVisible();
 
     await page.goto("/es/suscripcion");

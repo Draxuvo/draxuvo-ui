@@ -26,6 +26,8 @@ const ADMIN_ROUTES = [
   "/reportes",
   "/suscripcion",
   "/alertas",
+  // Spec 063: Mi negocio (logo de la empresa) es de dueño y administrador.
+  "/negocio",
 ];
 
 // Spec 055 (H-57): pantallas exclusivas del super admin. Quien tiene sesión con otro rol no ve su marco: va a su inicio.

@@ -103,7 +103,8 @@
     "whatsapp": "WhatsApp",
     "pos": "Sale",
     "sales": "Sales",
-    "mySales": "My sales"
+    "mySales": "My sales",
+    "business": "My business"
   },
   "whatsapp": {
     "title": "WhatsApp",
@@ -1102,6 +1103,18 @@
           "body": "Staff charge again as before. Sales sent to charge go back to their cashier and tables lose the charge-requested mark."
         }
       }
+    },
+    "logo": {
+      "title": "Logo",
+      "none": "No logo: the team sees the business initial.",
+      "alt": "{name} logo",
+      "changedBy": "Changed by {name} on {date}",
+      "remove": "Remove logo",
+      "removeConfirm": "Remove the logo of {name}? The team will see the business initial instead.",
+      "removeYes": "Yes, remove",
+      "keep": "Keep",
+      "removed": "Logo removed",
+      "error": "The logo couldn't be removed."
     }
   },
   "forgotPassword": {
@@ -3363,5 +3376,31 @@
     "sales": "Sales sent to charge",
     "workOrders": "Finished orders",
     "checks": "Tables that asked to be charged"
+  },
+  "business": {
+    "title": "My business",
+    "description": "How {name} appears in the panel, the app, tickets and the QR menu.",
+    "logo": {
+      "title": "Logo",
+      "hint": "Shown instead of the Draxuvo brand to your whole team, on tickets and on the QR menu.",
+      "add": "Upload logo",
+      "change": "Change logo",
+      "remove": "Remove logo",
+      "choose": "Choose the logo image",
+      "removeConfirm": "Remove the logo? Your team will see the business initial instead.",
+      "removeYes": "Yes, remove",
+      "keep": "Keep",
+      "previewLight": "Light theme",
+      "previewDark": "Dark theme",
+      "previewAlt": "{name} logo",
+      "uploading": "Uploading… {percent}%",
+      "cancelUpload": "Cancel",
+      "rules": "JPG, PNG or WebP up to 5 MB. Use a transparent background so it looks good in light and dark.",
+      "saved": "Logo saved",
+      "removed": "Logo removed",
+      "invalidType": "The file must be JPG, PNG or WebP",
+      "tooLarge": "The logo can't be larger than 5 MB",
+      "error": "The logo couldn't be saved. Try again."
+    }
   }
 }

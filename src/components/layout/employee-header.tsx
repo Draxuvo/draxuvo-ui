@@ -5,7 +5,7 @@ import { LogOut, Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { AttendanceButton } from "@/components/attendance/attendance-button";
 import { useLogoutFlow } from "@/components/attendance/logout-dialog";
-import { Logo } from "@/components/brand/logo";
+import { CompanyMark } from "@/components/brand/company-mark";
 import { CompanySwitcher } from "./company-switcher";
 import { LocaleSwitcher } from "./locale-switcher";
 import { SIDEBAR_DRAWER_ID, useSidebar } from "./sidebar-context";
@@ -16,8 +16,8 @@ const ICON_BUTTON =
 
 export function EmployeeHeader() {
   const t = useTranslations("nav");
-  const tc = useTranslations("common");
-  const { user } = useAuthStore();
+  const { user, selectedCompanyId } = useAuthStore();
+  const activeCompany = user?.companies?.find((c) => c.id === selectedCompanyId) ?? user?.companies?.[0];
   const { requestLogout, dialog: logoutDialog } = useLogoutFlow();
   const multiCompany = (user?.companies?.length ?? 0) > 1;
   const { open, mobileOpen, toggle } = useSidebar();
@@ -53,10 +53,8 @@ export function EmployeeHeader() {
 
       {/* Marca en celular, donde el riel no se ve; con varias empresas manda el selector. */}
       <span className={cn("flex min-w-0 items-center gap-2 md:hidden", multiCompany && "hidden")}>
-        <Logo className="size-7" />
-        <span className="font-display text-base font-extrabold uppercase tracking-[0.01em] text-foreground">
-          {tc("brandName")}
-        </span>
+        {/* Spec 063: el personal ve la marca de su empresa, no la de Draxuvo. */}
+        <CompanyMark name={activeCompany?.name ?? ""} logoUrl={activeCompany?.logo_url} expanded size="sm" />
       </span>
 
       <CompanySwitcher className="min-w-0 md:ml-1" />

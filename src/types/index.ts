@@ -33,6 +33,8 @@ export interface UserCompany {
   modules?: string[];
   /** «Cobro solo por jefes» (spec 058): solo decide si se muestra el contador «Por cobrar»; la regla vive en la API. */
   boss_only_charge?: boolean;
+  /** Logo de la empresa (spec 063): redirección sin caducidad a la versión para pantallas, o null sin logo. */
+  logo_url?: string | null;
 }
 
 /** Empresa principal o sucursal (`/company/branches`, R17). */
@@ -43,6 +45,13 @@ export interface Branch {
   parent_company_id: number | null;
 }
 
+/** Logo de una empresa (spec 063, contracts/api.md). */
+export interface CompanyLogo {
+  url: string;
+  updated_at: string | null;
+  updated_by: { id: number; name: string } | null;
+}
+
 export interface Company {
   id: number;
   name: string;
@@ -51,6 +60,8 @@ export interface Company {
   order_mode?: OrderMode;
   users_count?: number;
   created_at: string;
+  /** Spec 063: el logo de la empresa (lista y hoja del super admin), o null. */
+  logo?: CompanyLogo | null;
 }
 
 export interface AdminUser {
