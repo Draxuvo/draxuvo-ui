@@ -17,6 +17,7 @@ import { formatCents } from "@/components/subscription/plan-picker";
 import { addAddon, getCompanyModules, reactivateAddon, removeAddon, updateModules } from "@/services/subscription";
 import { cn } from "@/lib/utils";
 import { ChargePolicySection } from "./charge-policy-section";
+import { CompanyLogoSection } from "./company-logo-section";
 import type { AddonKey, Company, CompanyAddon, ModuleKey, Subscription } from "@/types";
 
 const DATE_LOCALES = { es, en: enUS };
@@ -161,6 +162,8 @@ export function CompanyModulesSheet({ company, subscription, onOpenChange }: Com
 
           {/* Sin suscripción la empresa no opera: no hay cobro que configurar. */}
           {company && subscription && <ChargePolicySection companyId={company.id} />}
+          {/* Spec 063: el super admin ve el logo de la empresa y puede quitarlo. */}
+          {company && <CompanyLogoSection key={company.id} company={company} />}
         </div>
       </SheetContent>
 

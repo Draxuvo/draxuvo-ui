@@ -103,7 +103,8 @@
     "whatsapp": "WhatsApp",
     "pos": "Venta",
     "sales": "Ventas",
-    "mySales": "Mis ventas"
+    "mySales": "Mis ventas",
+    "business": "Mi negocio"
   },
   "whatsapp": {
     "title": "WhatsApp",
@@ -1102,6 +1103,18 @@
           "body": "El personal vuelve a cobrar como antes. Las ventas pasadas a cobro regresan a su cajero y las mesas pierden la marca de cobro pedido."
         }
       }
+    },
+    "logo": {
+      "title": "Logo",
+      "none": "Sin logo: su equipo ve la inicial del negocio.",
+      "alt": "Logo de {name}",
+      "changedBy": "Lo cambió {name} el {date}",
+      "remove": "Quitar logo",
+      "removeConfirm": "¿Quitar el logo de {name}? Su equipo verá la inicial del negocio en su lugar.",
+      "removeYes": "Sí, quitar",
+      "keep": "Conservar",
+      "removed": "Logo quitado",
+      "error": "No se pudo quitar el logo."
     }
   },
   "forgotPassword": {
@@ -3363,5 +3376,31 @@
     "sales": "Ventas pasadas a cobro",
     "workOrders": "Órdenes terminadas",
     "checks": "Mesas con cobro pedido"
+  },
+  "business": {
+    "title": "Mi negocio",
+    "description": "Así se presenta {name} en el panel, la app, los tickets y el menú QR.",
+    "logo": {
+      "title": "Logo",
+      "hint": "Se muestra en lugar de la marca Draxuvo para todo tu equipo, en los tickets y en el menú QR.",
+      "add": "Subir logo",
+      "change": "Cambiar logo",
+      "remove": "Quitar logo",
+      "choose": "Elegir imagen del logo",
+      "removeConfirm": "¿Quitar el logo? Tu equipo verá la inicial del negocio en su lugar.",
+      "removeYes": "Sí, quitar",
+      "keep": "Conservar",
+      "previewLight": "Tema claro",
+      "previewDark": "Tema oscuro",
+      "previewAlt": "Logo de {name}",
+      "uploading": "Subiendo… {percent}%",
+      "cancelUpload": "Cancelar",
+      "rules": "JPG, PNG o WebP de hasta 5 MB. Para que se vea bien en claro y oscuro, usa fondo transparente.",
+      "saved": "Logo guardado",
+      "removed": "Logo quitado",
+      "invalidType": "El archivo debe ser JPG, PNG o WebP",
+      "tooLarge": "El logo no puede pasar de 5 MB",
+      "error": "No se pudo guardar el logo. Intenta de nuevo."
+    }
   }
 }

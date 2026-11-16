@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { ClipboardList, ReceiptText, ShoppingCart, User, X } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import { Logo } from "@/components/brand/logo";
+import { CompanyMark } from "@/components/brand/company-mark";
 import { useAuthStore } from "@/store/auth";
 import { usePosAvailable } from "@/hooks/use-pos-available";
 import { NavList, type NavItem } from "./sidebar";
@@ -15,7 +15,6 @@ export function EmployeeSidebar() {
   const pathname = usePathname();
   const t = useTranslations("nav");
   const tw = useTranslations("workOrders");
-  const tc = useTranslations("common");
   const locale = useLocale();
   const { user, selectedCompanyId } = useAuthStore();
   const { open, mobileOpen, setMobileOpen } = useSidebar();
@@ -32,25 +31,12 @@ export function EmployeeSidebar() {
     { href: `/${locale}/mi-perfil`, label: t("profile"), icon: User },
   ];
 
-  const companyName =
-    user?.companies?.find((c) => c.id === selectedCompanyId)?.name ??
-    user?.companies?.[0]?.name ??
-    "";
+  const activeCompany =
+    user?.companies?.find((c) => c.id === selectedCompanyId) ?? user?.companies?.[0];
 
+  // Spec 063: con empresa activa se ve su logo (o su distintivo), nunca la marca Draxuvo.
   const brand = (expanded: boolean) => (
-    <div className="flex min-w-0 items-center gap-2.5">
-      <Logo />
-      {expanded && (
-        <div className="min-w-0 leading-tight">
-          <p className="font-display text-base font-extrabold uppercase tracking-[0.01em] text-foreground">
-            {tc("brandName")}
-          </p>
-          {companyName && (
-            <p className="truncate text-xs text-muted-foreground">{companyName}</p>
-          )}
-        </div>
-      )}
-    </div>
+    <CompanyMark name={activeCompany?.name ?? ""} logoUrl={activeCompany?.logo_url} expanded={expanded} />
   );
 
   return (

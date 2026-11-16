@@ -21,6 +21,7 @@ import { LogOut, Menu, PanelLeftClose, PanelLeftOpen, UserRound } from "lucide-r
 import { useAppRouter } from "@/hooks/use-router";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/brand/logo";
+import { CompanyMark } from "@/components/brand/company-mark";
 
 const ICON_BUTTON =
   "foco-etiqueta flex size-11 shrink-0 items-center justify-center rounded-etiqueta text-muted-foreground transition-colors duration-[120ms] hover:bg-card hover:text-foreground";
@@ -32,10 +33,13 @@ function getInitials(firstName?: string, lastName?: string) {
 export function Header() {
   const t = useTranslations("nav");
   const tCommon = useTranslations("common");
-  const { user, role } = useAuthStore();
+  const { user, role, selectedCompanyId, companyView } = useAuthStore();
   const { requestLogout, dialog: logoutDialog } = useLogoutFlow();
   // Con varias empresas el selector ocupa el lugar de la marca en celular.
   const multiCompany = role !== "super_admin" && (user?.companies?.length ?? 0) > 1;
+  // Spec 063: Draxuvo solo en el panel global del super admin; con empresa activa, la marca de la empresa.
+  const globalPanel = role === "super_admin" && !companyView;
+  const activeCompany = user?.companies?.find((c) => c.id === selectedCompanyId) ?? user?.companies?.[0];
   const { open, mobileOpen, toggle } = useSidebar();
   const router = useAppRouter();
 
@@ -70,10 +74,16 @@ export function Header() {
 
       {/* Marca en celular, donde el riel no se ve */}
       <span className={cn("flex min-w-0 items-center gap-2 md:hidden", multiCompany && "hidden")}>
-        <Logo className="size-7" />
-        <span className="font-display text-base font-extrabold uppercase tracking-[0.01em] text-foreground">
-          {tCommon("brandName")}
-        </span>
+        {globalPanel ? (
+          <>
+            <Logo className="size-7" />
+            <span className="font-display text-base font-extrabold uppercase tracking-[0.01em] text-foreground">
+              {tCommon("brandName")}
+            </span>
+          </>
+        ) : (
+          <CompanyMark name={activeCompany?.name ?? ""} logoUrl={activeCompany?.logo_url} expanded size="sm" />
+        )}
       </span>
 
       <CompanySwitcher className="md:ml-1" />

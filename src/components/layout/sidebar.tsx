@@ -19,6 +19,7 @@ import {
   Landmark,
   ReceiptText,
   ShoppingCart,
+  Store,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -27,7 +28,7 @@ import { getSubscription } from "@/services/subscription";
 import type { ModuleKey } from "@/types";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { SIDEBAR_DRAWER_ID, useSidebar } from "./sidebar-context";
-import { Logo } from "@/components/brand/logo";
+import { CompanyMark } from "@/components/brand/company-mark";
 import { useScreenMode } from "@/components/take-order/use-screen-mode";
 import { cn } from "@/lib/utils";
 
@@ -106,7 +107,6 @@ export function Sidebar() {
   const pathname = usePathname();
   const t = useTranslations("nav");
   const tSub = useTranslations("subscription");
-  const tCommon = useTranslations("common");
   const locale = useLocale();
   const { user, selectedCompanyId, role, companyView, leaveCompanyView } = useAuthStore();
   const { open, mobileOpen, setMobileOpen } = useSidebar();
@@ -185,6 +185,8 @@ export function Sidebar() {
     ...(showMyCompanies
       ? [{ href: `/${locale}/mis-empresas`, label: t("myCompanies"), icon: Building2 }]
       : []),
+    // Mi negocio (spec 063): el logo de la empresa; dueño y administrador, en todos los planes.
+    ...(showTeam ? [{ href: `/${locale}/negocio`, label: t("business"), icon: Store }] : []),
     // Super admin dentro de su empresa (spec 029): vuelve a su panel global.
     ...(companyView && user?.role === "super_admin"
       ? [
@@ -207,27 +209,13 @@ export function Sidebar() {
       : []),
   ];
 
-  const companyName =
-    user?.companies?.find((c) => c.id === selectedCompanyId)?.name ??
-    user?.companies?.[0]?.name ??
-    "";
+  const activeCompany =
+    user?.companies?.find((c) => c.id === selectedCompanyId) ?? user?.companies?.[0];
+  const companyName = activeCompany?.name ?? "";
 
+  // Spec 063: con empresa activa se ve su logo (o su distintivo), nunca la marca Draxuvo.
   const brand = (expanded: boolean) => (
-    <div className="flex min-w-0 items-center gap-2.5">
-      <Logo />
-      {expanded && (
-        <div className="min-w-0 leading-tight">
-          <p className="font-display text-base font-extrabold uppercase tracking-[0.01em] text-foreground">
-            {tCommon("brandName")}
-          </p>
-          {companyName && (
-            <p className="truncate text-xs text-muted-foreground">
-              {companyName}
-            </p>
-          )}
-        </div>
-      )}
-    </div>
+    <CompanyMark name={companyName} logoUrl={activeCompany?.logo_url} expanded={expanded} />
   );
 
   return (
