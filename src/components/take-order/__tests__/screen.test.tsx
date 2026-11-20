@@ -223,6 +223,18 @@ describe("TakeOrderScreen (abrir una cuenta desde la lista)", () => {
     expect(screen.queryByRole("button", { name: "Mandar" })).not.toBeInTheDocument();
   });
 
+  it("una cuenta cancelada antes del arreglo se ve sin quién la canceló", async () => {
+    search = "cuenta=19&hoja=1";
+    vi.mocked(restaurantService.getCheck).mockResolvedValue(check({
+      id: 19, status: "cancelled", closed_at: "2026-11-15T23:50:28Z", cancel_reason: null, cancelled_by: null, allowed_actions: [],
+    }));
+    renderWithProviders(<TakeOrderScreen />);
+
+    const banner = (await screen.findByText(/^Cuenta cancelada ·/)).closest("[role=status]");
+    expect(banner).toHaveTextContent("Sin motivo");
+    expect(banner).not.toHaveTextContent("Canceló");
+  });
+
   it("una cuenta abierta sigue ocultando sus renglones cancelados", async () => {
     search = "cuenta=31";
     vi.mocked(restaurantService.getCheck).mockResolvedValue(check({
