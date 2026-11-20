@@ -1,7 +1,8 @@
 "use client";
 // Cobro de una cuenta de mesa en el panel (spec 018, R9): pagos uno por uno, como en la app. El efectivo da
 // cambio; la tarjeta (con la terminal del negocio) y la transferencia piden referencia y no pasan del saldo.
-// La cuenta se cierra sola al cubrir el saldo y se ofrece el ticket.
+// La cuenta se cierra sola al cubrir el saldo y se ofrece el ticket. Spec 069: con una terminal integrada el abono se
+// manda a la terminal y se registra al aprobarse.
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -17,6 +18,12 @@ import { downloadTicketPDF } from "@/lib/ticket-pdf";
 import { cn } from "@/lib/utils";
 import type { Check, PaymentMethod, Ticket } from "@/types";
 import { Select } from "@/components/ui/select";
+import { ticketsService } from "@/services/tickets";
+import { isIntegrated } from "@/components/terminal-charge/integrated";
+import { TerminalWait } from "@/components/terminal-charge/terminal-wait";
+import { useTerminalCharge } from "@/components/terminal-charge/use-terminal-charge";
+import { readRememberedTerminal, defaultTerminalFor, rememberTerminal } from "@/components/terminal-charge/remembered-terminal";
+import type { TerminalChargeInput } from "@/services/terminal-charges";
 
 const METHODS: { key: PaymentMethod; icon: typeof Banknote }[] = [
   { key: "cash", icon: Banknote },
@@ -43,6 +50,7 @@ export function CheckPaymentDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const t = useTranslations("takeOrder.pay");
+  const tc = useTranslations("terminalCharge");
   const tb = useTranslations("takeOrder.bossOnly");
   const locale = useLocale();
   const money = new Intl.NumberFormat(locale === "en" ? "en-US" : "es-MX", { style: "currency", currency: "MXN" });
@@ -67,7 +75,38 @@ export function CheckPaymentDialog({
   const due = parse(amount);
   const got = parse(received);
   const covered = due == null ? 0 : Math.min(due, balance);
-  const terminal = terminalId || (terminals.length === 1 ? String(terminals[0].id) : "");
+  const terminal = terminalId || defaultTerminalFor(terminals, readRememberedTerminal());
+  const chosen = terminals.find((x) => String(x.id) === terminal);
+  // Spec 069: abono con tarjeta a una terminal integrada (salvo que se decida registrar a mano).
+  const [manual, setManual] = useState(false);
+  const toTerminal = method === "card" && isIntegrated(chosen) && !manual;
+  const [lastInput, setLastInput] = useState<TerminalChargeInput | null>(null);
+  const terminalCharge = useTerminalCharge({
+    onApplied: async (applied) => {
+      const ticketId = (applied.result as { ticket_id?: number | null } | null)?.ticket_id;
+      setAmount(null);
+      setReference("");
+      void restaurantService.getCheck(check.id).then(apply);
+      if (ticketId) {
+        setTicket(await ticketsService.getById(ticketId));
+        toast.success(t("paidDone"));
+      }
+      terminalCharge.reset();
+    },
+    onStartError: (err) => {
+      if (err.code === "incomplete_items") {
+        setPending(Number(err.pending ?? 0));
+        return true;
+      }
+      if (err.code === "charge_boss_only") {
+        toast.error(tb("notice"));
+        void restaurantService.getCheck(check.id).then(apply);
+        onOpenChange(false);
+        return true;
+      }
+      return false;
+    },
+  });
   const cashDiff = method === "cash" && got != null ? Math.round((got - covered) * 100) / 100 : null;
 
   function validate(): string | null {
@@ -84,6 +123,19 @@ export function CheckPaymentDialog({
     const invalid = validate();
     if (invalid) return setError(invalid);
     setError(null);
+    if (method === "card") rememberTerminal(terminal);
+    if (toTerminal && chosen) {
+      const input: TerminalChargeInput = {
+        terminal_id: chosen.id,
+        amount: due as number,
+        owner: { type: "check", id: check.id },
+        params: confirmIncomplete ? { confirm_incomplete: true } : {},
+      };
+      setPending(null);
+      setLastInput(input);
+      terminalCharge.start(input);
+      return;
+    }
     setBusy(true);
     const body: CheckPaymentBody =
       method === "cash"
@@ -149,6 +201,22 @@ export function CheckPaymentDialog({
               <Button className="min-h-11" onClick={() => onOpenChange(false)}>{t("close")}</Button>
             </div>
           </div>
+        ) : terminalCharge.active && lastInput ? (
+          <TerminalWait
+            amount={money.format(lastInput.amount)}
+            terminalName={chosen?.name ?? ""}
+            charge={terminalCharge.charge}
+            starting={terminalCharge.starting}
+            error={terminalCharge.startError}
+            canceling={terminalCharge.canceling}
+            onCancel={terminalCharge.cancel}
+            onRetry={() => terminalCharge.start(lastInput)}
+            onChooseOther={terminalCharge.reset}
+            onManual={async () => {
+              await terminalCharge.abandon();
+              setManual(true);
+            }}
+          />
         ) : (
           <div className="space-y-4">
             <dl className="grid grid-cols-3 gap-2 text-center">
@@ -200,17 +268,27 @@ export function CheckPaymentDialog({
                     {t("terminal")}
                     <Select
                       value={terminal}
-                      onChange={(e) => setTerminalId(e.target.value)}
+                      onChange={(e) => {
+                        setTerminalId(e.target.value);
+                        setManual(false);
+                      }}
                     >
                       <option value="">{t("noTerminal")}</option>
-                      {terminals.map((term) => <option key={term.id} value={term.id}>{term.name}</option>)}
+                      {terminals.map((term) => (
+                        <option key={term.id} value={term.id}>
+                          {term.chargeable ? `${term.name} · ${tc("integrated")}` : term.name}
+                        </option>
+                      ))}
                     </Select>
+                    {manual && chosen?.chargeable && <span className="block text-xs font-normal text-muted-foreground">{tc("manualHint", { terminal: chosen.name })}</span>}
                   </label>
                 )}
-                <label className="block space-y-1 text-sm font-medium">
-                  {method === "card" ? t("referenceOptional") : t("reference")}
-                  <Input value={reference} onChange={(e) => setReference(e.target.value)} className="h-11" />
-                </label>
+                {!toTerminal && (
+                  <label className="block space-y-1 text-sm font-medium">
+                    {method === "card" ? t("referenceOptional") : t("reference")}
+                    <Input value={reference} onChange={(e) => setReference(e.target.value)} className="h-11" />
+                  </label>
+                )}
               </>
             )}
 

@@ -1,7 +1,8 @@
 "use client";
 // Cobro de una venta de mostrador (spec 050): mismos pagos que el cobro de órdenes (efectivo con cambio, tarjeta con
 // terminal y transferencia con referencia, solos o mezclados). Al confirmar muestra el folio, el cambio y, si faltaron
-// piezas en el inventario, el aviso para quien cobra.
+// piezas en el inventario, el aviso para quien cobra. Spec 069: la tarjeta en una terminal integrada se manda a la terminal
+// y la venta se cobra al aprobarse.
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Check, Plus, TriangleAlert } from "lucide-react";
@@ -10,6 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { MAX_PAYMENTS, PaymentRow, emptyRow, newKey, num, round, type PaymentRowState } from "@/components/work-orders/charge-dialog";
 import { useChargeSale, useRefreshSale } from "@/hooks/use-sales";
+import { useQueryClient } from "@tanstack/react-query";
+import { salesService } from "@/services/sales";
+import { integratedRows, integratedTerminalOf } from "@/components/terminal-charge/integrated";
+import { TerminalWait } from "@/components/terminal-charge/terminal-wait";
+import { useTerminalCharge } from "@/components/terminal-charge/use-terminal-charge";
+import { rememberTerminal, useRememberedTerminal } from "@/components/terminal-charge/remembered-terminal";
+import type { TerminalChargeInput } from "@/services/terminal-charges";
 import { usePaymentTerminals } from "@/hooks/use-payment-terminals";
 import type { ChargePaymentInput, PaymentMethod, Sale, SaleChargeResult } from "@/types";
 import { CHARGE_ERROR_CODES, errorCode, formatMoney } from "./lib";
@@ -30,6 +38,8 @@ interface PosChargeDialogProps {
 export function PosChargeDialog({ sale, open, onOpenChange, onDone }: PosChargeDialogProps) {
   const t = useTranslations("pos");
   const tw = useTranslations("workOrders");
+  const tc = useTranslations("terminalCharge");
+  const queryClient = useQueryClient();
   const locale = useLocale();
   const total = Number(sale.total);
   const { data: terminals = [] } = usePaymentTerminals({ enabled: open });
@@ -48,13 +58,26 @@ export function PosChargeDialog({ sale, open, onOpenChange, onDone }: PosChargeD
   const missing = cashRow ? Math.max(0, round(cashDue - received)) : Math.max(0, cashDue);
   const change = cashRow && received > cashDue ? round(received - cashDue) : 0;
   const exceeds = nonCash > total;
-  const defaultTerminal = terminals.length === 1 ? String(terminals[0].id) : "";
+  const defaultTerminal = useRememberedTerminal(terminals);
   const rowValid = (row: PaymentRowState) =>
     (row.method === "cash" ? row.received !== "" : single || num(row.amount) > 0) &&
     (row.method !== "card" || terminals.length === 0 || (row.terminalId || defaultTerminal) !== "") &&
     (row.method !== "card" || row.last4 === "" || /^\d{4}$/.test(row.last4)) &&
     (row.method !== "transfer" || row.reference.trim() !== "");
-  const canConfirm = !exceeds && missing === 0 && (!cashRow || cashDue > 0) && rows.every(rowValid);
+  // Spec 069 (FR-017): como máximo un pago a una terminal integrada.
+  const toTerminal = integratedRows(rows, terminals, defaultTerminal);
+  const canConfirm = !exceeds && missing === 0 && (!cashRow || cashDue > 0) && rows.every(rowValid) && toTerminal.length <= 1;
+  const [lastInput, setLastInput] = useState<TerminalChargeInput | null>(null);
+  const terminalCharge = useTerminalCharge({
+    onApplied: async (applied) => {
+      const shortages = ((applied.result as { shortages?: SaleChargeResult["shortages"] } | null)?.shortages ?? []);
+      const paid = await salesService.get(sale.id);
+      queryClient.setQueryData(["sales", "detail", sale.id], paid);
+      queryClient.invalidateQueries({ queryKey: ["sales"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      setResult({ sale: paid, shortages });
+    },
+  });
 
   const patch = (key: number, changes: Partial<PaymentRowState>) => setRows((prev) => prev.map((r) => (r.key === key ? { ...r, ...changes } : r)));
 
@@ -68,8 +91,8 @@ export function PosChargeDialog({ sale, open, onOpenChange, onDone }: PosChargeD
     });
   }
 
-  function toPayload(): ChargePaymentInput[] {
-    return rows.map((row) => {
+  function toPayload(list: PaymentRowState[] = rows): ChargePaymentInput[] {
+    return list.map((row) => {
       if (row.method === "cash") return { method: "cash", amount_received: num(row.received) };
       const amount = amountOf(row);
       if (row.method === "transfer") return { method: "transfer", amount, reference: row.reference.trim() };
@@ -85,6 +108,21 @@ export function PosChargeDialog({ sale, open, onOpenChange, onDone }: PosChargeD
   }
 
   function confirm() {
+    rows.forEach((row) => row.method === "card" && rememberTerminal(row.terminalId || defaultTerminal));
+    const integratedRow = toTerminal[0];
+    if (integratedRow) {
+      const terminal = integratedTerminalOf(integratedRow, terminals, defaultTerminal);
+      if (!terminal) return;
+      const input: TerminalChargeInput = {
+        terminal_id: terminal.id,
+        amount: amountOf(integratedRow),
+        owner: { type: "sale", id: sale.id },
+        params: { lock_version: sale.lock_version, payments: toPayload(rows.filter((r) => r.key !== integratedRow.key)) },
+      };
+      setLastInput(input);
+      terminalCharge.start(input);
+      return;
+    }
     charge.mutate(
       { lockVersion: sale.lock_version, payments: toPayload(), idempotencyKey },
       {
@@ -149,6 +187,31 @@ export function PosChargeDialog({ sale, open, onOpenChange, onDone }: PosChargeD
               </Button>
             </DialogFooter>
           </div>
+        ) : terminalCharge.active && lastInput ? (
+          <TerminalWait
+            amount={formatMoney(lastInput.amount, locale)}
+            terminalName={terminals.find((x) => x.id === lastInput.terminal_id)?.name ?? ""}
+            charge={terminalCharge.charge}
+            starting={terminalCharge.starting}
+            error={terminalCharge.startError}
+            canceling={terminalCharge.canceling}
+            describeError={(code) =>
+              (PAYMENT_ERROR_CODES as readonly string[]).includes(code)
+                ? tw(`charge.errors.${code}`)
+                : (CHARGE_ERROR_CODES as readonly string[]).includes(code)
+                  ? t(`charge.errors.${code}`)
+                  : code === "charge_boss_only"
+                    ? t("errors.charge_boss_only")
+                    : null
+            }
+            onCancel={terminalCharge.cancel}
+            onRetry={() => terminalCharge.start(lastInput)}
+            onChooseOther={terminalCharge.reset}
+            onManual={async () => {
+              await terminalCharge.abandon();
+              setRows((prev) => prev.map((r) => (toTerminal.some((x) => x.key === r.key) ? { ...r, manual: true } : r)));
+            }}
+          />
         ) : (
           <div className="space-y-5">
             <p className="text-center font-display text-5xl font-extrabold tabular-nums">{formatMoney(total, locale)}</p>
@@ -172,6 +235,12 @@ export function PosChargeDialog({ sale, open, onOpenChange, onDone }: PosChargeD
                 <Plus size={14} aria-hidden="true" />
                 {tw("charge.addPayment")}
               </Button>
+            )}
+
+            {toTerminal.length > 1 && (
+              <p role="alert" className="text-sm text-destructive">
+                {tc("onlyOne")}
+              </p>
             )}
 
             <p aria-live="polite" className="min-h-6 text-base font-semibold tabular-nums">

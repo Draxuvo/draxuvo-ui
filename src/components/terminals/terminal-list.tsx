@@ -1,13 +1,15 @@
 // src/components/terminals/terminal-list.tsx — terminales de la empresa con su proveedor, estado y cobros.
-// Con cobros no se borra (FR-019): la pantalla ofrece desactivarla.
+// Con cobros no se borra (FR-019): la pantalla ofrece desactivarla. Spec 069: las integradas dicen de qué proveedor son
+// y ofrecen «Volver a preparar» y «Desligar» (queda manual).
 "use client";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { Pencil, Trash2 } from "lucide-react";
+import { Link2Off, Pencil, RefreshCw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useDeleteTerminal, useUpdateTerminal } from "@/hooks/use-payment-terminals";
+import { usePrepareTerminal, useUnlinkTerminal } from "@/hooks/use-terminal-connections";
 import { cn } from "@/lib/utils";
 import type { PaymentTerminal } from "@/types";
 
@@ -15,8 +17,30 @@ export function TerminalList({ terminals, onEdit }: { terminals: PaymentTerminal
   const t = useTranslations("terminals");
   const update = useUpdateTerminal();
   const remove = useDeleteTerminal();
+  const prepare = usePrepareTerminal();
+  const unlink = useUnlinkTerminal();
   const [confirming, setConfirming] = useState<PaymentTerminal | null>(null);
+  const [unlinking, setUnlinking] = useState<PaymentTerminal | null>(null);
   const inUse = (confirming?.payments_count ?? 0) > 0;
+
+  async function doPrepare(terminal: PaymentTerminal) {
+    try {
+      const result = await prepare.mutateAsync(terminal.id);
+      toast.success(result.restart_required ? t("preparedRestart", { name: terminal.name }) : t("prepared", { name: terminal.name }));
+    } catch {
+      // El aviso global ya mostró el error de la API.
+    }
+  }
+
+  async function doUnlink(terminal: PaymentTerminal) {
+    try {
+      await unlink.mutateAsync(terminal.id);
+      toast.success(t("unlinked", { name: terminal.name }));
+      setUnlinking(null);
+    } catch {
+      // El aviso global ya mostró el error de la API.
+    }
+  }
 
   async function setActive(terminal: PaymentTerminal, active: boolean) {
     try {
@@ -55,7 +79,9 @@ export function TerminalList({ terminals, onEdit }: { terminals: PaymentTerminal
             <div className="min-w-0 flex-1">
               <p className={cn("truncate text-base font-medium", !terminal.active && "text-muted-foreground")}>{terminal.name}</p>
               <p className="text-sm text-muted-foreground">
-                {terminal.provider_label} · {t("paymentsCount", { count: terminal.payments_count ?? 0 })}
+                {terminal.kind === "integrated" ? t("kindIntegrated", { provider: terminal.provider_label }) : terminal.provider_label} ·{" "}
+                {t("paymentsCount", { count: terminal.payments_count ?? 0 })}
+                {terminal.kind === "integrated" && terminal.connection_status !== "connected" && ` · ${t("connectionLost")}`}
               </p>
             </div>
             <span
@@ -70,6 +96,23 @@ export function TerminalList({ terminals, onEdit }: { terminals: PaymentTerminal
               <Button variant="outline" className="min-h-11" onClick={() => setActive(terminal, true)}>
                 {t("activate")}
               </Button>
+            )}
+            {terminal.kind === "integrated" && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-11"
+                  aria-label={t("prepareAria", { name: terminal.name })}
+                  disabled={prepare.isPending || terminal.connection_status !== "connected"}
+                  onClick={() => doPrepare(terminal)}
+                >
+                  <RefreshCw size={16} aria-hidden="true" />
+                </Button>
+                <Button variant="ghost" size="icon" className="size-11" aria-label={t("unlinkAria", { name: terminal.name })} onClick={() => setUnlinking(terminal)}>
+                  <Link2Off size={16} aria-hidden="true" />
+                </Button>
+              </>
             )}
             <Button variant="ghost" size="icon" className="size-11" aria-label={t("editAria", { name: terminal.name })} onClick={() => onEdit(terminal)}>
               <Pencil size={16} aria-hidden="true" />
@@ -111,6 +154,25 @@ export function TerminalList({ terminals, onEdit }: { terminals: PaymentTerminal
                   {t("delete")}
                 </Button>
               )
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!unlinking} onOpenChange={(open) => !open && setUnlinking(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("unlinkTitle")}</DialogTitle>
+            <DialogDescription>{unlinking && t("unlinkDesc", { name: unlinking.name })}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" className="min-h-11" onClick={() => setUnlinking(null)}>
+              {t("cancel")}
+            </Button>
+            {unlinking && (
+              <Button variant="destructive" className="min-h-11" onClick={() => doUnlink(unlinking)} disabled={unlink.isPending}>
+                {t("unlink")}
+              </Button>
             )}
           </DialogFooter>
         </DialogContent>

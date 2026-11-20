@@ -1087,6 +1087,82 @@ export interface PaymentTerminal extends PaymentTerminalRef {
   active: boolean;
   /** Solo para admin y dueño. */
   payments_count?: number;
+  /** Spec 069: manual (como hoy) o integrada (ligada a una cuenta del proveedor). */
+  kind?: "manual" | "integrated";
+  /** Integrada, activa y con la conexión al corriente: se le pueden mandar cobros. */
+  chargeable?: boolean;
+  connection_status?: TerminalConnectionStatus | null;
+  /** Solo para admin y dueño. */
+  device_id?: string | null;
+  device_mode?: string | null;
+  /** Solo en la respuesta de ligar: hay que reiniciar la terminal. */
+  restart_required?: boolean;
+}
+
+// Terminal integrada (spec 069): conexión con el proveedor, dispositivos y solicitudes de cobro.
+export type TerminalConnectionStatus = "connected" | "error" | "disconnected";
+
+export interface TerminalConnection {
+  id: number;
+  provider: TerminalProvider;
+  status: TerminalConnectionStatus;
+  account_label: string | null;
+  live_mode: boolean;
+  connected_at: string | null;
+  disconnected_at: string | null;
+  connected_by: { id: number; name: string } | null;
+  error_code: string | null;
+  error_message: string | null;
+  terminals_count: number;
+}
+
+export interface TerminalProviderEntry {
+  provider: TerminalProvider;
+  available: boolean;
+  connection: TerminalConnection | null;
+}
+
+export interface TerminalDevice {
+  device_id: string;
+  label: string;
+  mode: string | null;
+  store_id: string | null;
+  pos_id: string | null;
+  linked_terminal: { id: number; name: string } | null;
+  linkable: boolean;
+  reason: "linked_elsewhere" | null;
+}
+
+export type TerminalChargeStatus =
+  | "pending" | "canceling" | "approved" | "applied" | "unapplied" | "declined" | "canceled" | "expired" | "abandoned" | "refunded";
+
+export type TerminalChargeOwnerType = "work_order" | "sale" | "check";
+
+export interface TerminalRefundInfo {
+  status: "requested" | "done" | "rejected" | "skipped";
+  amount: string;
+  completed_at: string | null;
+  error_code: string | null;
+}
+
+export interface TerminalCharge {
+  id: number;
+  status: TerminalChargeStatus;
+  status_detail: string | null;
+  amount: string;
+  terminal: PaymentTerminalRef;
+  owner: { type: TerminalChargeOwnerType; id: number; label: string };
+  created_by: { id: number; name: string } | null;
+  created_at: string;
+  expires_at: string;
+  resolved_at: string | null;
+  provider_reference: string | null;
+  card_last4: string | null;
+  unapplied_reason: string | null;
+  /** Al aplicarse: lo mismo que devuelve el cobro de siempre (orden, venta o cuenta). */
+  result: Record<string, unknown> | null;
+  refund: TerminalRefundInfo | null;
+  allowed_actions: ("cancel" | "abandon" | "refund" | "dismiss")[];
 }
 
 /** Un pago del cobro de una orden; el de una cuenta trae solo los campos de CheckPayment. */
@@ -1094,7 +1170,10 @@ export interface TicketPayment extends CheckPayment {
   method_label?: string;
   authorization_code?: string | null;
   card_last4?: string | null;
-  source?: "manual";
+  /** Spec 069: `terminal` = confirmado por el proveedor; `manual` = registrado a mano. */
+  source?: "manual" | "terminal";
+  provider_reference?: string | null;
+  refund?: TerminalRefundInfo | null;
   created_by?: PersonRef | null;
   created_at?: string;
   voided_at?: string | null;

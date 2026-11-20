@@ -5,7 +5,13 @@ import { renderWithProviders } from "@/test/render";
 import type { Check } from "@/types";
 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
-vi.mock("@/hooks/use-payment-terminals", () => ({ usePaymentTerminals: () => ({ data: [] }) }));
+const terminalList = vi.hoisted(() => ({ list: [] as unknown[] }));
+vi.mock("@/hooks/use-payment-terminals", () => ({ usePaymentTerminals: () => ({ data: terminalList.list }) }));
+const tcCreate = vi.hoisted(() => vi.fn());
+const tcGet = vi.hoisted(() => vi.fn());
+vi.mock("@/services/terminal-charges", () => ({ terminalChargesService: { create: tcCreate, get: tcGet, cancel: vi.fn(), abandon: vi.fn() } }));
+const getTicket = vi.hoisted(() => vi.fn());
+vi.mock("@/services/tickets", () => ({ ticketsService: { getById: getTicket } }));
 vi.mock("@/lib/ticket-pdf", () => ({ downloadTicketPDF: vi.fn() }));
 vi.mock("@/services/restaurant", () => ({ restaurantService: { addPayment: vi.fn(), getCheck: vi.fn() } }));
 
@@ -19,6 +25,7 @@ const check: Check = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  terminalList.list = [];
   vi.mocked(restaurantService.getCheck).mockResolvedValue(check);
 });
 
@@ -77,5 +84,23 @@ describe("CheckPaymentDialog", () => {
     expect(screen.getByLabelText("Monto")).toHaveValue("0.00");
     rerender(<CheckPaymentDialog check={check} open onOpenChange={vi.fn()} />);
     expect(screen.getByLabelText("Monto")).toHaveValue("100.00");
+  });
+
+  it("con terminal integrada el abono va a la terminal y al aplicarse ofrece el ticket (spec 069)", async () => {
+    terminalList.list = [{ id: 7, name: "Caja 1", provider: "mercado_pago", provider_label: "Mercado Pago", active: true, chargeable: true }];
+    tcCreate.mockResolvedValue({ id: 41, status: "pending" });
+    tcGet.mockResolvedValue({
+      id: 41, status: "applied", amount: "100.00", terminal: { id: 7, name: "Caja 1", provider: "mercado_pago" },
+      owner: { type: "check", id: 10, label: "4" }, result: { check_id: 10, ticket_id: 5 }, allowed_actions: [],
+    });
+    getTicket.mockResolvedValue({ id: 5, folio: "T-0005" });
+    renderWithProviders(<CheckPaymentDialog check={check} open onOpenChange={vi.fn()} />);
+
+    await userEvent.click(screen.getByRole("radio", { name: "Tarjeta" }));
+    await userEvent.click(screen.getByRole("button", { name: "Registrar pago" }));
+
+    expect(tcCreate).toHaveBeenCalledWith({ terminal_id: 7, amount: 100, owner: { type: "check", id: 10 }, params: {} });
+    expect(await screen.findByText("Ticket T-0005")).toBeInTheDocument();
+    expect(restaurantService.addPayment).not.toHaveBeenCalled();
   });
 });
