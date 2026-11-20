@@ -58,4 +58,5 @@ Producción: **https://app.draxuvo.com** (Worker `draxuvo-ui`, plan gratuito). S
 - **Local con el runtime de Workers**: `npm run build:vinext && npx vite preview` (el desarrollo diario sigue siendo `npm run dev`).
 - **Reversa**: `npx wrangler rollback --name draxuvo-ui` (vuelve a la versión anterior; con un ID de versión, a esa) o, desde el panel de Cloudflare, Workers → `draxuvo-ui` → Deployments → Rollback. No revierte los recursos enlazados (KV). Objetivo: < 15 min.
 - **Configuración**: `cloudflare.config.ts` (nombre, dominio personalizado y bindings) y `vite.config.ts`.
+- **Errores (spec 071)**: `src/lib/monitoring.ts` manda a Sentry los errores del navegador si al compilar existe `NEXT_PUBLIC_SENTRY_DSN` (variable del repo en GitHub; el CI la pasa en el despliegue junto con el commit como `NEXT_PUBLIC_SENTRY_RELEASE`). Sin ella no se reporta nada. Los errores del servidor se ven en Cloudflare → Workers → `draxuvo-ui` → Observability. Guía: `src/draxuvo-api/docs/monitoreo.md` del workspace.
 - Los recorridos Playwright (`e2e/`) siguen corriendo en el CI contra una API local; no se ejecutan contra producción.
