@@ -34,6 +34,7 @@ vi.mock("@/hooks/use-work-orders", () => ({
 vi.mock("@/components/work-orders/order-form", () => ({ OrderForm: () => null }));
 
 import { ticketsService } from "@/services/tickets";
+import { restaurantService } from "@/services/restaurant";
 import MisOrdenesPage from "./page";
 
 const check = { id: 31, name: "4", takeout: false, waiter: "Sara", total: 155, openedAt: new Date().toISOString(), mine: true };
@@ -102,5 +103,36 @@ describe("Mis órdenes y cobradas en una sola entrada (spec 051)", () => {
     expect(screen.queryByRole("button", { name: "Cobradas" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Ver cobradas/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+});
+
+describe("Mis cuentas canceladas (spec 070)", () => {
+  it("la sección no pide nada cerrada y al abrirla lista las canceladas del mesero", async () => {
+    const list = vi.spyOn(restaurantService, "cancelledChecks").mockResolvedValue({
+      info: { page_size: 20, page_index: 1, total: 1, page_start: 1, page_end: 1, pages_total: 1 },
+      results: [{
+        id: 26, table: { id: 25, name: "4" }, takeout_name: null, waiter: { id: 1, name: "Sara" }, opened_at: new Date().toISOString(),
+        cancelled_at: new Date().toISOString(), cancel_reason: null, cancelled_by: null, cancelled_items: 0, mine: true,
+      }],
+    });
+    renderWithProviders(<MisOrdenesPage />);
+
+    expect(list).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByText("Canceladas", { selector: "summary" }));
+
+    expect(await screen.findByRole("link", { name: "Ver cuenta cancelada de Mesa 4" })).toHaveAttribute(
+      "href", "/es/pedido?cuenta=26&hoja=1&from=mis-ordenes",
+    );
+    expect(list).toHaveBeenCalledWith({ page: 1, page_size: 20 });
+  });
+
+  it("sin canceladas lo dice", async () => {
+    vi.spyOn(restaurantService, "cancelledChecks").mockResolvedValue({
+      info: { page_size: 20, page_index: 1, total: 0, page_start: 0, page_end: 0, pages_total: 0 }, results: [],
+    });
+    renderWithProviders(<MisOrdenesPage />);
+
+    await userEvent.click(screen.getByText("Canceladas", { selector: "summary" }));
+    expect(await screen.findByText("No tienes cuentas canceladas.")).toBeInTheDocument();
   });
 });

@@ -17,7 +17,7 @@ vi.mock("@/components/subscription/module-locked", () => ({
   ModuleLocked: () => <p>Módulo bloqueado</p>,
 }));
 vi.mock("@/services/tickets", () => ({ ticketsService: { list: vi.fn(), getById: vi.fn() } }));
-vi.mock("@/services/restaurant", () => ({ restaurantService: { overview: vi.fn() } }));
+vi.mock("@/services/restaurant", () => ({ restaurantService: { overview: vi.fn(), cancelledChecks: vi.fn() } }));
 vi.mock("@/services/analytics", () => ({ getDashboardStats: vi.fn().mockResolvedValue({ active_modules: [] }) }));
 vi.mock("@/services/employees", () => ({ employeesService: { list: vi.fn().mockResolvedValue({ results: [] }) } }));
 const EMPTY_SUMMARY = { counts: { open: 0, in_progress: 0, done: 0, paid_today: 0, unassigned: 0 }, to_charge_total: 0 };
@@ -130,6 +130,33 @@ describe("Filtros de Cuentas con mesas", () => {
 
     const open = await screen.findByRole("heading", { name: /^Abiertas/ });
     expect(open.closest("section")).toHaveTextContent("Mesa 1");
+  });
+
+  it("Canceladas lista las cuentas canceladas y las suma a los resultados (spec 070)", async () => {
+    nav.query = "status=cancelled&search=rosa";
+    vi.mocked(restaurantService.overview).mockResolvedValue(tables);
+    vi.mocked(restaurantService.cancelledChecks).mockResolvedValue({
+      info: { page_size: 20, page_index: 1, total: 1, page_start: 1, page_end: 1, pages_total: 1 },
+      results: [{
+        id: 26, table: null, takeout_name: "Rosa", waiter: { id: 1, name: "Ana" }, opened_at: opened,
+        cancelled_at: new Date().toISOString(), cancel_reason: "Se fueron", cancelled_by: null, cancelled_items: 2, mine: true,
+      }],
+    });
+    renderWithProviders(<OrdenesPage />);
+
+    const section = (await screen.findByRole("heading", { name: "Cuentas canceladas (1)" })).closest("section");
+    expect(section).toHaveTextContent("Para llevar: Rosa");
+    expect(restaurantService.cancelledChecks).toHaveBeenCalledWith({ search: "rosa", waiter_id: undefined, page: 1, page_size: 20 });
+    expect(await screen.findByText("1 resultado")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /^Abiertas/ })).not.toBeInTheDocument();
+  });
+
+  it("sin el filtro Canceladas no pide las cuentas canceladas", async () => {
+    vi.mocked(restaurantService.overview).mockResolvedValue(tables);
+    renderWithProviders(<OrdenesPage />);
+
+    await screen.findByRole("heading", { name: /^Abiertas/ });
+    expect(restaurantService.cancelledChecks).not.toHaveBeenCalled();
   });
 });
 

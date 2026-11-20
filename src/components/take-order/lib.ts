@@ -57,6 +57,9 @@ export interface Line {
   /** Ya se mandó a la cocina o la barra. */
   sent: boolean;
   cancelled?: boolean;
+  /** Spec 070: motivo y quién de un renglón cancelado. */
+  cancelReason?: string | null;
+  cancelledBy?: string | null;
 }
 
 /** El renglón de una cuenta no trae el producto (solo su nombre); el de una orden sí. */

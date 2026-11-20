@@ -200,6 +200,56 @@ describe("TakeOrderScreen (abrir una cuenta desde la lista)", () => {
     expect(await screen.findByRole("heading", { name: "4" })).toBeInTheDocument();
   });
 
+  it("una cuenta cancelada se ve en solo lectura, con su motivo y lo cancelado (spec 070)", async () => {
+    search = "cuenta=26&hoja=1&from=ordenes";
+    vi.mocked(restaurantService.getCheck).mockResolvedValue(check({
+      id: 26, status: "cancelled", closed_at: "2026-11-19T20:09:54Z", cancel_reason: "Se fueron",
+      cancelled_by: { id: 2, name: "Ana" }, allowed_actions: [],
+      items: [{
+        id: 5, name: "Tostada", quantity: 2, unit_price: "30.00", note: null, status: "cancelled", station: null,
+        kitchen_order_number: 1, sent_at: null, ready_at: null, cancel_reason: "Agregado por error",
+        cancelled_at: "2026-11-19T20:00:00Z", cancelled_by: { id: 1, name: "Sara" }, allowed_actions: [],
+      }],
+    }));
+    renderWithProviders(<TakeOrderScreen />);
+
+    const banner = await screen.findByText(/^Cuenta cancelada ·/);
+    expect(banner.closest("[role=status]")).toHaveTextContent("Motivo: Se fueron · Canceló: Ana");
+    const cancelled = screen.getByRole("region", { name: "Cancelados" });
+    expect(cancelled).toHaveTextContent("Tostada");
+    expect(cancelled).toHaveTextContent("Motivo: Agregado por error · por Sara");
+    expect(screen.queryByRole("button", { name: "Liberar mesa" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Cobrar/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Mandar" })).not.toBeInTheDocument();
+  });
+
+  it("una cuenta cancelada antes del arreglo se ve sin quién la canceló", async () => {
+    search = "cuenta=19&hoja=1";
+    vi.mocked(restaurantService.getCheck).mockResolvedValue(check({
+      id: 19, status: "cancelled", closed_at: "2026-11-15T23:50:28Z", cancel_reason: null, cancelled_by: null, allowed_actions: [],
+    }));
+    renderWithProviders(<TakeOrderScreen />);
+
+    const banner = (await screen.findByText(/^Cuenta cancelada ·/)).closest("[role=status]");
+    expect(banner).toHaveTextContent("Sin motivo");
+    expect(banner).not.toHaveTextContent("Canceló");
+  });
+
+  it("una cuenta abierta sigue ocultando sus renglones cancelados", async () => {
+    search = "cuenta=31";
+    vi.mocked(restaurantService.getCheck).mockResolvedValue(check({
+      id: 31,
+      items: [{
+        id: 5, name: "Tostada", quantity: 1, unit_price: "30.00", note: null, status: "cancelled", station: null,
+        kitchen_order_number: 1, sent_at: null, ready_at: null, cancel_reason: "N", allowed_actions: [],
+      }],
+    }));
+    renderWithProviders(<TakeOrderScreen />);
+
+    await screen.findByRole("heading", { name: "4" });
+    expect(screen.queryByRole("region", { name: "Cancelados" })).not.toBeInTheDocument();
+  });
+
   it("ignora un valor de cuenta que no es un entero positivo", async () => {
     search = "cuenta=abc";
     renderWithProviders(<TakeOrderScreen />);

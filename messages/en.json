@@ -2666,7 +2666,25 @@
       "requested": "Charge requested. An administrator or the owner will charge the check.",
       "requestedAt": "Charge requested at {time}",
       "chargeRequested": "Charge requested"
-    }
+    },
+    "cancelledChecks": "Cancelled checks",
+    "cancelledChecksOpen": "View cancelled check of {name}",
+    "cancelledChecksAt": "Cancelled on {time}",
+    "cancelledChecksNoReason": "No reason",
+    "cancelledChecksItems": "{count, plural, =0 {No items} one {# cancelled item} other {# cancelled items}}",
+    "cancelledChecksBy": "Cancelled by: {name}",
+    "cancelledChecksNoTable": "Deleted table",
+    "cancelledChecksMore": "Load more",
+    "cancelledChecksError": "Couldn't load the cancelled checks.",
+    "cancelledChecksRetry": "Retry",
+    "cancelledChecksSection": "Cancelled",
+    "cancelledBanner": "Cancelled check · {time}",
+    "cancelledBannerReason": "Reason: {reason}",
+    "cancelledBannerBy": "Cancelled by: {name}",
+    "cancelledSection": "Cancelled",
+    "cancelledLineReason": "Reason: {reason}",
+    "cancelledLineBy": "by {name}",
+    "cancelledChecksEmpty": "You have no cancelled checks."
   },
   "productIcons": {
     "title": "Icon",

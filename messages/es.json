@@ -2666,7 +2666,25 @@
       "requested": "Cobro pedido. Un administrador o el dueño cobrará la cuenta.",
       "requestedAt": "Cobro pedido a las {time}",
       "chargeRequested": "Cobro pedido"
-    }
+    },
+    "cancelledChecks": "Cuentas canceladas",
+    "cancelledChecksOpen": "Ver cuenta cancelada de {name}",
+    "cancelledChecksAt": "Cancelada el {time}",
+    "cancelledChecksNoReason": "Sin motivo",
+    "cancelledChecksItems": "{count, plural, =0 {Sin renglones} one {# renglón cancelado} other {# renglones cancelados}}",
+    "cancelledChecksBy": "Canceló: {name}",
+    "cancelledChecksNoTable": "Mesa eliminada",
+    "cancelledChecksMore": "Cargar más",
+    "cancelledChecksError": "No se pudieron cargar las cuentas canceladas.",
+    "cancelledChecksRetry": "Reintentar",
+    "cancelledChecksSection": "Canceladas",
+    "cancelledBanner": "Cuenta cancelada · {time}",
+    "cancelledBannerReason": "Motivo: {reason}",
+    "cancelledBannerBy": "Canceló: {name}",
+    "cancelledSection": "Cancelados",
+    "cancelledLineReason": "Motivo: {reason}",
+    "cancelledLineBy": "por {name}",
+    "cancelledChecksEmpty": "No tienes cuentas canceladas."
   },
   "productIcons": {
     "title": "Icono",
