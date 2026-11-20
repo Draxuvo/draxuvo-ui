@@ -18,6 +18,8 @@ import { ProgressBar } from "@/components/work-orders/progress-bar";
 import { OrderForm } from "@/components/work-orders/order-form";
 import { useScreenMode } from "@/components/take-order/use-screen-mode";
 import { OpenChecks, useClosedChecks, useOpenChecks } from "@/components/take-order/open-checks";
+import { CancelledChecks } from "@/components/take-order/cancelled-checks";
+import { useCancelledChecks } from "@/hooks/use-restaurant";
 import { RestaurantAlerts } from "@/components/take-order/restaurant-alerts";
 import { matchesCheckFilter, type CheckFilter } from "@/components/take-order/lib";
 import { useAppRouter } from "@/hooks/use-router";
@@ -230,6 +232,17 @@ function OrdenesContent({ tabs, paidAvailable }: { tabs: ReactNode; paidAvailabl
     enabled: hasEmployees,
     staleTime: 5 * 60 * 1000,
   });
+  // Un responsable sin usuario ligado no atiende ninguna cuenta (-1).
+  const waiterUserId = employeeId ? (employeeOptions?.results.find((e) => String(e.id) === employeeId)?.user_id ?? -1) : null;
+
+  // Con mesas, «Canceladas» también lista las cuentas canceladas (spec 070); se piden solo con ese filtro.
+  const cancelledView = restaurant && filters.status === "cancelled";
+  const cancelled = useCancelledChecks(
+    { search: filters.search || undefined, waiter_id: waiterUserId ?? undefined },
+    { enabled: cancelledView },
+  );
+  const cancelledTotal = cancelledView ? (cancelled.data?.pages[0]?.info.total ?? 0) : 0;
+  const cancelledPending = cancelledView && cancelled.isLoading;
 
   if (gate.isLocked(error ?? summaryError)) return <ModuleLocked module="work_orders" />;
 
@@ -239,7 +252,7 @@ function OrdenesContent({ tabs, paidAvailable }: { tabs: ReactNode; paidAvailabl
   // Los filtros también recortan las cuentas de mesa; un responsable sin usuario ligado no atiende ninguna (-1).
   const checkFilter: CheckFilter = {
     status: filters.status,
-    userId: employeeId ? (employeeOptions?.results.find((e) => String(e.id) === employeeId)?.user_id ?? -1) : null,
+    userId: waiterUserId,
     search: filters.search,
   };
   const shownToPay = toPayChecks.filter((check) => matchesCheckFilter(check, "to_pay", checkFilter));
@@ -262,7 +275,7 @@ function OrdenesContent({ tabs, paidAvailable }: { tabs: ReactNode; paidAvailabl
           <h1 className="font-display text-3xl leading-tight font-semibold">{restaurant ? tq("title") : t("title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {flat && isFiltered
-              ? tf("results", { count: (data?.info?.total ?? 0) + (restaurant ? shownChecks : 0) })
+              ? tf("results", { count: (data?.info?.total ?? 0) + (restaurant ? shownChecks + cancelledTotal : 0) })
               : restaurant
                 ? tq("subtitle", { open: openOnlyChecks.length, toPay: toPayChecks.length })
                 : t("subtitle", { count: summaryTotal(counts) })}
@@ -340,9 +353,10 @@ function OrdenesContent({ tabs, paidAvailable }: { tabs: ReactNode; paidAvailabl
 
       {flat ? (
         <div className="space-y-2">
+          {cancelledView && <CancelledChecks query={cancelled} from="ordenes" />}
           {isLoading ? (
             [0, 1, 2].map((i) => <Skeleton key={i} className="h-24 w-full rounded-etiqueta" />)
-          ) : orders.length === 0 && restaurant && shownChecks > 0 ? null : orders.length === 0 ? (
+          ) : orders.length === 0 && restaurant && (shownChecks > 0 || cancelledTotal > 0 || cancelledPending || cancelled.isError) ? null : orders.length === 0 ? (
             <div className="py-12 text-center text-sm text-muted-foreground">
               <ClipboardList size={32} strokeWidth={1.75} aria-hidden className="mx-auto mb-3" />
               <p className="font-medium text-foreground">{isFiltered ? tf("noResults") : t(`labels.${mode}.empty`)}</p>

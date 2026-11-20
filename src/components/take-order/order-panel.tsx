@@ -3,7 +3,7 @@
 // Spec 058: con «Cobro solo por jefes» el personal ve un aviso en lugar de Cobrar y, en mesas, «Pedir cobro».
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { BellRing, ConciergeBell, DoorOpen, Minus, Plus, ShieldCheck, StickyNote, Trash2 } from "lucide-react";
+import { Ban, BellRing, ConciergeBell, DoorOpen, Minus, Plus, ShieldCheck, StickyNote, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ProductGlyph } from "@/components/product-icon";
@@ -64,6 +64,27 @@ export function OrderPanel({
   const live = current.lines.filter((l) => !l.cancelled);
   const draft = live.filter((l) => l.editable);
   const sent = live.filter((l) => !l.editable);
+  // Spec 070: una cuenta cobrada o cancelada muestra también lo cancelado, con su motivo; una abierta lo oculta.
+  const closedCheck = current.check && current.check.status !== "open" ? current.check : null;
+  const cancelledLines = closedCheck ? current.lines.filter((l) => l.cancelled) : [];
+  const cancelledCheck = closedCheck?.status === "cancelled" ? closedCheck : null;
+  const when = new Intl.DateTimeFormat(locale === "en" ? "en-US" : "es-MX", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+
+  function cancelledRow(line: Line) {
+    return (
+      <li key={line.id} className="flex flex-col gap-0.5 border-b border-border py-2 last:border-0">
+        <div className="flex items-center gap-2">
+          <ProductGlyph product={line} className="text-muted-foreground" />
+          <p className="min-w-0 flex-1 truncate text-sm font-medium text-muted-foreground line-through">{line.name}</p>
+          <span className="text-sm font-bold tabular-nums text-muted-foreground">×{line.quantity}</span>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {line.cancelReason ? t("cancelledLineReason", { reason: line.cancelReason }) : t("cancelledChecksNoReason")}
+          {line.cancelledBy ? ` · ${t("cancelledLineBy", { name: line.cancelledBy })}` : ""}
+        </p>
+      </li>
+    );
+  }
   const total = current.check || current.order ? current.total : runningTotal(live);
 
   function row(line: Line) {
@@ -143,8 +164,22 @@ export function OrderPanel({
           </Button>
         )}
       </div>
+      {cancelledCheck && (
+        <div role="status" className="mb-2 flex items-start gap-2 rounded-etiqueta border border-border bg-muted p-3 text-sm">
+          <Ban size={16} aria-hidden className="mt-0.5 shrink-0 text-destructive" />
+          <div className="space-y-0.5">
+            <p className="font-semibold">
+              {t("cancelledBanner", { time: cancelledCheck.closed_at ? when.format(new Date(cancelledCheck.closed_at)) : "" })}
+            </p>
+            <p className="text-muted-foreground">
+              {cancelledCheck.cancel_reason ? t("cancelledBannerReason", { reason: cancelledCheck.cancel_reason }) : t("cancelledChecksNoReason")}
+              {cancelledCheck.cancelled_by ? ` · ${t("cancelledBannerBy", { name: cancelledCheck.cancelled_by.name })}` : ""}
+            </p>
+          </div>
+        </div>
+      )}
       <div className="min-h-0 flex-1 overflow-y-auto">
-        {!live.length && (
+        {!live.length && !cancelledLines.length && (
           <div className="flex h-full min-h-40 flex-col items-center justify-center gap-2 py-6 text-center text-muted-foreground">
             <Plus aria-hidden className="size-8" />
             <p className="text-sm">{t("orderEmpty")}</p>
@@ -162,6 +197,12 @@ export function OrderPanel({
           <section aria-label={t("sentSection")} className="mt-3">
             <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{t("sentSection")}</h3>
             <ul>{sent.map(row)}</ul>
+          </section>
+        )}
+        {cancelledLines.length > 0 && (
+          <section aria-label={t("cancelledSection")} className="mt-3">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{t("cancelledSection")}</h3>
+            <ul>{cancelledLines.map(cancelledRow)}</ul>
           </section>
         )}
       </div>

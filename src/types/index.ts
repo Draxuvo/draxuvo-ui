@@ -1051,6 +1051,10 @@ export interface CheckItem {
   kitchen_order_number: number | null;
   sent_at: string | null;
   ready_at: string | null;
+  /** Spec 070: motivo, hora y quién, solo en renglones cancelados. */
+  cancel_reason?: string | null;
+  cancelled_at?: string | null;
+  cancelled_by?: PersonRef | null;
   allowed_actions: ("deliver" | "cancel")[];
 }
 
@@ -1114,6 +1118,11 @@ export interface Check {
   takeout_name: string | null;
   waiter: PersonRef | null;
   opened_at: string;
+  /** Hora de cobro o de cancelación (spec 070). */
+  closed_at?: string | null;
+  /** Spec 070: solo en canceladas; `cancelled_by` es `null` en las canceladas antes del arreglo. */
+  cancel_reason?: string | null;
+  cancelled_by?: PersonRef | null;
   total: string;
   paid: string;
   balance: string;
@@ -1197,6 +1206,29 @@ export interface ClosedCheckSummary {
   waiter?: PersonRef | null;
   total?: string;
   mine: boolean;
+}
+
+/** Cuenta cancelada para el filtro «Canceladas» (spec 070). La API ya la recorta: el personal solo recibe las suyas. */
+export interface CancelledCheckSummary {
+  id: number;
+  /** `null` en las cuentas para llevar. */
+  table: { id: number; name: string } | null;
+  takeout_name: string | null;
+  waiter: PersonRef | null;
+  opened_at: string;
+  cancelled_at: string;
+  cancel_reason: string | null;
+  /** `null` en las cuentas canceladas antes de la spec 070. */
+  cancelled_by: PersonRef | null;
+  cancelled_items: number;
+  mine: boolean;
+}
+
+export interface CancelledChecksParams {
+  page?: number;
+  page_size?: number;
+  search?: string;
+  waiter_id?: number;
 }
 
 export interface TablesResponse {

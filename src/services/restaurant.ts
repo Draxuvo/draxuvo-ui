@@ -1,7 +1,7 @@
 // src/services/restaurant.ts
 import { apiClient } from "@/lib/api";
 import type {
-  Check, DiningTable, MenuLink, PaymentMethod, PaymentResponse, RoundResponse, Station, StationBoard, StationKind, StockAlert, TablesResponse,
+  CancelledCheckSummary, CancelledChecksParams, Check, DiningTable, PaginatedResponse, MenuLink, PaymentMethod, PaymentResponse, RoundResponse, Station, StationBoard, StationKind, StockAlert, TablesResponse,
 } from "@/types";
 
 const base = "/api/v1/restaurant";
@@ -30,6 +30,10 @@ export interface CheckPaymentBody {
 }
 
 export const restaurantService = {
+  /** Cuentas canceladas (spec 070), de la más reciente a la más antigua. */
+  cancelledChecks: (params: CancelledChecksParams = {}): Promise<PaginatedResponse<CancelledCheckSummary>> =>
+    apiClient.get(`${base}/checks`, { params: { ...params, status: "cancelled" } }).then((r) => r.data),
+
   stations: (): Promise<Station[]> =>
     apiClient.get(`${base}/stations`).then((r) => r.data.results),
 

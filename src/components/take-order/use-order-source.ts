@@ -70,6 +70,8 @@ export function checkLines(check: Check): Line[] {
     editable: i.status === "draft",
     sent: i.status !== "draft",
     cancelled: i.status === "cancelled",
+    cancelReason: i.cancel_reason ?? null,
+    cancelledBy: i.cancelled_by?.name ?? null,
   }));
 }
 

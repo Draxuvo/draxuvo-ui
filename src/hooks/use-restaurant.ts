@@ -1,5 +1,5 @@
 // src/hooks/use-restaurant.ts
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   restaurantService,
   type StationPayload,
@@ -7,7 +7,7 @@ import {
 } from "@/services/restaurant";
 import { inventoryService } from "@/services/inventory";
 import { useAuthStore } from "@/store/auth";
-import type { Check, StationBoard } from "@/types";
+import type { CancelledChecksParams, Check, StationBoard } from "@/types";
 
 /** La estación sondea cada 3 s (research R2); se pausa con la pestaña oculta. */
 export const BOARD_POLL_MS = 3000;
@@ -138,6 +138,21 @@ export function useTablesOverview({ enabled = true }: { enabled?: boolean } = {}
     retry: false,
     refetchInterval: PEDIDO_POLL_MS,
     refetchIntervalInBackground: false,
+  });
+}
+
+/** Página de cuentas canceladas que pide el filtro «Canceladas» (spec 070). */
+export const CANCELLED_PAGE_SIZE = 20;
+
+/** Cuentas canceladas por páginas («Cargar más»); sin sondeo: se piden solo al elegir el filtro (FR-011). */
+export function useCancelledChecks(params: Omit<CancelledChecksParams, "page" | "page_size">, { enabled = true }: { enabled?: boolean } = {}) {
+  const companyId = useAuthStore((s) => s.selectedCompanyId);
+  return useInfiniteQuery({
+    queryKey: ["restaurant", "cancelled-checks", companyId, params],
+    queryFn: ({ pageParam }) => restaurantService.cancelledChecks({ ...params, page: pageParam, page_size: CANCELLED_PAGE_SIZE }),
+    initialPageParam: 1,
+    getNextPageParam: (last) => (last.info.page_end < last.info.total ? last.info.page_index + 1 : undefined),
+    enabled,
   });
 }
 

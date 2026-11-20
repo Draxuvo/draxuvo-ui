@@ -22,6 +22,8 @@ import { OrderForm } from "@/components/work-orders/order-form";
 import { useScreenMode } from "@/components/take-order/use-screen-mode";
 import { ClosedChecks, OpenChecks, useClosedChecks, useOpenChecks } from "@/components/take-order/open-checks";
 import { RestaurantAlerts } from "@/components/take-order/restaurant-alerts";
+import { CancelledChecks } from "@/components/take-order/cancelled-checks";
+import { useCancelledChecks } from "@/hooks/use-restaurant";
 import { useAppRouter } from "@/hooks/use-router";
 import { usePaidTab } from "@/hooks/use-paid-tab";
 import { PaidList } from "@/components/tickets/paid-list";
@@ -145,15 +147,20 @@ function MisOrdenesShell() {
 function MisOrdenesContent({ tabs, paidAvailable }: { tabs: ReactNode; paidAvailable: boolean }) {
   const t = useTranslations("workOrders");
   const ts = useTranslations("workOrders.staff");
+  const tq = useTranslations("takeOrder");
   const gate = useModuleGate("work_orders");
   const today = format(new Date(), "yyyy-MM-dd");
   const [formOpen, setFormOpen] = useState(false);
+  // Spec 070: sus cuentas canceladas, en una sección plegada que solo consulta al abrirse (FR-011).
+  const [cancelledOpen, setCancelledOpen] = useState(false);
   const router = useAppRouter();
   // Con restaurante o en modo pedido, "nueva orden" abre la pantalla visual (spec 018).
   const { mode: screen } = useScreenMode();
   // Con mesas, sus cuentas abiertas viven aquí junto a sus órdenes (spec 020).
   const openChecks = useOpenChecks("mine");
   const closedChecks = useClosedChecks("mine");
+  const cancelled = useCancelledChecks({}, { enabled: screen === "restaurant" && cancelledOpen });
+  const noCancelled = cancelled.isSuccess && (cancelled.data.pages[0]?.info.total ?? 0) === 0;
   const newOrder = () => (screen !== "none" ? router.push("/pedido") : setFormOpen(true));
 
   // sort_by=urgency es el orden por defecto de staff en la API: lo urgente y lo que vence hoy, primero.
@@ -209,6 +216,17 @@ function MisOrdenesContent({ tabs, paidAvailable }: { tabs: ReactNode; paidAvail
         </>
       )}
       {paidAvailable && !isLoading && !error && <PaidTodayLink count={(paid?.results.length ?? 0) + closedChecks.length} />}
+      {screen === "restaurant" && (
+        <details className="group rounded-etiqueta border border-border bg-card px-4" onToggle={(e) => setCancelledOpen(e.currentTarget.open)}>
+          <summary className="flex min-h-11 cursor-pointer items-center font-semibold">{tq("cancelledChecksSection")}</summary>
+          {cancelledOpen && (
+            <div className="space-y-3 pb-4">
+              <CancelledChecks query={cancelled} from="mis-ordenes" id="my-cancelled-checks-title" />
+              {noCancelled && <p className="text-sm text-muted-foreground">{tq("cancelledChecksEmpty")}</p>}
+            </div>
+          )}
+        </details>
+      )}
     </div>
   );
 }
