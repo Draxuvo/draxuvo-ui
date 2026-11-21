@@ -19,6 +19,8 @@ import {
 import { useAppRouter } from "@/hooks/use-router";
 import { useAuthStore } from "@/store/auth";
 import type { WorkOrder, WorkOrderAction } from "@/types";
+import { RefundPrompt } from "@/components/terminal-charge/refund-prompt";
+import { hasManualCard, refundStepFrom, type RefundMode, type RefundStep } from "@/components/terminal-charge/refund";
 import { ChargeDialog } from "./charge-dialog";
 import { OrderHistory } from "./order-history";
 import { OrderItems } from "./order-items";
@@ -39,6 +41,7 @@ type ReasonAction = "cancel" | "void_charge";
 
 export function OrderView({ id, backHref, onEdit }: OrderViewProps) {
   const t = useTranslations("workOrders");
+  const tr = useTranslations("terminalCharge.refund");
   const locale = useLocale();
   const dateLocale = locale === "en" ? enUS : es;
   const { data: order, isLoading, error, refetch } = useWorkOrder(id);
@@ -57,6 +60,8 @@ export function OrderView({ id, backHref, onEdit }: OrderViewProps) {
   const [finishWarning, setFinishWarning] = useState(false);
   const [reasonFor, setReasonFor] = useState<ReasonAction | null>(null);
   const [reason, setReason] = useState("");
+  // Spec 069: reembolso de los pagos integrados al anular el cobro.
+  const [refundStep, setRefundStep] = useState<RefundStep | null>(null);
 
   const status = (error as { response?: { status?: number } } | null)?.response?.status;
   const backLink = (
@@ -117,20 +122,29 @@ export function OrderView({ id, backHref, onEdit }: OrderViewProps) {
     finish.mutate(undefined, { onSuccess: () => toast.success(t("finished")), onError: fail });
   }
 
-  function confirmReason() {
+  function closeReason() {
+    setReasonFor(null);
+    setRefundStep(null);
+  }
+
+  function confirmReason(refund?: RefundMode) {
     if (!reasonFor) return;
     const text = reason.trim();
     if (!text) return;
     const mutation = reasonFor === "cancel" ? cancel : voidCharge;
     mutation.mutate(
-      { reason: text },
+      refund ? { reason: text, refund } : { reason: text },
       {
         onSuccess: () => {
           toast.success(reasonFor === "cancel" ? t("cancelledSuccess") : t("voidedSuccess"));
-          setReasonFor(null);
+          closeReason();
           setReason("");
         },
-        onError: fail,
+        onError: (err) => {
+          const next = reasonFor === "void_charge" ? refundStepFrom(err, refundStep) : null;
+          if (next) setRefundStep(next);
+          else fail(err);
+        },
       },
     );
   }
@@ -318,24 +332,40 @@ export function OrderView({ id, backHref, onEdit }: OrderViewProps) {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={reasonFor !== null} onOpenChange={(open) => !open && setReasonFor(null)}>
+      <Dialog open={reasonFor !== null} onOpenChange={(open) => !open && closeReason()}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>{reasonFor === "cancel" ? t("actions.cancelTitle") : t("actions.voidTitle")}</DialogTitle>
             <DialogDescription>{reasonFor === "cancel" ? t("actions.cancelDesc") : t("actions.voidDesc")}</DialogDescription>
           </DialogHeader>
-          <label htmlFor="order-reason" className="text-sm font-medium">
-            {t("actions.reasonLabel")}
-          </label>
-          <Input id="order-reason" value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t("actions.reasonPlaceholder")} className="h-11" autoFocus />
-          <DialogFooter>
-            <Button variant="outline" className="h-11" onClick={() => setReasonFor(null)}>
-              {reasonFor === "cancel" ? t("actions.cancelKeep") : t("actions.dismiss")}
-            </Button>
-            <Button variant="destructive" className="h-11" disabled={!reason.trim() || cancel.isPending || voidCharge.isPending} onClick={confirmReason}>
-              {reasonFor === "cancel" ? t("actions.cancelConfirm") : t("actions.voidConfirm")}
-            </Button>
-          </DialogFooter>
+          {refundStep ? (
+            <RefundPrompt
+              step={refundStep}
+              pending={voidCharge.isPending}
+              onConfirm={() => confirmReason("confirm")}
+              onSkip={() => setRefundStep({ kind: "skipConfirm", refunds: refundStep.refunds })}
+              onSkipConfirmed={() => confirmReason("skip")}
+              onBack={() => setRefundStep(null)}
+            />
+          ) : (
+            <>
+              <label htmlFor="order-reason" className="text-sm font-medium">
+                {t("actions.reasonLabel")}
+              </label>
+              <Input id="order-reason" value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t("actions.reasonPlaceholder")} className="h-11" autoFocus />
+              {reasonFor === "void_charge" && hasManualCard(order.ticket?.payments) && (
+                <p className="text-sm text-muted-foreground">{tr("manualCardNotice")}</p>
+              )}
+              <DialogFooter>
+                <Button variant="outline" className="h-11" onClick={closeReason}>
+                  {reasonFor === "cancel" ? t("actions.cancelKeep") : t("actions.dismiss")}
+                </Button>
+                <Button variant="destructive" className="h-11" disabled={!reason.trim() || cancel.isPending || voidCharge.isPending} onClick={() => confirmReason()}>
+                  {reasonFor === "cancel" ? t("actions.cancelConfirm") : t("actions.voidConfirm")}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>

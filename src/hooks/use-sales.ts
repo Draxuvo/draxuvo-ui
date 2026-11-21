@@ -93,7 +93,10 @@ export function useRefreshSale() {
   };
 }
 
-export const useCancelSale = () => useSaleMutation(({ saleId, reason }: { saleId: number; reason: string }) => salesService.cancel(saleId, reason));
+export const useCancelSale = () =>
+  useSaleMutation(({ saleId, reason, refund }: { saleId: number; reason: string; refund?: "confirm" | "skip" }) =>
+    refund ? salesService.cancel(saleId, reason, refund) : salesService.cancel(saleId, reason),
+  );
 
 export function useDiscardSale() {
   const qc = useQueryClient();

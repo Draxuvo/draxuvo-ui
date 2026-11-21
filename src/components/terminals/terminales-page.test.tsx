@@ -12,10 +12,13 @@ vi.mock("@/services/subscription", () => ({
   getSubscription: vi.fn().mockImplementation(() => Promise.resolve({ active_modules: plan.modules })),
 }));
 vi.mock("@/services/payment-terminals", () => ({ paymentTerminalsService: { list } }));
+const connections = vi.hoisted(() => vi.fn());
+vi.mock("@/services/terminal-connections", () => ({ terminalConnectionsService: { list: connections } }));
 
 import TerminalesPage from "../../app/[locale]/(dashboard)/terminales/page";
 
 beforeEach(() => {
+  connections.mockReset().mockResolvedValue([{ provider: "mercado_pago", available: true, connection: null }]);
   list.mockReset().mockResolvedValue([{ id: 1, name: "BBVA caja 1", provider: "bbva", provider_label: "BBVA", active: true, payments_count: 0 }]);
   useAuthStore.setState({
     user: { id: 1, role: "owner", companies: [{ id: 1, role: "owner", name: "Volta" }] } as never,
@@ -32,6 +35,7 @@ describe("página Terminales (spec 030)", () => {
 
     expect(await screen.findByText("Este módulo no está en tu plan")).toBeInTheDocument();
     expect(list).not.toHaveBeenCalled();
+    expect(connections).not.toHaveBeenCalled();
   });
 
   it("en una empresa con el módulo lista sus terminales", async () => {
@@ -40,5 +44,21 @@ describe("página Terminales (spec 030)", () => {
 
     expect(await screen.findByText("BBVA caja 1")).toBeInTheDocument();
     expect(screen.queryByText("Este módulo no está en tu plan")).not.toBeInTheDocument();
+  });
+
+  it("ofrece conectar Mercado Pago cuando la plataforma lo tiene disponible (spec 069)", async () => {
+    plan.modules = ["employees", "inventory", "terminals"];
+    renderWithProviders(<TerminalesPage />);
+
+    expect(await screen.findByRole("button", { name: "Conectar Mercado Pago" })).toBeInTheDocument();
+  });
+
+  it("sin credenciales de la plataforma no muestra la conexión", async () => {
+    plan.modules = ["employees", "inventory", "terminals"];
+    connections.mockResolvedValue([{ provider: "mercado_pago", available: false, connection: null }]);
+    renderWithProviders(<TerminalesPage />);
+
+    expect(await screen.findByText("BBVA caja 1")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Conectar Mercado Pago" })).not.toBeInTheDocument();
   });
 });

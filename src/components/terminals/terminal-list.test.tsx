@@ -8,6 +8,12 @@ import { TerminalList } from "./terminal-list";
 const updateMutate = vi.hoisted(() => vi.fn());
 const deleteMutate = vi.hoisted(() => vi.fn());
 
+const prepareMutate = vi.hoisted(() => vi.fn());
+const unlinkMutate = vi.hoisted(() => vi.fn());
+vi.mock("@/hooks/use-terminal-connections", () => ({
+  usePrepareTerminal: () => ({ mutateAsync: prepareMutate, isPending: false }),
+  useUnlinkTerminal: () => ({ mutateAsync: unlinkMutate, isPending: false }),
+}));
 vi.mock("@/hooks/use-payment-terminals", () => ({
   useUpdateTerminal: () => ({ mutateAsync: updateMutate, isPending: false }),
   useDeleteTerminal: () => ({ mutateAsync: deleteMutate, isPending: false }),
@@ -43,5 +49,23 @@ describe("TerminalList", () => {
     await userEvent.click(screen.getByRole("button", { name: "Borrar Clip vieja" }));
     await userEvent.click(screen.getByRole("button", { name: "Borrar" }));
     expect(deleteMutate).toHaveBeenCalledWith(2);
+  });
+
+  it("una integrada dice su proveedor y se puede volver a preparar o desligar (spec 069)", async () => {
+    prepareMutate.mockReset().mockResolvedValue({ mode: "PDV", restart_required: false });
+    unlinkMutate.mockReset().mockResolvedValue({});
+    const integrada: PaymentTerminal = {
+      id: 5, name: "Caja 1", provider: "mercado_pago", provider_label: "Mercado Pago", active: true, payments_count: 0,
+      kind: "integrated", chargeable: true, connection_status: "connected",
+    };
+    renderWithProviders(<TerminalList terminals={[integrada]} onEdit={() => {}} />);
+    expect(screen.getByText("Integrada · Mercado Pago · sin cobros")).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Volver a preparar Caja 1" }));
+    expect(prepareMutate).toHaveBeenCalledWith(5);
+
+    await userEvent.click(screen.getByRole("button", { name: "Desligar Caja 1" }));
+    await userEvent.click(screen.getByRole("button", { name: "Desligar" }));
+    expect(unlinkMutate).toHaveBeenCalledWith(5);
   });
 });

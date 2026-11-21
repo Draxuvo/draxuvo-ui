@@ -1,6 +1,6 @@
 // src/app/[locale]/(dashboard)/terminales/page.tsx
 // Terminales de cobro de la empresa activa (spec 015, US2): admin y dueño las dan de alta con su proveedor
-// para que el operador elija en cuál cobró. Draxuvo no se conecta con ellas en esta fase.
+// para que el operador elija en cuál cobró. Spec 069: la conexión con Mercado Pago y sus terminales integradas.
 "use client";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
@@ -9,8 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TerminalForm } from "@/components/terminals/terminal-form";
 import { TerminalList } from "@/components/terminals/terminal-list";
+import { ConnectionCard } from "@/components/terminals/connection-card";
+import { UnappliedList } from "@/components/terminals/unapplied-list";
 import { ModuleLocked, useModuleLocked } from "@/components/subscription/module-locked";
 import { usePaymentTerminals } from "@/hooks/use-payment-terminals";
+import { useTerminalConnections } from "@/hooks/use-terminal-connections";
 import { useAppRouter } from "@/hooks/use-router";
 import { useAuthStore } from "@/store/auth";
 import type { PaymentTerminal } from "@/types";
@@ -33,6 +36,7 @@ export default function TerminalesPage() {
   const { data, isLoading, isError, error } = usePaymentTerminals({ includeInactive: true, enabled: canManage });
   // Terminales es un módulo de Pro y Empresa (spec 030): fuera del plan se muestra el bloqueo.
   const locked = useModuleLocked("terminals", error);
+  const connections = useTerminalConnections({ enabled: canManage && !locked });
 
   if (!canManage) return null;
   if (locked) return <ModuleLocked module="terminals" />;
@@ -54,6 +58,10 @@ export default function TerminalesPage() {
           {t("new")}
         </Button>
       </div>
+
+      {connections.data?.map((entry) => <ConnectionCard key={entry.provider} entry={entry} />)}
+
+      <UnappliedList enabled={canManage && !locked} />
 
       {isLoading ? (
         <div className="space-y-2" aria-busy="true">

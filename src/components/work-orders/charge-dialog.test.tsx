@@ -13,7 +13,7 @@ const toastError = vi.hoisted(() => vi.fn());
 const toastSuccess = vi.hoisted(() => vi.fn());
 
 const chargeResult = vi.hoisted(() => ({ data: undefined as { stock_shortages?: Array<{ product_id: number; name: string; missing: number }> } | undefined }));
-const terminals = vi.hoisted(() => ({ list: [] as Array<{ id: number; name: string; provider: string; provider_label: string; active: boolean }> }));
+const terminals = vi.hoisted(() => ({ list: [] as Array<{ id: number; name: string; provider: string; provider_label: string; active: boolean; chargeable?: boolean }> }));
 
 vi.mock("@/hooks/use-work-orders", () => ({
   useChargeOrder: () => ({ mutate: chargeMutate, isPending: false, data: chargeResult.data }),
@@ -24,6 +24,9 @@ vi.mock("@/hooks/use-payment-terminals", () => ({
 vi.mock("@/services/tickets", () => ({ ticketsService: { sendWhatsapp } }));
 vi.mock("@/lib/ticket-pdf", () => ({ downloadTicketPDF }));
 vi.mock("sonner", () => ({ toast: { error: toastError, success: toastSuccess } }));
+const tcCreate = vi.hoisted(() => vi.fn());
+const tcGet = vi.hoisted(() => vi.fn());
+vi.mock("@/services/terminal-charges", () => ({ terminalChargesService: { create: tcCreate, get: tcGet, cancel: vi.fn(), abandon: vi.fn() } }));
 
 const pendiente = { id: 5, total: 850, status: "done", customer_phone: "5219876543210" } as WorkOrder;
 const cobrada = { ...pendiente, status: "paid", ticket: { id: 77, folio: "T-0042" } } as WorkOrder;
@@ -266,5 +269,21 @@ describe("cobro solo por jefes (spec 058)", () => {
     expect(toastError).toHaveBeenCalledWith("El cobro lo hace un administrador o el dueño.");
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
-});
 
+  it("con una terminal integrada manda el monto a la terminal y espera (spec 069)", async () => {
+    terminals.list = [{ id: 7, name: "Caja 1", provider: "mercado_pago", provider_label: "Mercado Pago", active: true, chargeable: true }];
+    tcCreate.mockResolvedValue({ id: 41, status: "pending" });
+    tcGet.mockResolvedValue({
+      id: 41, status: "pending", status_detail: "at_terminal", amount: "850.00", terminal: { id: 7, name: "Caja 1", provider: "mercado_pago" },
+      owner: { type: "work_order", id: 5, label: "x" }, allowed_actions: ["cancel", "abandon"],
+    });
+    abre(pendiente);
+    await userEvent.click(screen.getByRole("radio", { name: "Tarjeta" }));
+    expect(screen.queryByLabelText("Autorización")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Confirmar cobro" }));
+
+    expect(tcCreate).toHaveBeenCalledWith({ terminal_id: 7, amount: 850, owner: { type: "work_order", id: 5 }, params: { payments: [] } });
+    expect(chargeMutate).not.toHaveBeenCalled();
+    expect(await screen.findByText("Esperando terminal…")).toBeInTheDocument();
+  });
+});

@@ -4,8 +4,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
 import type { Sale, SaleChargeResult } from "@/types";
 
-vi.mock("@/services/sales", () => ({ salesService: { charge: vi.fn() } }));
-vi.mock("@/hooks/use-payment-terminals", () => ({ usePaymentTerminals: () => ({ data: [] }) }));
+vi.mock("@/services/sales", () => ({ salesService: { charge: vi.fn(), get: vi.fn() } }));
+const terminalList = vi.hoisted(() => ({ list: [] as unknown[] }));
+vi.mock("@/hooks/use-payment-terminals", () => ({ usePaymentTerminals: () => ({ data: terminalList.list }) }));
+const tcCreate = vi.hoisted(() => vi.fn());
+const tcGet = vi.hoisted(() => vi.fn());
+vi.mock("@/services/terminal-charges", () => ({ terminalChargesService: { create: tcCreate, get: tcGet, cancel: vi.fn(), abandon: vi.fn() } }));
 vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 
 import { toast } from "sonner";
@@ -30,7 +34,10 @@ function setup() {
   return { onOpenChange, onDone };
 }
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  terminalList.list = [];
+});
 
 describe("cobro de la venta (spec 050)", () => {
   it("efectivo: pide lo recibido, muestra el cambio y manda el cobro con la versión de la venta", async () => {
@@ -104,6 +111,24 @@ describe("cobro de la venta (spec 050)", () => {
     const { onOpenChange } = setup();
     await userEvent.setup().click(screen.getByRole("button", { name: "Cancelar" }));
     expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(salesService.charge).not.toHaveBeenCalled();
+  });
+
+  it("con terminal integrada cobra al aprobarse y muestra el folio (spec 069)", async () => {
+    terminalList.list = [{ id: 7, name: "Caja 1", provider: "mercado_pago", provider_label: "Mercado Pago", active: true, chargeable: true }];
+    tcCreate.mockResolvedValue({ id: 41, status: "pending" });
+    tcGet.mockResolvedValue({
+      id: 41, status: "applied", status_detail: "accredited", amount: "85.00", terminal: { id: 7, name: "Caja 1", provider: "mercado_pago" },
+      owner: { type: "sale", id: 7, label: "#7" }, result: { sale_id: 7, shortages: [] }, allowed_actions: [],
+    });
+    vi.mocked(salesService.get).mockResolvedValue(paid().sale);
+    setup();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("radio", { name: "Tarjeta" }));
+    await user.click(screen.getByRole("button", { name: "Confirmar cobro" }));
+
+    expect(tcCreate).toHaveBeenCalledWith({ terminal_id: 7, amount: 85, owner: { type: "sale", id: 7 }, params: { lock_version: 3, payments: [] } });
+    expect(await screen.findByText("Folio T-000009")).toBeInTheDocument();
     expect(salesService.charge).not.toHaveBeenCalled();
   });
 });

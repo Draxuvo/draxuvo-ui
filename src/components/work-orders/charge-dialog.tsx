@@ -2,6 +2,7 @@
 // Cobrar desde la orden con uno o varios pagos (spec 015): efectivo con lo recibido y el cambio, tarjeta con la
 // terminal en que se cobró (y, si se quiere, autorización y últimos 4) y transferencia con su referencia. Con
 // un solo pago de tarjeta o transferencia el monto es el total. Al confirmar muestra el folio, el PDF y WhatsApp.
+// Spec 069: si la tarjeta va a una terminal integrada, el monto se manda a la terminal y el cobro se registra al aprobarse.
 import { useDemoInfo } from "@/hooks/use-demo";
 import { useCompanyModule } from "@/hooks/use-company-module";
 import { useState } from "react";
@@ -21,6 +22,11 @@ import { downloadTicketPDF } from "@/lib/ticket-pdf";
 import type { ChargePaymentInput, PaymentMethod, PaymentTerminal, WorkOrder } from "@/types";
 import { cn } from "@/lib/utils";
 import { Select } from "@/components/ui/select";
+import { integratedRows, integratedTerminalOf } from "@/components/terminal-charge/integrated";
+import { TerminalWait } from "@/components/terminal-charge/terminal-wait";
+import { useTerminalCharge } from "@/components/terminal-charge/use-terminal-charge";
+import { rememberTerminal, useRememberedTerminal } from "@/components/terminal-charge/remembered-terminal";
+import type { TerminalChargeInput } from "@/services/terminal-charges";
 
 const METHODS: { key: PaymentMethod; icon: typeof Banknote }[] = [
   { key: "cash", icon: Banknote },
@@ -43,6 +49,8 @@ export type PaymentRowState = {
   authorization: string;
   last4: string;
   reference: string;
+  /** Spec 069: el cajero decidió registrar a mano en una terminal integrada (respaldo). */
+  manual?: boolean;
 };
 
 export const num = (value: string) => {
@@ -57,6 +65,7 @@ export function newKey() {
 
 export function ChargeDialog({ order, open, onOpenChange }: { order: WorkOrder; open: boolean; onOpenChange: (open: boolean) => void }) {
   const t = useTranslations("workOrders");
+  const tc = useTranslations("terminalCharge");
   const td = useTranslations("demo");
   const queryClient = useQueryClient();
   const { isDemo } = useDemoInfo();
@@ -72,7 +81,7 @@ export function ChargeDialog({ order, open, onOpenChange }: { order: WorkOrder; 
   const [phone, setPhone] = useState(order.customer_phone ?? "");
   const charge = useChargeOrder(order.id);
   // Lo que no alcanzó del inventario al cobrar (spec 054): se avisa a quien cobra, el cobro ya está hecho.
-  const shortages = charge.data?.stock_shortages ?? [];
+  const shortagesFromCharge = charge.data?.stock_shortages ?? null;
   const whatsapp = useMutation({
     mutationFn: ({ id, phone }: { id: number; phone?: string }) => ticketsService.sendWhatsapp(id, phone),
   });
@@ -87,13 +96,26 @@ export function ChargeDialog({ order, open, onOpenChange }: { order: WorkOrder; 
   const missing = cashRow ? Math.max(0, round(cashDue - received)) : Math.max(0, cashDue);
   const change = cashRow && received > cashDue ? round(received - cashDue) : 0;
   const exceeds = nonCash > total;
-  const defaultTerminal = terminals.length === 1 ? String(terminals[0].id) : "";
+  const defaultTerminal = useRememberedTerminal(terminals);
   const rowValid = (row: PaymentRowState) =>
     (row.method === "cash" ? row.received !== "" : single || num(row.amount) > 0) &&
     (row.method !== "card" || terminals.length === 0 || (row.terminalId || defaultTerminal) !== "") &&
     (row.method !== "card" || row.last4 === "" || /^\d{4}$/.test(row.last4)) &&
     (row.method !== "transfer" || row.reference.trim() !== "");
-  const canConfirm = !exceeds && missing === 0 && (!cashRow || cashDue > 0) && rows.every(rowValid);
+  // Spec 069 (FR-017): como máximo un pago a una terminal integrada.
+  const toTerminal = integratedRows(rows, terminals, defaultTerminal);
+  const canConfirm = !exceeds && missing === 0 && (!cashRow || cashDue > 0) && rows.every(rowValid) && toTerminal.length <= 1;
+  const [terminalShortages, setTerminalShortages] = useState<NonNullable<NonNullable<typeof charge.data>["stock_shortages"]>>([]);
+  const [lastInput, setLastInput] = useState<TerminalChargeInput | null>(null);
+  const terminalCharge = useTerminalCharge({
+    onApplied: (applied) => {
+      const result = applied.result as { stock_shortages?: typeof terminalShortages } | null;
+      setTerminalShortages(result?.stock_shortages ?? []);
+      queryClient.invalidateQueries({ queryKey: ["work-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+  });
 
   const patch = (key: number, changes: Partial<PaymentRowState>) => setRows((prev) => prev.map((r) => (r.key === key ? { ...r, ...changes } : r)));
 
@@ -108,8 +130,8 @@ export function ChargeDialog({ order, open, onOpenChange }: { order: WorkOrder; 
     });
   }
 
-  function toPayload(): ChargePaymentInput[] {
-    return rows.map((row) => {
+  function toPayload(list: PaymentRowState[] = rows): ChargePaymentInput[] {
+    return list.map((row) => {
       if (row.method === "cash") return { method: "cash", amount_received: num(row.received) };
       const amount = amountOf(row);
       if (row.method === "transfer") return { method: "transfer", amount, reference: row.reference.trim() };
@@ -125,6 +147,21 @@ export function ChargeDialog({ order, open, onOpenChange }: { order: WorkOrder; 
   }
 
   function confirm() {
+    rows.forEach((row) => row.method === "card" && rememberTerminal(row.terminalId || defaultTerminal));
+    const integratedRow = toTerminal[0];
+    if (integratedRow) {
+      const terminal = integratedTerminalOf(integratedRow, terminals, defaultTerminal);
+      if (!terminal) return;
+      const input: TerminalChargeInput = {
+        terminal_id: terminal.id,
+        amount: amountOf(integratedRow),
+        owner: { type: "work_order", id: order.id },
+        params: { payments: toPayload(rows.filter((r) => r.key !== integratedRow.key)) },
+      };
+      setLastInput(input);
+      terminalCharge.start(input);
+      return;
+    }
     charge.mutate(
       { payments: toPayload(), idempotencyKey },
       {
@@ -155,18 +192,19 @@ export function ChargeDialog({ order, open, onOpenChange }: { order: WorkOrder; 
 
         {ticket ? (
           <div className="space-y-4">
+            {/* Lo que no alcanzó del inventario: del cobro de siempre o del aplicado desde la terminal (spec 069). */}
             <p className="flex items-center gap-2 font-display text-2xl font-extrabold">
               <Check className="size-6 text-sello" aria-hidden="true" />
               {t("charge.folio", { folio: ticket.folio })}
             </p>
-            {shortages.length > 0 && (
+            {(shortagesFromCharge ?? terminalShortages).length > 0 && (
               <div role="alert" className="rounded-etiqueta border border-border bg-muted p-3 text-sm">
                 <p className="flex items-center gap-2 font-semibold">
                   <TriangleAlert size={16} aria-hidden />
                   {t("charge.shortagesTitle")}
                 </p>
                 <ul className="mt-1 list-disc pl-6">
-                  {shortages.map((s) => (
+                  {(shortagesFromCharge ?? terminalShortages).map((s) => (
                     <li key={s.product_id}>{t("charge.shortageLine", { name: s.name, missing: s.missing })}</li>
                   ))}
                 </ul>
@@ -208,6 +246,23 @@ export function ChargeDialog({ order, open, onOpenChange }: { order: WorkOrder; 
               </Button>
             </DialogFooter>
           </div>
+        ) : terminalCharge.active && lastInput ? (
+          <TerminalWait
+            amount={money.format(lastInput.amount)}
+            terminalName={terminals.find((x) => x.id === lastInput.terminal_id)?.name ?? ""}
+            charge={terminalCharge.charge}
+            starting={terminalCharge.starting}
+            error={terminalCharge.startError}
+            canceling={terminalCharge.canceling}
+            describeError={(code) => ((ERROR_CODES as readonly string[]).includes(code) ? t(`charge.errors.${code}`) : null)}
+            onCancel={terminalCharge.cancel}
+            onRetry={() => terminalCharge.start(lastInput)}
+            onChooseOther={terminalCharge.reset}
+            onManual={async () => {
+              await terminalCharge.abandon();
+              setRows((prev) => prev.map((r) => (toTerminal.some((x) => x.key === r.key) ? { ...r, manual: true } : r)));
+            }}
+          />
         ) : (
           <div className="space-y-5">
             <p className="text-center font-display text-5xl font-extrabold tabular-nums">{money.format(total)}</p>
@@ -231,6 +286,12 @@ export function ChargeDialog({ order, open, onOpenChange }: { order: WorkOrder; 
                 <Plus size={14} aria-hidden="true" />
                 {t("charge.addPayment")}
               </Button>
+            )}
+
+            {toTerminal.length > 1 && (
+              <p role="alert" className="text-sm text-destructive">
+                {tc("onlyOne")}
+              </p>
             )}
 
             <p aria-live="polite" className="min-h-6 text-base font-semibold tabular-nums">
@@ -282,7 +343,11 @@ export function PaymentRow({
   onRemove?: () => void;
 }) {
   const t = useTranslations("workOrders");
+  const tc = useTranslations("terminalCharge");
   const id = (field: string) => `charge-${row.key}-${field}`;
+  const chosen = terminals.find((x) => String(x.id) === (row.terminalId || defaultTerminal));
+  // Spec 069: a una terminal integrada se manda el monto; no se capturan autorización ni últimos 4.
+  const toTerminal = integratedTerminalOf(row, terminals, defaultTerminal) != null;
   const legend = single ? t("charge.method") : t("charge.paymentN", { n: index + 1 });
 
   return (
@@ -371,17 +436,22 @@ export function PaymentRow({
               <Select
                 id={id("terminal")}
                 value={row.terminalId || defaultTerminal}
-                onChange={(e) => onChange({ terminalId: e.target.value })}
+                onChange={(e) => onChange({ terminalId: e.target.value, manual: false })}
               >
                 <option value="">{t("charge.pickTerminal")}</option>
                 {terminals.map((terminal) => (
                   <option key={terminal.id} value={terminal.id}>
-                    {terminal.name}
+                    {terminal.chargeable ? `${terminal.name} · ${tc("integrated")}` : terminal.name}
                   </option>
                 ))}
               </Select>
+              {row.manual && chosen?.chargeable && (
+                <p className="text-xs text-muted-foreground">{tc("manualHint", { terminal: chosen.name })}</p>
+              )}
             </div>
           )}
+          {!toTerminal && (
+          <>
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-2">
               <label className="text-sm font-medium" htmlFor={id("authorization")}>
@@ -404,6 +474,8 @@ export function PaymentRow({
             </div>
           </div>
           <p className="text-xs text-muted-foreground">{t("charge.optionalVoucher")}</p>
+          </>
+          )}
         </div>
       )}
 
