@@ -41,6 +41,7 @@ export function TicketDetail({
 }) {
   const t = useTranslations("tickets");
   const tc = useTranslations("common");
+  const tr = useTranslations("terminalCharge.refund");
   const td = useTranslations("demo");
   const { isDemo } = useDemoInfo();
   const locale = useLocale();
@@ -202,6 +203,12 @@ export function TicketDetail({
                           {t("voidPayments", { payments: void_.payments.map((p) => `${t(`methods.${p.method}`)} ${money(p.amount)}`).join(", ") })}
                         </p>
                       )}
+                      {/* Spec 069: estado del reembolso de cada pago integrado anulado (FR-034) */}
+                      {void_.payments.filter((p) => p.refund).map((p, index) => (
+                        <p key={p.ticket_payment_id ?? index} className="text-muted-foreground">
+                          {tr(`status.${p.refund!.status}`, { amount: money(p.refund!.amount) })}
+                        </p>
+                      ))}
                     </li>
                   ))}
                 </ul>

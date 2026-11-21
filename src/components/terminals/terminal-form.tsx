@@ -61,10 +61,13 @@ function TerminalFields({ terminal, onDone }: { terminal?: PaymentTerminal | nul
     defaultValues: { name: terminal?.name ?? "", provider: terminal?.provider ?? "bbva", active: terminal?.active ?? true },
   });
 
+  // Spec 069: una integrada usa el proveedor de su cuenta conectada; no se cambia aquí.
+  const integrated = terminal?.kind === "integrated";
+
   async function onSubmit(values: Values) {
     const data = { name: values.name.trim(), provider: values.provider, active: values.active };
     try {
-      if (terminal) await update.mutateAsync({ id: terminal.id, data });
+      if (terminal) await update.mutateAsync({ id: terminal.id, data: integrated ? { name: data.name, active: data.active } : data });
       else await create.mutateAsync(data);
       toast.success(t("saved"));
       onDone();
@@ -98,13 +101,18 @@ function TerminalFields({ terminal, onDone }: { terminal?: PaymentTerminal | nul
             <Label htmlFor="terminal-provider" className="text-xs font-medium text-foreground">
               {t("provider")}
             </Label>
-            <Select id="terminal-provider" {...register("provider")}>
+            <Select id="terminal-provider" disabled={integrated} aria-describedby={integrated ? "terminal-provider-locked" : undefined} {...register("provider")}>
               {TERMINAL_PROVIDERS.map((provider) => (
                 <option key={provider} value={provider}>
                   {t(`providers.${provider}`)}
                 </option>
               ))}
             </Select>
+            {integrated && (
+              <p id="terminal-provider-locked" className="text-xs text-muted-foreground">
+                {t("providerLocked")}
+              </p>
+            )}
           </div>
           <div className="flex items-center justify-between gap-4">
             <Label htmlFor="terminal-active" className="text-sm font-medium text-foreground">

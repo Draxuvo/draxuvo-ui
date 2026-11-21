@@ -203,6 +203,43 @@ describe("OrderView", () => {
       await userEvent.click(botones("Anular cobro")[0]);
     }
 
+    // Spec 069, US6: reembolso de los pagos con terminal integrada.
+    const refundError = (details: Record<string, unknown>) => ({ response: { data: { error: { message: "x", details } } } });
+
+    it("con un pago integrado pide confirmar el reembolso y reintenta con confirm", async () => {
+      await abre();
+      await userEvent.type(within(dialogo()).getByLabelText("Motivo"), "Cobro duplicado");
+      await userEvent.click(within(dialogo()).getByRole("button", { name: "Anular cobro" }));
+      callbacks(mut.voidCharge).onError(
+        refundError({ code: "refund_confirmation_required", refunds: [{ ticket_payment_id: 4, amount: "500.00", terminal: { id: 2, name: "Caja 1" } }] }),
+      );
+      expect(await within(dialogo()).findByText(/Se devolverán \$500\.00 a la tarjeta cobrada en Caja 1/)).toBeInTheDocument();
+      expect(toast.error).not.toHaveBeenCalled();
+
+      await userEvent.click(within(dialogo()).getByRole("button", { name: "Reembolsar y anular" }));
+      expect(mut.voidCharge.mutate).toHaveBeenLastCalledWith({ reason: "Cobro duplicado", refund: "confirm" }, expect.any(Object));
+    });
+
+    it("si el proveedor rechaza, explica el motivo y ofrece anular sin reembolso con segunda confirmación", async () => {
+      await abre();
+      await userEvent.type(within(dialogo()).getByLabelText("Motivo"), "Cobro duplicado");
+      await userEvent.click(within(dialogo()).getByRole("button", { name: "Anular cobro" }));
+      callbacks(mut.voidCharge).onError(refundError({ code: "refund_failed", reason: "refund_period_exceeded" }));
+      expect(await within(dialogo()).findByText("Ya pasó el plazo para reembolsar ese pago en el proveedor.")).toBeInTheDocument();
+
+      await userEvent.click(within(dialogo()).getByRole("button", { name: "Anular sin reembolso" }));
+      expect(mut.voidCharge.mutate).toHaveBeenCalledTimes(1);
+      expect(within(dialogo()).getByText(/reembolso pendiente fuera de Draxuvo/)).toBeInTheDocument();
+      await userEvent.click(within(dialogo()).getByRole("button", { name: "Sí, anular sin reembolso" }));
+      expect(mut.voidCharge.mutate).toHaveBeenLastCalledWith({ reason: "Cobro duplicado", refund: "skip" }, expect.any(Object));
+    });
+
+    it("con un pago con tarjeta registrado a mano avisa que la devolución es en la terminal o el banco", async () => {
+      pinta(orden("paid", ["void_charge"], { ticket: { payments: [{ id: 1, method: "card", amount: "500.00", source: "manual" }] } as never }));
+      await userEvent.click(botones("Anular cobro")[0]);
+      expect(within(dialogo()).getByText(/la devolución se hace en la terminal o con el banco/)).toBeInTheDocument();
+    });
+
     it("usa la mutación de anular y no la de cancelar", async () => {
       await abre();
       expect(within(dialogo()).getByText("La orden volverá a Terminada y el ticket quedará anulado. Escribe el motivo.")).toBeInTheDocument();

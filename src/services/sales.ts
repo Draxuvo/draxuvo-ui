@@ -56,7 +56,9 @@ export const salesService = {
     apiClient.get<PaginatedResponse<Sale>>("/api/v1/sales", { params: { queue: 1, page, page_size } }).then((r) => r.data),
 
   /** Cancela una venta cobrada (solo dueño y administrador). */
-  cancel: (id: number, reason: string) => apiClient.post<Sale>(`/api/v1/sales/${id}/cancel`, { reason }, { skipErrorToast: true }).then((r) => r.data),
+  /** `refund` (spec 069): `confirm` o `skip` para los pagos con terminal integrada. */
+  cancel: (id: number, reason: string, refund?: "confirm" | "skip") =>
+    apiClient.post<Sale>(`/api/v1/sales/${id}/cancel`, refund ? { reason, refund } : { reason }, { skipErrorToast: true }).then((r) => r.data),
 
   /** PDF del ticket de una venta cobrada. */
   ticketPdf: (id: number, paper: TicketPaper) =>

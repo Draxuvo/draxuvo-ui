@@ -122,11 +122,14 @@ export function useDeleteWorkOrder() {
 }
 
 /** Transición de estado: `POST /work_orders/:id/<action>`. */
-function useTransition(id: number, action: string, opts: { tickets?: boolean } = {}) {
+function useTransition(id: number, action: string, opts: { tickets?: boolean; quiet?: boolean } = {}) {
   const { after } = useRefreshOrders();
   return useMutation({
     mutationFn: (body?: Record<string, unknown>) =>
-      apiClient.post(`/api/v1/work_orders/${id}/${action}`, body ?? {}).then((r) => r.data as WorkOrder),
+      (opts.quiet
+        ? apiClient.post(`/api/v1/work_orders/${id}/${action}`, body ?? {}, { skipErrorToast: true })
+        : apiClient.post(`/api/v1/work_orders/${id}/${action}`, body ?? {})
+      ).then((r) => r.data as WorkOrder),
     onSuccess: (data) => after(id, data, { dashboard: true, tickets: opts.tickets }),
   });
 }
@@ -155,7 +158,8 @@ export function useChargeOrder(id: number) {
   });
 }
 
-export const useVoidCharge = (id: number) => useTransition(id, "void_charge", { tickets: true });
+/** Anular el cobro. Con pagos integrados la API pide confirmar el reembolso (spec 069): la vista muestra sus errores. */
+export const useVoidCharge = (id: number) => useTransition(id, "void_charge", { tickets: true, quiet: true });
 
 // Conceptos
 function useOrderMutation<V>(orderId: number, fn: (v: V) => Promise<WorkOrder>) {

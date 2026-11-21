@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useCancelSale, useSale } from "@/hooks/use-sales";
 import type { Sale } from "@/types";
+import { RefundPrompt } from "@/components/terminal-charge/refund-prompt";
+import { hasManualCard, refundStepFrom, type RefundMode, type RefundStep } from "@/components/terminal-charge/refund";
 import { formatMoney } from "./lib";
 import { SaleTicket } from "./sale-ticket";
 
@@ -106,63 +108,89 @@ function Body({ sale, locale, onCancel }: { sale: Sale; locale: "es" | "en"; onC
 
 function CancelDialog({ sale, open, onOpenChange }: { sale: Sale; open: boolean; onOpenChange: (open: boolean) => void }) {
   const t = useTranslations("pos.history.cancel");
+  const tr = useTranslations("terminalCharge.refund");
   const cancel = useCancelSale();
   const [reason, setReason] = useState("");
   const [touched, setTouched] = useState(false);
+  // Spec 069: reembolso de los pagos integrados.
+  const [refundStep, setRefundStep] = useState<RefundStep | null>(null);
   const missing = reason.trim() === "";
 
-  function confirm() {
+  function close(next: boolean) {
+    if (!next) setRefundStep(null);
+    onOpenChange(next);
+  }
+
+  function confirm(refund?: RefundMode) {
     setTouched(true);
     if (missing) return;
     cancel.mutate(
-      { saleId: sale.id, reason: reason.trim() },
+      { saleId: sale.id, reason: reason.trim(), refund },
       {
         onSuccess: () => {
           toast.success(t("done"));
           setReason("");
           setTouched(false);
-          onOpenChange(false);
+          close(false);
         },
-        onError: () => toast.error(t("error")),
+        onError: (err) => {
+          const next = refundStepFrom(err, refundStep);
+          if (next) setRefundStep(next);
+          else toast.error(t("error"));
+        },
       },
     );
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={close}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>{t("title", { id: sale.id })}</DialogTitle>
           <DialogDescription>{t("body")}</DialogDescription>
         </DialogHeader>
-        <div className="space-y-1">
-          <label htmlFor={`cancel-reason-${sale.id}`} className="text-sm font-medium">
-            {t("reason")}
-          </label>
-          <textarea
-            id={`cancel-reason-${sale.id}`}
-            aria-label={t("reason")}
-            value={reason}
-            onChange={(event) => setReason(event.target.value)}
-            rows={3}
-            aria-invalid={touched && missing}
-            aria-describedby={touched && missing ? `cancel-reason-error-${sale.id}` : undefined}
-            className="w-full rounded-etiqueta border border-input bg-card p-2 text-base foco-etiqueta"
+        {refundStep ? (
+          <RefundPrompt
+            step={refundStep}
+            pending={cancel.isPending}
+            onConfirm={() => confirm("confirm")}
+            onSkip={() => setRefundStep({ kind: "skipConfirm", refunds: refundStep.refunds })}
+            onSkipConfirmed={() => confirm("skip")}
+            onBack={() => setRefundStep(null)}
           />
-          {touched && missing && (
-            <p id={`cancel-reason-error-${sale.id}`} role="alert" className="text-sm text-destructive">
-              {t("reasonRequired")}
-            </p>
-          )}
-        </div>
-        <DialogFooter>
-          <Button variant="outline" className="h-11" onClick={() => onOpenChange(false)}>
-            {t("keep")}
-          </Button>
-          <Button className="h-11" disabled={cancel.isPending} onClick={confirm}>
-            {t("confirm")}
-          </Button>
-        </DialogFooter>
+        ) : (
+          <>
+            <div className="space-y-1">
+              <label htmlFor={`cancel-reason-${sale.id}`} className="text-sm font-medium">
+                {t("reason")}
+              </label>
+              <textarea
+                id={`cancel-reason-${sale.id}`}
+                aria-label={t("reason")}
+                value={reason}
+                onChange={(event) => setReason(event.target.value)}
+                rows={3}
+                aria-invalid={touched && missing}
+                aria-describedby={touched && missing ? `cancel-reason-error-${sale.id}` : undefined}
+                className="w-full rounded-etiqueta border border-input bg-card p-2 text-base foco-etiqueta"
+              />
+              {touched && missing && (
+                <p id={`cancel-reason-error-${sale.id}`} role="alert" className="text-sm text-destructive">
+                  {t("reasonRequired")}
+                </p>
+              )}
+              {hasManualCard(sale.ticket?.payments) && <p className="text-sm text-muted-foreground">{tr("manualCardNotice")}</p>}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" className="h-11" onClick={() => close(false)}>
+                {t("keep")}
+              </Button>
+              <Button className="h-11" disabled={cancel.isPending} onClick={() => confirm()}>
+                {t("confirm")}
+              </Button>
+            </DialogFooter>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -116,7 +116,12 @@ describe("transiciones", () => {
     const { result } = renderHook(() => hook(7), { wrapper });
     await act(() => result.current.mutateAsync({ payment_method: "cash" }));
 
-    expect(api.post).toHaveBeenCalledWith(`/api/v1/work_orders/7/${action}`, { payment_method: "cash" });
+    // Anular el cobro muestra sus propios errores (reembolso de pagos integrados, spec 069).
+    if (action === "void_charge") {
+      expect(api.post).toHaveBeenCalledWith(`/api/v1/work_orders/7/${action}`, { payment_method: "cash" }, { skipErrorToast: true });
+    } else {
+      expect(api.post).toHaveBeenCalledWith(`/api/v1/work_orders/7/${action}`, { payment_method: "cash" });
+    }
     expect(client.getQueryData(["work-orders", 7])).toEqual(order);
     const keys = spy.mock.calls.map((c) => c[0]!.queryKey);
     expect(keys).toContainEqual(["work-orders"]);
