@@ -2606,6 +2606,24 @@
       "invalid_state": "The authorization expired or was opened in another session. Connect again from Terminals.",
       "authorization_failed": "Mercado Pago didn't accept the authorization. Try again.",
       "back": "Back to Terminals"
+    },
+    "unapplied": {
+      "title": "Unapplied payments ({count})",
+      "subtitle": "The provider approved these payments, but Draxuvo couldn't record them. Refund them or mark them handled if you already sorted them out.",
+      "reference": "ref. {reference}",
+      "reasons": {
+        "already_paid": "Approved after the charge had already been recorded another way.",
+        "other": "The charge couldn't be recorded."
+      },
+      "refund": "Refund",
+      "refundTitle": "Refund payment",
+      "refundConfirm": "Yes, refund",
+      "refunded": "Refund done",
+      "dismiss": "Mark handled",
+      "dismissTitle": "Mark handled",
+      "dismissBody": "Use it if you already resolved it outside Draxuvo (for example, you returned it from the provider account). It will stop showing here.",
+      "dismissConfirm": "Yes, mark handled",
+      "dismissed": "Payment marked as handled"
     }
   },
   "takeOrder": {
@@ -3537,6 +3555,33 @@
       "provider_unavailable": "The terminal didn't respond",
       "amount_out_of_range": "The amount is outside what the terminal accepts",
       "device_offline": "The terminal isn't available"
+    },
+    "refund": {
+      "line": "{amount} will be returned to the card charged on {terminal}.",
+      "unknownTerminal": "the terminal",
+      "confirmHint": "Draxuvo will ask the provider for the refund and only void if it's accepted.",
+      "confirm": "Refund and void",
+      "refunding": "Refunding…",
+      "back": "Back",
+      "retry": "Try again",
+      "failedTitle": "Not voided: the refund didn't go through",
+      "skip": "Void without refund",
+      "skipWarning": "The payment will be marked “refund pending outside Draxuvo”: you'll need to return it from the provider account or with the bank.",
+      "skipConfirm": "Yes, void without refund",
+      "manualCardNotice": "Card payments recorded by hand aren't refunded by Draxuvo: return them on the terminal or with the bank.",
+      "reasons": {
+        "refund_period_exceeded": "The provider's refund period for that payment is over.",
+        "insufficient_money_for_refund": "The provider account doesn't have enough balance for the refund.",
+        "connection_error": "The provider connection isn't working; reconnect the account in Terminals.",
+        "provider_unavailable": "The provider didn't answer. Try again in a moment.",
+        "refund_rejected": "The provider rejected the refund."
+      },
+      "status": {
+        "requested": "Refund of {amount} in progress",
+        "done": "Refund of {amount} done",
+        "rejected": "Refund of {amount} rejected",
+        "skipped": "Refund of {amount} pending outside Draxuvo"
+      }
     }
   }
 }

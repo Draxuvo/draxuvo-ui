@@ -938,7 +938,8 @@ export interface TicketVoid {
   voided_by: PersonRef | null;
   reason: string;
   amount: number | string;
-  payments: Array<{ method: PaymentMethod; amount: string }>;
+  /** Spec 069: un pago integrado trae su id y el estado actual de su reembolso. */
+  payments: Array<{ method: PaymentMethod; amount: string; ticket_payment_id?: number; refund?: TerminalRefundInfo | null }>;
 }
 
 // ── Filtros de lista (contracts/ui-routes.md). Los nombres son los de la API (R5). ──
@@ -1141,6 +1142,7 @@ export type TerminalChargeOwnerType = "work_order" | "sale" | "check";
 export interface TerminalRefundInfo {
   status: "requested" | "done" | "rejected" | "skipped";
   amount: string;
+  provider_refund_id?: string | null;
   completed_at: string | null;
   error_code: string | null;
 }

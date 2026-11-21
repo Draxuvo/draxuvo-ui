@@ -107,6 +107,26 @@ describe("historial de ventas (spec 050)", () => {
     await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Venta cancelada"));
   });
 
+  it("una venta cobrada en terminal integrada pide confirmar el reembolso (spec 069)", async () => {
+    vi.mocked(salesService.cancel)
+      .mockRejectedValueOnce({
+        response: { data: { error: { details: { code: "refund_confirmation_required", refunds: [{ ticket_payment_id: 1, amount: "85.00", terminal: { id: 2, name: "Caja 1" } }] } } } },
+      })
+      .mockResolvedValueOnce(sale({ status: "cancelled", status_label: "Cancelada", actions: ["ticket"] }));
+    renderWithProviders(<SalesHistory />);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: /T-000009/ }));
+    await user.click(await screen.findByRole("button", { name: "Cancelar venta" }));
+    await user.type(screen.getByLabelText("Motivo de la cancelación"), "Cliente devolvió");
+    await user.click(screen.getAllByRole("button", { name: "Cancelar venta" }).at(-1) as HTMLElement);
+
+    expect(await screen.findByText(/Se devolverán \$85\.00 a la tarjeta cobrada en Caja 1/)).toBeInTheDocument();
+    expect(toast.error).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Reembolsar y anular" }));
+    await waitFor(() => expect(salesService.cancel).toHaveBeenLastCalledWith(7, "Cliente devolvió", "confirm"));
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Venta cancelada"));
+  });
+
   it("el staff no ve el botón de cancelar", async () => {
     vi.mocked(salesService.get).mockResolvedValue(sale({ actions: ["ticket"] }));
     renderWithProviders(<SalesHistory mine />);

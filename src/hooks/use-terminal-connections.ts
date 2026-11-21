@@ -2,6 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { terminalConnectionsService } from "@/services/terminal-connections";
 import { paymentTerminalsService } from "@/services/payment-terminals";
+import { terminalChargesService } from "@/services/terminal-charges";
 import { useModuleGate } from "@/components/subscription/module-locked";
 import type { TerminalProvider } from "@/types";
 
@@ -55,3 +56,23 @@ export const useLinkTerminal = () =>
 export const usePrepareTerminal = () => useInvalidating((id: number) => paymentTerminalsService.prepare(id));
 
 export const useUnlinkTerminal = () => useInvalidating((id: number) => paymentTerminalsService.unlink(id));
+
+const UNAPPLIED_KEY = ["terminal-charges", "unapplied"] as const;
+
+/** Pagos aprobados que no se pudieron registrar (FR-020, FR-035): solo jefes. */
+export function useUnappliedCharges({ enabled = true }: { enabled?: boolean } = {}) {
+  const gate = useModuleGate("terminals");
+  return useQuery({
+    queryKey: UNAPPLIED_KEY,
+    queryFn: () => terminalChargesService.list({ status: "unapplied" }),
+    enabled: enabled && gate.enabled,
+  });
+}
+
+function useUnappliedAction(fn: (id: number) => Promise<unknown>) {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: fn, onSuccess: () => void qc.invalidateQueries({ queryKey: UNAPPLIED_KEY }) });
+}
+
+export const useRefundUnapplied = () => useUnappliedAction(terminalChargesService.refund);
+export const useDismissUnapplied = () => useUnappliedAction(terminalChargesService.dismiss);

@@ -2606,6 +2606,24 @@
       "invalid_state": "La autorización venció o se abrió en otra sesión. Vuelve a conectar desde Terminales.",
       "authorization_failed": "Mercado Pago no aceptó la autorización. Vuelve a intentarlo.",
       "back": "Volver a Terminales"
+    },
+    "unapplied": {
+      "title": "Pagos sin aplicar ({count})",
+      "subtitle": "El proveedor aprobó estos pagos, pero Draxuvo no los pudo registrar. Reembólsalos o márcalos atendidos si ya los resolviste.",
+      "reference": "ref. {reference}",
+      "reasons": {
+        "already_paid": "Se aprobó cuando el cobro ya se había registrado por otra vía.",
+        "other": "No se pudo registrar el cobro."
+      },
+      "refund": "Reembolsar",
+      "refundTitle": "Reembolsar pago",
+      "refundConfirm": "Sí, reembolsar",
+      "refunded": "Reembolso hecho",
+      "dismiss": "Marcar atendido",
+      "dismissTitle": "Marcar atendido",
+      "dismissBody": "Úsalo si ya lo resolviste fuera de Draxuvo (por ejemplo, lo devolviste desde la cuenta del proveedor). Dejará de aparecer aquí.",
+      "dismissConfirm": "Sí, marcar atendido",
+      "dismissed": "Pago marcado como atendido"
     }
   },
   "takeOrder": {
@@ -3537,6 +3555,33 @@
       "provider_unavailable": "La terminal no respondió",
       "amount_out_of_range": "El monto está fuera de lo que acepta la terminal",
       "device_offline": "La terminal no está disponible"
+    },
+    "refund": {
+      "line": "Se devolverán {amount} a la tarjeta cobrada en {terminal}.",
+      "unknownTerminal": "la terminal",
+      "confirmHint": "Draxuvo pedirá el reembolso al proveedor y solo anulará si lo acepta.",
+      "confirm": "Reembolsar y anular",
+      "refunding": "Reembolsando…",
+      "back": "Volver",
+      "retry": "Reintentar",
+      "failedTitle": "No se anuló: el reembolso no se hizo",
+      "skip": "Anular sin reembolso",
+      "skipWarning": "El pago quedará como «reembolso pendiente fuera de Draxuvo»: tendrás que devolverlo desde la cuenta del proveedor o con el banco.",
+      "skipConfirm": "Sí, anular sin reembolso",
+      "manualCardNotice": "Los pagos con tarjeta registrados a mano no los reembolsa Draxuvo: la devolución se hace en la terminal o con el banco.",
+      "reasons": {
+        "refund_period_exceeded": "Ya pasó el plazo para reembolsar ese pago en el proveedor.",
+        "insufficient_money_for_refund": "La cuenta del proveedor no tiene saldo suficiente para el reembolso.",
+        "connection_error": "La conexión con el proveedor no funciona; vuelve a conectar la cuenta en Terminales.",
+        "provider_unavailable": "El proveedor no respondió. Intenta de nuevo en unos momentos.",
+        "refund_rejected": "El proveedor rechazó el reembolso."
+      },
+      "status": {
+        "requested": "Reembolso de {amount} en proceso",
+        "done": "Reembolso de {amount} hecho",
+        "rejected": "Reembolso de {amount} rechazado",
+        "skipped": "Reembolso de {amount} pendiente fuera de Draxuvo"
+      }
     }
   }
 }

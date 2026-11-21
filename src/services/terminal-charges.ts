@@ -28,7 +28,10 @@ export const terminalChargesService = {
   list: (params: { status?: string; page?: number; search?: string } = {}): Promise<PaginatedResponse<TerminalCharge>> =>
     apiClient.get(base, { params }).then((r) => r.data),
 
-  refund: (id: number): Promise<TerminalCharge> => apiClient.post(`${base}/${id}/refund`, { confirm: true }).then((r) => r.data),
+  /** Reembolsa un pago sin aplicar (FR-035); la lista muestra el motivo si el proveedor no lo acepta. */
+  refund: (id: number): Promise<TerminalCharge> =>
+    apiClient.post(`${base}/${id}/refund`, { confirm: true }, { skipErrorToast: true }).then((r) => r.data),
 
+  /** Lo marca atendido fuera de Draxuvo (por ejemplo, se devolvió desde Mercado Pago). */
   dismiss: (id: number): Promise<TerminalCharge> => apiClient.post(`${base}/${id}/dismiss`).then((r) => r.data),
 };

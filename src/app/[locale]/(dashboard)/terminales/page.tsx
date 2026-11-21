@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TerminalForm } from "@/components/terminals/terminal-form";
 import { TerminalList } from "@/components/terminals/terminal-list";
 import { ConnectionCard } from "@/components/terminals/connection-card";
+import { UnappliedList } from "@/components/terminals/unapplied-list";
 import { ModuleLocked, useModuleLocked } from "@/components/subscription/module-locked";
 import { usePaymentTerminals } from "@/hooks/use-payment-terminals";
 import { useTerminalConnections } from "@/hooks/use-terminal-connections";
@@ -59,6 +60,8 @@ export default function TerminalesPage() {
       </div>
 
       {connections.data?.map((entry) => <ConnectionCard key={entry.provider} entry={entry} />)}
+
+      <UnappliedList enabled={canManage && !locked} />
 
       {isLoading ? (
         <div className="space-y-2" aria-busy="true">
