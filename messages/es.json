@@ -2579,7 +2579,14 @@
       "disconnectDesc": "Las terminales de esta cuenta dejarán de recibir cobros desde Draxuvo (podrás registrar pagos a mano). Los cobros hechos se conservan.",
       "disconnected": "Mercado Pago quedó desconectado",
       "unavailable": "La conexión con Mercado Pago aún no está disponible.",
-      "loadError": "No se pudo cargar la conexión con Mercado Pago"
+      "loadError": "No se pudo cargar la conexión con Mercado Pago",
+      "connectOwn": "Conectar con mis credenciales",
+      "descriptionOwn": "Conecta la cuenta de Mercado Pago de tu negocio con el Access Token de tu propia aplicación (te guiamos paso a paso). Así el monto se manda solo a tus terminales Point y el cobro se registra al aprobarse.",
+      "tokenHint": "Access Token: {hint}",
+      "webhookReady": "Avisos de Mercado Pago configurados: los cobros se confirman al instante.",
+      "webhookMissing": "Avisos sin configurar: los cobros se confirman revisando cada minuto. Configúralos para que sea al instante.",
+      "configureWebhook": "Configurar avisos",
+      "changeToken": "Cambiar Access Token"
     },
     "devices": {
       "title": "Agregar terminal de Mercado Pago",
@@ -2624,6 +2631,36 @@
       "dismissBody": "Úsalo si ya lo resolviste fuera de Draxuvo (por ejemplo, lo devolviste desde la cuenta del proveedor). Dejará de aparecer aquí.",
       "dismissConfirm": "Sí, marcar atendido",
       "dismissed": "Pago marcado como atendido"
+    },
+    "ownCredentials": {
+      "tokenTitle": "Conectar Mercado Pago con tus credenciales",
+      "tokenIntro": "Lo hace una sola vez el dueño o el administrador, con la cuenta de Mercado Pago donde quieres recibir el dinero.",
+      "step1": "Entra a Mercado Pago Developers con la cuenta de tu negocio, elige «Crear aplicación» y, como solución, pagos presenciales con Point.",
+      "step1Link": "Abrir Mercado Pago Developers",
+      "step2": "Dentro de la aplicación, abre «Credenciales de producción» y copia el Access Token (empieza con APP_USR-). No lo compartas con nadie más.",
+      "step3": "Pégalo aquí abajo. Draxuvo lo revisa con Mercado Pago y lo guarda cifrado; nunca se vuelve a mostrar.",
+      "tokenLabel": "Access Token de producción",
+      "tokenHelp": "Ejemplo: APP_USR-1234…-5678",
+      "tokenReplaceHelp": "El guardado termina en {hint}. Pega uno nuevo solo si lo cambiaste en Mercado Pago.",
+      "checking": "Revisando…",
+      "connect": "Conectar",
+      "cancel": "Cancelar",
+      "connected": "Mercado Pago quedó conectado",
+      "webhookTitle": "Avisos de Mercado Pago (recomendado)",
+      "webhookIntro": "Con los avisos, Draxuvo sabe al instante que se aprobó un cobro. Sin ellos funciona igual, pero confirma revisando cada minuto.",
+      "webhookStep1": "En tu aplicación de Mercado Pago Developers abre «Webhooks» › «Configurar notificaciones», en modo productivo.",
+      "webhookStep2": "Pega esta URL, que es solo de tu negocio:",
+      "webhookStep3": "Marca el evento «Order (Mercado Pago)» y guarda.",
+      "webhookStep4": "Mercado Pago te muestra una clave secreta: cópiala y pégala aquí.",
+      "secretLabel": "Clave secreta de los avisos",
+      "secretHelp": "Draxuvo la usa para comprobar que cada aviso viene de Mercado Pago. Se guarda cifrada.",
+      "secretReplaceHelp": "Ya hay una clave guardada. Pega otra solo si la cambiaste en Mercado Pago.",
+      "saveSecret": "Guardar clave",
+      "secretSaved": "Avisos configurados",
+      "later": "Después",
+      "copy": "Copiar",
+      "copied": "URL copiada",
+      "genericError": "No se pudo guardar; intenta de nuevo"
     }
   },
   "takeOrder": {

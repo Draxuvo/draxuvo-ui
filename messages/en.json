@@ -2579,7 +2579,14 @@
       "disconnectDesc": "This account's terminals will stop receiving charges from Draxuvo (you can still record payments manually). Past charges are kept.",
       "disconnected": "Mercado Pago was disconnected",
       "unavailable": "The Mercado Pago connection isn't available yet.",
-      "loadError": "Couldn't load the Mercado Pago connection"
+      "loadError": "Couldn't load the Mercado Pago connection",
+      "connectOwn": "Connect with my credentials",
+      "descriptionOwn": "Connect your business's Mercado Pago account with the Access Token of your own application (we guide you step by step). The amount is sent to your Point terminals and the charge is recorded once approved.",
+      "tokenHint": "Access Token: {hint}",
+      "webhookReady": "Mercado Pago notifications set up: charges are confirmed instantly.",
+      "webhookMissing": "Notifications not set up: charges are confirmed by checking every minute. Set them up to make it instant.",
+      "configureWebhook": "Set up notifications",
+      "changeToken": "Change Access Token"
     },
     "devices": {
       "title": "Add Mercado Pago terminal",
@@ -2624,6 +2631,36 @@
       "dismissBody": "Use it if you already resolved it outside Draxuvo (for example, you returned it from the provider account). It will stop showing here.",
       "dismissConfirm": "Yes, mark handled",
       "dismissed": "Payment marked as handled"
+    },
+    "ownCredentials": {
+      "tokenTitle": "Connect Mercado Pago with your credentials",
+      "tokenIntro": "The owner or an admin does this once, with the Mercado Pago account where you want to receive the money.",
+      "step1": "Sign in to Mercado Pago Developers with your business account, choose “Create application” and, as the solution, in-person payments with Point.",
+      "step1Link": "Open Mercado Pago Developers",
+      "step2": "Inside the application, open “Production credentials” and copy the Access Token (it starts with APP_USR-). Don't share it with anyone else.",
+      "step3": "Paste it below. Draxuvo checks it with Mercado Pago and stores it encrypted; it's never shown again.",
+      "tokenLabel": "Production Access Token",
+      "tokenHelp": "Example: APP_USR-1234…-5678",
+      "tokenReplaceHelp": "The saved one ends in {hint}. Paste a new one only if you changed it in Mercado Pago.",
+      "checking": "Checking…",
+      "connect": "Connect",
+      "cancel": "Cancel",
+      "connected": "Mercado Pago is connected",
+      "webhookTitle": "Mercado Pago notifications (recommended)",
+      "webhookIntro": "With notifications, Draxuvo knows instantly when a charge is approved. Without them it still works, but confirms by checking every minute.",
+      "webhookStep1": "In your Mercado Pago Developers application open “Webhooks” › “Configure notifications”, in production mode.",
+      "webhookStep2": "Paste this URL, which belongs only to your business:",
+      "webhookStep3": "Check the “Order (Mercado Pago)” event and save.",
+      "webhookStep4": "Mercado Pago shows you a secret key: copy it and paste it here.",
+      "secretLabel": "Notifications secret key",
+      "secretHelp": "Draxuvo uses it to check that each notification comes from Mercado Pago. It's stored encrypted.",
+      "secretReplaceHelp": "A key is already saved. Paste another one only if you changed it in Mercado Pago.",
+      "saveSecret": "Save key",
+      "secretSaved": "Notifications set up",
+      "later": "Later",
+      "copy": "Copy",
+      "copied": "URL copied",
+      "genericError": "Couldn't save; try again"
     }
   },
   "takeOrder": {

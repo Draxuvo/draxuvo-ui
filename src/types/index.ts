@@ -1115,11 +1115,21 @@ export interface TerminalConnection {
   error_code: string | null;
   error_message: string | null;
   terminals_count: number;
+  /** `oauth` (aplicación de Draxuvo) o `token` (credenciales propias del negocio). */
+  auth_method?: "oauth" | "token";
+  /** Solo credenciales propias: últimos 4 del token, si hay clave secreta y la URL de los avisos. */
+  token_hint?: string | null;
+  webhook_secret_present?: boolean;
+  webhook_url?: string | null;
 }
 
 export interface TerminalProviderEntry {
   provider: TerminalProvider;
   available: boolean;
+  /** ¿Se puede conectar con OAuth (la plataforma tiene su aplicación)? */
+  oauth?: boolean;
+  /** ¿Se puede conectar pegando las credenciales de la aplicación propia? */
+  own_credentials?: boolean;
   connection: TerminalConnection | null;
 }
 

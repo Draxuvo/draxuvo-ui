@@ -1,5 +1,6 @@
 // src/components/terminals/connection-card.tsx — conexión de la empresa con Mercado Pago (spec 069, US2): estado, cuenta,
-// conectar (OAuth), volver a conectar, desconectar y agregar terminales de la cuenta.
+// conectar con las credenciales propias del negocio (Access Token, con instrucciones) o con OAuth si la plataforma tiene su
+// aplicación, volver a conectar, configurar avisos, desconectar y agregar terminales de la cuenta.
 "use client";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
@@ -12,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useAuthorizeConnection, useDisconnect } from "@/hooks/use-terminal-connections";
 import type { TerminalConnectionStatus, TerminalProviderEntry } from "@/types";
 import { DevicesSheet } from "./devices-sheet";
+import { OwnCredentialsDialog, type CredentialsStep } from "./own-credentials-dialog";
 
 const STATUS_VARIANT: Record<TerminalConnectionStatus, "secondary" | "default" | "destructive"> = {
   connected: "default",
@@ -33,12 +35,19 @@ export function ConnectionCard({ entry }: { entry: TerminalProviderEntry }) {
   const disconnect = useDisconnect();
   const [confirming, setConfirming] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [credentialsStep, setCredentialsStep] = useState<CredentialsStep | null>(null);
 
   if (!entry.available) return null;
+
+  const canOwn = entry.own_credentials ?? false;
+  const canOauth = entry.oauth ?? !canOwn;
 
   const connection = entry.connection;
   const status = connection?.status ?? "disconnected";
   const connected = status === "connected";
+  const ownConnection = connection?.auth_method === "token";
+  // Volver a conectar con la misma forma con que se conectó, si sigue disponible.
+  const reconnectOwn = canOwn && (ownConnection || !canOauth);
   const connectedOn = connection?.connected_at
     ? format(new Date(connection.connected_at), "PP", { locale: locale === "es" ? es : enUS })
     : null;
@@ -70,10 +79,36 @@ export function ConnectionCard({ entry }: { entry: TerminalProviderEntry }) {
               {t("addTerminal")}
             </Button>
           )}
-          {!connected && (
-            <Button type="button" className="min-h-11" disabled={authorize.isPending} onClick={() => authorize.mutate(entry.provider)}>
-              {connection ? t("reconnect") : t("connect")}
+          {!connected && connection && status !== "disconnected" ? (
+            <Button
+              type="button"
+              className="min-h-11"
+              disabled={authorize.isPending}
+              onClick={() => (reconnectOwn ? setCredentialsStep("token") : authorize.mutate(entry.provider))}
+            >
+              {t("reconnect")}
             </Button>
+          ) : (
+            !connected && (
+              <>
+                {canOwn && (
+                  <Button type="button" className="min-h-11" onClick={() => setCredentialsStep("token")}>
+                    {t("connectOwn")}
+                  </Button>
+                )}
+                {canOauth && (
+                  <Button
+                    type="button"
+                    variant={canOwn ? "outline" : "default"}
+                    className="min-h-11"
+                    disabled={authorize.isPending}
+                    onClick={() => authorize.mutate(entry.provider)}
+                  >
+                    {t("connect")}
+                  </Button>
+                )}
+              </>
+            )
           )}
           {connection && status !== "disconnected" && (
             <Button type="button" variant="outline" className="min-h-11" onClick={() => setConfirming(true)}>
@@ -88,6 +123,22 @@ export function ConnectionCard({ entry }: { entry: TerminalProviderEntry }) {
           {connection.account_label && <p>{t("account", { account: connection.account_label })}</p>}
           {connectedOn && <p>{t("connectedOn", { date: connectedOn })}</p>}
           <p>{t("terminalsCount", { count: connection.terminals_count })}</p>
+          {ownConnection && (
+            <>
+              {connection.token_hint && <p>{t("tokenHint", { hint: connection.token_hint })}</p>}
+              <p className={connection.webhook_secret_present ? undefined : "text-amber-700 dark:text-amber-400"}>
+                {connection.webhook_secret_present ? t("webhookReady") : t("webhookMissing")}
+              </p>
+              <div className="flex flex-wrap gap-2 pt-1">
+                <Button type="button" variant="outline" className="min-h-11" onClick={() => setCredentialsStep("webhook")}>
+                  {t("configureWebhook")}
+                </Button>
+                <Button type="button" variant="outline" className="min-h-11" onClick={() => setCredentialsStep("token")}>
+                  {t("changeToken")}
+                </Button>
+              </div>
+            </>
+          )}
           {status === "error" && (
             <p role="alert" className="text-destructive">
               {connection.error_message} {t("errorHint")}
@@ -95,7 +146,18 @@ export function ConnectionCard({ entry }: { entry: TerminalProviderEntry }) {
           )}
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">{t("description")}</p>
+        <p className="text-sm text-muted-foreground">{canOwn ? t("descriptionOwn") : t("description")}</p>
+      )}
+
+      {canOwn && credentialsStep && (
+        <OwnCredentialsDialog
+          key={credentialsStep}
+          open
+          onOpenChange={(open) => !open && setCredentialsStep(null)}
+          provider={entry.provider}
+          connection={connection}
+          initialStep={credentialsStep}
+        />
       )}
 
       <Dialog open={confirming} onOpenChange={setConfirming}>
