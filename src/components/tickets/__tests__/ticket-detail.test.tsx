@@ -159,3 +159,46 @@ describe("WhatsApp del ticket según el plan", () => {
     expect(screen.getByRole("button", { name: /Descargar/ })).toBeInTheDocument();
   });
 });
+
+describe("origen de los pagos con tarjeta (spec 069, US5)", () => {
+  const mp = { id: 9, name: "Caja 1", provider: "mercado_pago" as const };
+
+  it("un pago integrado dice «Confirmado por Mercado Pago» con la referencia del proveedor, sin repetirla", () => {
+    const ticket: Ticket = {
+      ...checkTicket,
+      payments: [
+        { method: "card", amount: "300.00", reference: "123456789", terminal: mp, amount_received: null, change_given: null,
+          source: "terminal", provider_reference: "123456789", refund: null },
+        { method: "card", amount: "200.00", reference: "VOUCHER-7", terminal: mp, amount_received: null, change_given: null,
+          source: "manual", provider_reference: null, refund: null },
+        { method: "cash", amount: "100.00", reference: null, amount_received: "100.00", change_given: "0.00", source: "manual" },
+      ],
+    };
+    renderWithProviders(<TicketDetail ticket={ticket} open onClose={() => {}} />);
+
+    expect(screen.getByText("Confirmado por Mercado Pago")).toBeInTheDocument();
+    expect(screen.getByText(/Referencia de Mercado Pago: 123456789/)).toBeInTheDocument();
+    expect(screen.queryByText(/Referencia: 123456789/)).not.toBeInTheDocument();
+    // El registrado a mano conserva su referencia y su marca; el efectivo no lleva marca.
+    expect(screen.getByText(/Tarjeta · Caja 1 · Referencia: VOUCHER-7/)).toBeInTheDocument();
+    expect(screen.getAllByText("Registrado a mano")).toHaveLength(1);
+  });
+
+  it("en «Anulaciones previas» un cobro integrado muestra su origen, referencia y reembolso pendiente fuera de Draxuvo", () => {
+    const ticket: Ticket = {
+      ...base,
+      voids: [{
+        id: 1, voided_at: "2026-10-20T10:15:00Z", voided_by: { id: 3, name: "Beto Ruiz" }, reason: "Cliente devolvió", amount: "500.00",
+        payments: [{
+          method: "card", amount: "500.00", ticket_payment_id: 44, source: "terminal", provider_reference: "987654", terminal: mp,
+          refund: { status: "skipped", amount: "500.00", completed_at: null, error_code: null },
+        }],
+      }],
+    };
+    renderWithProviders(<TicketDetail ticket={ticket} open onClose={() => {}} />);
+
+    expect(screen.getByText("Confirmado por Mercado Pago")).toBeInTheDocument();
+    expect(screen.getByText(/Referencia de Mercado Pago: 987654/)).toBeInTheDocument();
+    expect(screen.getByText(/Reembolso de \$500\.00 pendiente fuera de Draxuvo/)).toBeInTheDocument();
+  });
+});

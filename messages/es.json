@@ -1283,7 +1283,13 @@
     "check": "Cuenta",
     "authorization": "Autorización",
     "sale": "Venta de mostrador",
-    "saleTitle": "Venta de mostrador #{id}"
+    "saleTitle": "Venta de mostrador #{id}",
+    "origin": {
+      "confirmed": "Confirmado por {provider}",
+      "manual": "Registrado a mano",
+      "reference": "Referencia de {provider}: {reference}",
+      "provider": "el proveedor"
+    }
   },
   "subscription": {
     "nav": "Suscripción",

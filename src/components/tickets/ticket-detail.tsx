@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTicket, useSendTicketWhatsapp } from "@/hooks/use-tickets";
 import { TicketStatusBadge } from "./ticket-status-badge";
+import { PaymentOrigin, hasPaymentOrigin } from "./payment-origin";
 import { downloadTicketPDF } from "@/lib/ticket-pdf";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -41,7 +42,6 @@ export function TicketDetail({
 }) {
   const t = useTranslations("tickets");
   const tc = useTranslations("common");
-  const tr = useTranslations("terminalCharge.refund");
   const td = useTranslations("demo");
   const { isDemo } = useDemoInfo();
   const locale = useLocale();
@@ -203,11 +203,9 @@ export function TicketDetail({
                           {t("voidPayments", { payments: void_.payments.map((p) => `${t(`methods.${p.method}`)} ${money(p.amount)}`).join(", ") })}
                         </p>
                       )}
-                      {/* Spec 069: estado del reembolso de cada pago integrado anulado (FR-034) */}
-                      {void_.payments.filter((p) => p.refund).map((p, index) => (
-                        <p key={p.ticket_payment_id ?? index} className="text-muted-foreground">
-                          {tr(`status.${p.refund!.status}`, { amount: money(p.refund!.amount) })}
-                        </p>
+                      {/* Spec 069: origen, referencia y estado del reembolso de cada pago integrado anulado (FR-034, US5) */}
+                      {void_.payments.filter(hasPaymentOrigin).map((p, index) => (
+                        <PaymentOrigin key={p.ticket_payment_id ?? index} payment={p} />
                       ))}
                     </li>
                   ))}
@@ -259,12 +257,16 @@ export function TicketDetail({
                 <ul className="divide-y divide-border rounded-xl border border-border">
                   {activePayments.map((payment, i) => (
                     <li key={payment.id ?? i} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
-                      <span className="text-foreground">
-                        {t(`methods.${payment.method}`)}
-                        {payment.terminal ? ` · ${payment.terminal.name}` : ""}
-                        {payment.authorization_code ? ` · ${t("authorization")}: ${payment.authorization_code}` : ""}
-                        {payment.card_last4 ? ` · •••• ${payment.card_last4}` : ""}
-                        {payment.reference ? ` · ${t("reference")}: ${payment.reference}` : ""}
+                      <span className="min-w-0 space-y-0.5">
+                        <span className="block text-foreground">
+                          {t(`methods.${payment.method}`)}
+                          {payment.terminal ? ` · ${payment.terminal.name}` : ""}
+                          {payment.authorization_code ? ` · ${t("authorization")}: ${payment.authorization_code}` : ""}
+                          {payment.card_last4 ? ` · •••• ${payment.card_last4}` : ""}
+                          {/* La referencia de un cobro integrado es la del proveedor: sale en su origen, no dos veces. */}
+                          {payment.reference && payment.source !== "terminal" ? ` · ${t("reference")}: ${payment.reference}` : ""}
+                        </span>
+                        <PaymentOrigin payment={payment} />
                       </span>
                       <span className="font-semibold tabular-nums text-foreground">{money(payment.amount)}</span>
                     </li>
