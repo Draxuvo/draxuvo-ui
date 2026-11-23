@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useCancelSale, useSale } from "@/hooks/use-sales";
 import type { Sale } from "@/types";
 import { RefundPrompt } from "@/components/terminal-charge/refund-prompt";
+import { PaymentOrigin } from "@/components/tickets/payment-origin";
 import { hasManualCard, refundStepFrom, type RefundMode, type RefundStep } from "@/components/terminal-charge/refund";
 import { formatMoney } from "./lib";
 import { SaleTicket } from "./sale-ticket";
@@ -84,8 +85,14 @@ function Body({ sale, locale, onCancel }: { sale: Sale; locale: "es" | "en"; onC
         <section aria-label={t("detail.payments")}>
           <ul className="space-y-1 text-sm">
             {payments.map((payment, index) => (
-              <li key={payment.id ?? index} className="flex justify-between">
-                <span>{tw(`methods.${payment.method}`)}</span>
+              <li key={payment.id ?? index} className="flex justify-between gap-3">
+                <span className="min-w-0 space-y-0.5">
+                  <span className="block">
+                    {tw(`methods.${payment.method}`)}
+                    {payment.terminal ? ` · ${payment.terminal.name}` : ""}
+                  </span>
+                  <PaymentOrigin payment={payment} />
+                </span>
                 <span className="tabular-nums">{formatMoney(payment.amount, locale)}</span>
               </li>
             ))}

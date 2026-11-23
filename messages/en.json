@@ -1283,7 +1283,13 @@
     "check": "Check",
     "authorization": "Authorization",
     "sale": "Counter sale",
-    "saleTitle": "Counter sale #{id}"
+    "saleTitle": "Counter sale #{id}",
+    "origin": {
+      "confirmed": "Confirmed by {provider}",
+      "manual": "Recorded manually",
+      "reference": "{provider} reference: {reference}",
+      "provider": "the provider"
+    }
   },
   "subscription": {
     "nav": "Subscription",
