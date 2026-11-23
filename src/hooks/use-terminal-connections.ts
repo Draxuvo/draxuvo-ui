@@ -48,6 +48,11 @@ export const useConnectCallback = () =>
     terminalConnectionsService.callback(provider, code, state),
   );
 
+export const useSaveCredentials = () =>
+  useInvalidating(({ provider, ...data }: { provider: TerminalProvider; access_token: string; webhook_secret?: string }) =>
+    terminalConnectionsService.saveCredentials(provider, data),
+  );
+
 export const useDisconnect = () => useInvalidating((id: number) => terminalConnectionsService.disconnect(id));
 
 export const useLinkTerminal = () =>

@@ -15,6 +15,10 @@ export const terminalConnectionsService = {
   callback: (provider: TerminalProvider, code: string, state: string): Promise<TerminalConnection> =>
     apiClient.post(`${base}/${provider}/callback`, { code, state }, { skipErrorToast: true }).then((r) => r.data),
 
+  /** Credenciales propias: el Access Token de la aplicación del negocio (vacío = conservar) y la clave de los avisos. */
+  saveCredentials: (provider: TerminalProvider, data: { access_token: string; webhook_secret?: string }): Promise<TerminalConnection> =>
+    apiClient.put(`${base}/${provider}/credentials`, data, { skipErrorToast: true }).then((r) => r.data),
+
   disconnect: (id: number): Promise<TerminalConnection> => apiClient.delete(`${base}/${id}`).then((r) => r.data),
 
   devices: (id: number, params: { page?: number; page_size?: number; search?: string } = {}): Promise<PaginatedResponse<TerminalDevice>> =>
