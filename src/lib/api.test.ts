@@ -18,6 +18,14 @@ afterEach(() => {
   localStorage.clear()
 })
 
+describe("apiClient: canal del cliente (spec 073)", () => {
+  it("toda petición dice que viene del panel", async () => {
+    await apiClient.post("/api/v1/auth/login", { email: "a@b.c", password: "x" })
+
+    expect(adapter.mock.calls[0][0].headers["X-Draxuvo-Client"]).toBe("panel")
+  })
+})
+
 describe("apiClient al cerrar sesión", () => {
   it("manda la petición con el token mientras la sesión sigue abierta", async () => {
     localStorage.setItem("auth_token", "abc")

@@ -34,7 +34,8 @@ export function expectModuleLock(module: string): () => void {
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
-  headers: { "Content-Type": "application/json" },
+  // Spec 073: el canal del inicio de sesión en la bitácora (la API solo lo lee en `auth/login`).
+  headers: { "Content-Type": "application/json", "X-Draxuvo-Client": "panel" },
 });
 
 // Inyecta el token, el idioma y la empresa activa en cada request

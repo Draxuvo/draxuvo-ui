@@ -104,7 +104,9 @@
     "pos": "Venta",
     "sales": "Ventas",
     "mySales": "Mis ventas",
-    "business": "Mi negocio"
+    "business": "Mi negocio",
+    "accessLog": "Accesos",
+    "systemStatus": "Estado del sistema"
   },
   "whatsapp": {
     "title": "WhatsApp",
@@ -3626,5 +3628,138 @@
         "skipped": "Reembolso de {amount} pendiente fuera de Draxuvo"
       }
     }
+  },
+  "accessLog": {
+    "title": "Accesos",
+    "subtitle": "Cada intento de inicio de sesión en el panel y la app de los últimos 90 días.",
+    "forbidden": {
+      "title": "Sin acceso",
+      "body": "Solo el equipo de Draxuvo puede ver los accesos."
+    },
+    "error": "No se pudieron cargar los accesos.",
+    "retry": "Reintentar",
+    "empty": {
+      "title": "Sin intentos",
+      "body": "No hay intentos de inicio de sesión con estos filtros."
+    },
+    "noAccount": "Correo sin cuenta",
+    "deletedAccount": "Cuenta eliminada",
+    "unknownDevice": "Desconocido",
+    "results": {
+      "success": "Entró",
+      "wrong_password": "Contraseña incorrecta",
+      "unknown_email": "Correo sin cuenta",
+      "inactive": "Cuenta inactiva",
+      "rate_limited": "Bloqueado por intentos",
+      "invalid": "Datos inválidos"
+    },
+    "channels": {
+      "panel": "Panel",
+      "app": "App",
+      "unknown": "Desconocido"
+    },
+    "columns": {
+      "when": "Fecha y hora",
+      "result": "Resultado",
+      "person": "Persona",
+      "companies": "Empresas",
+      "ip": "IP",
+      "device": "Dispositivo",
+      "channel": "Canal"
+    },
+    "filters": {
+      "search": "Persona o correo",
+      "searchPlaceholder": "Nombre o correo",
+      "ip": "IP",
+      "result": "Resultado",
+      "channel": "Canal",
+      "company": "Empresa",
+      "all": "Todos",
+      "allCompanies": "Todas las empresas",
+      "failures": "Todos los fallos",
+      "from": "Desde",
+      "to": "Hasta",
+      "apply": "Buscar",
+      "clear": "Limpiar",
+      "sinceActive": "Mostrando solo los últimos {minutes} minutos."
+    },
+    "summary": {
+      "title": "Resumen",
+      "today": "Hoy",
+      "success": "{count, plural, one {# entrada} other {# entradas}}",
+      "failures": "{count, plural, one {# fallo} other {# fallos}}",
+      "topIps": "IP con más fallos (última hora)",
+      "topEmails": "Correos con más fallos (última hora)",
+      "none": "Sin intentos fallidos en la última hora."
+    }
+  },
+  "systemStatus": {
+    "title": "Estado del sistema",
+    "subtitle": "API, base de datos, trabajos en segundo plano, disponibilidad y errores en una sola pantalla.",
+    "forbidden": {
+      "title": "Sin acceso",
+      "body": "Solo el equipo de Draxuvo puede ver el estado del sistema."
+    },
+    "error": "No se pudo leer el estado del sistema.",
+    "retry": "Reintentar",
+    "refresh": "Actualizar",
+    "never": "nunca",
+    "checkedAt": "Leído: {when}",
+    "stale": "Dato de {when}: la última lectura falló ({reason}).",
+    "states": {
+      "ok": "Bien",
+      "warn": "Atención",
+      "down": "Mal",
+      "unconfigured": "Sin configurar",
+      "invalid_token": "Token inválido",
+      "unreachable": "Sin conexión"
+    },
+    "problems": {
+      "unconfigured": "Falta el token de {source} en el servidor.",
+      "invalid_token": "{source} rechazó el token: revísalo en Render.",
+      "unreachable": "No hubo respuesta de {source}."
+    },
+    "cards": {
+      "api": "API",
+      "database": "Base de datos",
+      "jobs": "Trabajos en segundo plano",
+      "uptime": "Disponibilidad",
+      "errors": "Errores"
+    },
+    "api": {
+      "version": "Versión",
+      "environment": "Ambiente",
+      "bootedAt": "En marcha desde {when}"
+    },
+    "database": {
+      "latency": "Respuesta"
+    },
+    "jobs": {
+      "heartbeat": "Última señal del worker: {when}",
+      "pending": "Pendientes",
+      "running": "En curso",
+      "failed": "Fallidos 24 h",
+      "detailTitle": "Detalle de trabajos",
+      "lateTitle": "Trabajos programados atrasados",
+      "lastRun": "última vez {when} (cada {minutes} min)",
+      "failuresTitle": "Fallidos recientes"
+    },
+    "uptimeStatus": {
+      "up": "Arriba",
+      "down": "Caído",
+      "paused": "En pausa",
+      "pending": "Pendiente",
+      "maintenance": "Mantenimiento",
+      "validating": "Validando",
+      "other": "Desconocido"
+    },
+    "projects": {
+      "draxuvo-api": "API",
+      "draxuvo-ui": "Panel",
+      "draxuvo-web": "Sitio",
+      "draxuvo-app": "App"
+    },
+    "errorsCount": "{count}{capped} sin resolver",
+    "events": "{count, plural, one {# evento} other {# eventos}}"
   }
 }

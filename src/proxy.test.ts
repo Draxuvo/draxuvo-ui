@@ -58,7 +58,7 @@ describe("proxy: ventas de mostrador (spec 050)", () => {
 });
 
 describe("proxy: pantallas del super admin (spec 055, H-57)", () => {
-  const paths = ["/es/empresas", "/es/usuarios", "/es/demos", "/es/suscripciones", "/es/estadisticas", "/es/whatsapp", "/en/usuarios", "/es/empresas/12"];
+  const paths = ["/es/empresas", "/es/usuarios", "/es/demos", "/es/suscripciones", "/es/estadisticas", "/es/whatsapp", "/es/accesos", "/es/estado", "/en/usuarios", "/es/empresas/12"];
 
   it("dueño y administrador vuelven a su inicio", () => {
     for (const role of ["owner", "admin"]) {
