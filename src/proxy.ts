@@ -32,7 +32,7 @@ const ADMIN_ROUTES = [
 
 // Spec 055 (H-57): pantallas exclusivas del super admin. Quien tiene sesión con otro rol no ve su marco: va a su inicio.
 // `/suscripciones` (plural) no es `/suscripcion` (la del cliente), por eso se compara por segmento completo.
-const SUPER_ADMIN_ROUTES = ["/empresas", "/usuarios", "/demos", "/suscripciones", "/estadisticas", "/whatsapp"];
+const SUPER_ADMIN_ROUTES = ["/empresas", "/usuarios", "/demos", "/suscripciones", "/estadisticas", "/whatsapp", "/accesos", "/estado"];
 
 const isSuperAdminRoute = (bare: string) => SUPER_ADMIN_ROUTES.some((r) => bare === r || bare.startsWith(`${r}/`));
 

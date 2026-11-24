@@ -3,12 +3,14 @@
 import { usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import {
+  Activity,
   BarChart2,
   Briefcase,
   Building2,
   CreditCard,
   FileBarChart2,
   FlaskConical,
+  KeyRound,
   MessageCircle,
   Users,
   X,
@@ -39,6 +41,8 @@ export function SuperAdminSidebar() {
     { href: `/${locale}/reportes`, label: t("reports"), icon: FileBarChart2 },
     { href: `/${locale}/demos`, label: t("demos"), icon: FlaskConical },
     { href: `/${locale}/whatsapp`, label: t("whatsapp"), icon: MessageCircle },
+    { href: `/${locale}/accesos`, label: t("accessLog"), icon: KeyRound },
+    { href: `/${locale}/estado`, label: t("systemStatus"), icon: Activity },
     ...(canEnterCompany
       ? [{ href: `/${locale}/inicio`, label: t("myCompany"), icon: Briefcase, onSelect: enterCompanyView }]
       : []),

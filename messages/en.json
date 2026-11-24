@@ -104,7 +104,9 @@
     "pos": "Sale",
     "sales": "Sales",
     "mySales": "My sales",
-    "business": "My business"
+    "business": "My business",
+    "accessLog": "Sign-ins",
+    "systemStatus": "System status"
   },
   "whatsapp": {
     "title": "WhatsApp",
@@ -3626,5 +3628,138 @@
         "skipped": "Refund of {amount} pending outside Draxuvo"
       }
     }
+  },
+  "accessLog": {
+    "title": "Sign-ins",
+    "subtitle": "Every sign-in attempt on the dashboard and the app in the last 90 days.",
+    "forbidden": {
+      "title": "No access",
+      "body": "Only the Draxuvo team can see sign-ins."
+    },
+    "error": "Sign-ins could not be loaded.",
+    "retry": "Retry",
+    "empty": {
+      "title": "No attempts",
+      "body": "There are no sign-in attempts with these filters."
+    },
+    "noAccount": "Email without an account",
+    "deletedAccount": "Deleted account",
+    "unknownDevice": "Unknown",
+    "results": {
+      "success": "Signed in",
+      "wrong_password": "Wrong password",
+      "unknown_email": "Email without an account",
+      "inactive": "Inactive account",
+      "rate_limited": "Blocked: too many attempts",
+      "invalid": "Invalid data"
+    },
+    "channels": {
+      "panel": "Dashboard",
+      "app": "App",
+      "unknown": "Unknown"
+    },
+    "columns": {
+      "when": "Date and time",
+      "result": "Result",
+      "person": "Person",
+      "companies": "Companies",
+      "ip": "IP",
+      "device": "Device",
+      "channel": "Channel"
+    },
+    "filters": {
+      "search": "Person or email",
+      "searchPlaceholder": "Name or email",
+      "ip": "IP",
+      "result": "Result",
+      "channel": "Channel",
+      "company": "Company",
+      "all": "All",
+      "allCompanies": "All companies",
+      "failures": "All failures",
+      "from": "From",
+      "to": "To",
+      "apply": "Search",
+      "clear": "Clear",
+      "sinceActive": "Showing only the last {minutes} minutes."
+    },
+    "summary": {
+      "title": "Summary",
+      "today": "Today",
+      "success": "{count, plural, one {# sign-in} other {# sign-ins}}",
+      "failures": "{count, plural, one {# failure} other {# failures}}",
+      "topIps": "IPs with most failures (last hour)",
+      "topEmails": "Emails with most failures (last hour)",
+      "none": "No failed attempts in the last hour."
+    }
+  },
+  "systemStatus": {
+    "title": "System status",
+    "subtitle": "API, database, background jobs, uptime and errors on one screen.",
+    "forbidden": {
+      "title": "No access",
+      "body": "Only the Draxuvo team can see the system status."
+    },
+    "error": "The system status could not be read.",
+    "retry": "Retry",
+    "refresh": "Refresh",
+    "never": "never",
+    "checkedAt": "Read: {when}",
+    "stale": "Data from {when}: the last read failed ({reason}).",
+    "states": {
+      "ok": "Good",
+      "warn": "Attention",
+      "down": "Down",
+      "unconfigured": "Not configured",
+      "invalid_token": "Invalid token",
+      "unreachable": "No connection"
+    },
+    "problems": {
+      "unconfigured": "The {source} token is missing on the server.",
+      "invalid_token": "{source} rejected the token: check it in Render.",
+      "unreachable": "{source} did not answer."
+    },
+    "cards": {
+      "api": "API",
+      "database": "Database",
+      "jobs": "Background jobs",
+      "uptime": "Uptime",
+      "errors": "Errors"
+    },
+    "api": {
+      "version": "Version",
+      "environment": "Environment",
+      "bootedAt": "Running since {when}"
+    },
+    "database": {
+      "latency": "Response"
+    },
+    "jobs": {
+      "heartbeat": "Last worker signal: {when}",
+      "pending": "Pending",
+      "running": "Running",
+      "failed": "Failed 24 h",
+      "detailTitle": "Job details",
+      "lateTitle": "Late scheduled jobs",
+      "lastRun": "last run {when} (every {minutes} min)",
+      "failuresTitle": "Recent failures"
+    },
+    "uptimeStatus": {
+      "up": "Up",
+      "down": "Down",
+      "paused": "Paused",
+      "pending": "Pending",
+      "maintenance": "Maintenance",
+      "validating": "Validating",
+      "other": "Unknown"
+    },
+    "projects": {
+      "draxuvo-api": "API",
+      "draxuvo-ui": "Dashboard",
+      "draxuvo-web": "Website",
+      "draxuvo-app": "App"
+    },
+    "errorsCount": "{count}{capped} unresolved",
+    "events": "{count, plural, one {# event} other {# events}}"
   }
 }

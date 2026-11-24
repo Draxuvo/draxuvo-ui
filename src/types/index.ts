@@ -1726,3 +1726,101 @@ export interface ChargeQueue {
   checks: number;
   total: number;
 }
+
+// ─── Bitácora de inicios de sesión y estado del sistema (spec 073, solo super admin) ─────────────────────────────────
+// Contrato: specs/073-bitacora-accesos-estado/contracts/api.md
+
+export type LoginAttemptResult = "success" | "wrong_password" | "unknown_email" | "inactive" | "rate_limited" | "invalid";
+export type LoginAttemptChannel = "panel" | "app" | "unknown";
+
+export interface LoginAttempt {
+  id: number;
+  created_at: string;
+  result: LoginAttemptResult;
+  email: string;
+  /** `null` si el correo no tenía cuenta; `deleted: true` si la persona se borró después. */
+  user: { id: number | null; name: string | null; deleted: boolean } | null;
+  companies: { id: number; name: string }[];
+  ip: string | null;
+  channel: LoginAttemptChannel;
+  /** Resumen del User-Agent; `null` si no se reconoce. */
+  device: string | null;
+  user_agent: string | null;
+  client_version: string | null;
+  demo: boolean;
+}
+
+export interface LoginAttemptFilters {
+  /** `failures` agrupa todos los resultados salvo `success`. */
+  result?: (LoginAttemptResult | "failures")[];
+  q?: string;
+  company_id?: number;
+  ip?: string;
+  channel?: LoginAttemptChannel;
+  /** Minutos hacia atrás (1–1440). */
+  since?: number;
+  /** `YYYY-MM-DD`, hora de México; `to` incluye todo el día. */
+  from?: string;
+  to?: string;
+  page?: number;
+  page_size?: number;
+}
+
+export interface LoginAttemptsSummary {
+  today: { success: number; failures: number };
+  window_minutes: number;
+  top_ips: { ip: string; failures: number }[];
+  top_emails: { email: string; failures: number }[];
+}
+
+export type SystemStatusState = "ok" | "warn" | "down" | "unconfigured" | "invalid_token" | "unreachable";
+
+/** Campos comunes de las tarjetas de terceros (Better Stack y Sentry). */
+export interface ExternalStatus {
+  state: SystemStatusState;
+  reason: string | null;
+  checked_at: string;
+  /** Se muestra la última copia buena porque la lectura nueva falló (`failure_state`). */
+  stale: boolean;
+  last_good_at: string | null;
+  failure_state?: SystemStatusState;
+}
+
+export interface UptimeMonitor {
+  name: string;
+  url: string;
+  status: string;
+  last_checked_at: string | null;
+  link: string;
+}
+
+export interface UptimeHeartbeat {
+  name: string;
+  status: string;
+  link: string;
+}
+
+export interface SentryProjectStatus {
+  slug: string;
+  unresolved: number;
+  capped: boolean;
+  issues: { title: string; count: number; last_seen: string | null; link: string }[];
+}
+
+export interface SystemStatus {
+  checked_at: string;
+  api: { state: SystemStatusState; version: string; booted_at: string; environment: string };
+  database: { state: SystemStatusState; latency_ms: number | null; reason?: string };
+  jobs: {
+    state: SystemStatusState;
+    last_heartbeat_at: string | null;
+    pending: number;
+    running: number;
+    failed_24h: number;
+    failures: { job_class: string; error_class: string | null; message: string; at: string }[];
+    late: { key: string; last_run_at: string | null; expected_every_seconds: number }[];
+  };
+  uptime: ExternalStatus & { monitors?: UptimeMonitor[]; heartbeats?: UptimeHeartbeat[] };
+  errors: ExternalStatus & { projects?: SentryProjectStatus[] };
+  links: { render: string; sentry: string; betterstack: string };
+}
